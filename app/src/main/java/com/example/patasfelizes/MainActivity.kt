@@ -1,58 +1,150 @@
 package com.example.patasfelizes
 
 import android.os.Bundle
-import android.view.Menu
-import com.google.android.material.snackbar.Snackbar
-import com.google.android.material.navigation.NavigationView
-import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.navigateUp
-import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
-import androidx.drawerlayout.widget.DrawerLayout
-import androidx.appcompat.app.AppCompatActivity
-import com.example.patasfelizes.databinding.ActivityMainBinding
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDrawerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.patasfelizes.ui.components.DrawerContent
+import com.example.patasfelizes.ui.components.TopBar
+import com.example.patasfelizes.ui.theme.PatasFelizesTheme
+import com.example.patasfelizes.ui.theme.primaryColor
+import com.example.patasfelizes.ui.theme.whiteColor
+import kotlinx.coroutines.launch
 
-class MainActivity : AppCompatActivity() {
 
-    private lateinit var appBarConfiguration: AppBarConfiguration
-    private lateinit var binding: ActivityMainBinding
 
+class MainActivity : ComponentActivity() {
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
+
         super.onCreate(savedInstanceState)
-
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        setSupportActionBar(binding.appBarMain.toolbar)
-
-        binding.appBarMain.fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null)
-                .setAnchorView(R.id.fab).show()
+        setContent {
+            PatasFelizesTheme {
+                MainScreen()
+            }
         }
-        val drawerLayout: DrawerLayout = binding.drawerLayout
-        val navView: NavigationView = binding.navView
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
-        appBarConfiguration = AppBarConfiguration(
-            setOf(
-                R.id.nav_home, R.id.nav_gallery, R.id.nav_slideshow
-            ), drawerLayout
-        )
-        setupActionBarWithNavController(navController, appBarConfiguration)
-        navView.setupWithNavController(navController)
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.main, menu)
-        return true
-    }
-
-    override fun onSupportNavigateUp(): Boolean {
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
-        return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 }
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MainScreen() {
+    val navController = rememberNavController()
+    var title by remember { mutableStateOf("Pets") }
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val coroutineScope = rememberCoroutineScope()
+
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet {
+                DrawerContent(
+                    navController = navController,
+                    onItemSelected = { selectedItem ->
+                        title = selectedItem
+                        coroutineScope.launch { drawerState.close() }
+                    },
+                    onCloseDrawer = {
+                        coroutineScope.launch { drawerState.close() }
+                    }
+                )
+            }
+        }
+    ) {
+        Surface(modifier = Modifier.fillMaxSize()) {
+            Column {
+                TopBar(
+                    title = title,
+                    onOpenDrawer = {
+                        coroutineScope.launch {
+                            drawerState.open()
+                        }
+                    },
+                    onProfileClick = {
+                        // Ação ao clicar no perfil do usuário
+                        // Adicionar como navegar para uma tela de perfil
+                    }
+                )
+
+                NavHost(navController = navController, startDestination = "pets") {
+                    composable("pets") {
+                        ScreenTemplate(title = "Tela Pets")
+                    }
+                    composable("adocoes") {
+                        ScreenTemplate(title = "Tela Adoções")
+                    }
+                    composable("lar_temporario") {
+                        ScreenTemplate(title = "Tela Lar Temporário")
+                    }
+                    composable("apadrinhamento") {
+                        ScreenTemplate(title = "Tela Apadrinhamento")
+                    }
+                    composable("procedimentos") {
+                        ScreenTemplate(title = "Tela Procedimentos")
+                    }
+                    composable("campanhas") {
+                        ScreenTemplate(title = "Tela Campanhas")
+                    }
+                    composable("financas") {
+                        ScreenTemplate(title = "Tela Finanças")
+                    }
+                    composable("estoque") {
+                        ScreenTemplate(title = "Tela Estoque")
+                    }
+                    composable("tarefas") {
+                        ScreenTemplate(title = "Tela Tarefas")
+                    }
+                    composable("equipe") {
+                        ScreenTemplate(title = "Tela Equipe")
+                    }
+                    composable("relatorios") {
+                        ScreenTemplate(title = "Tela Relatórios")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ScreenTemplate(title: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(whiteColor),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = title,
+            color = primaryColor,
+            style = MaterialTheme.typography.bodyLarge
+        )
+    }
+}
+
+

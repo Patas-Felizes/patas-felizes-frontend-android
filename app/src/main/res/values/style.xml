@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.PatasFelizes.Splash" parent="Theme.SplashScreen">
+        <!-- Cor de fundo da Splash Screen -->
+        <item name="windowSplashScreenBackground">#FFFFFF</item>
+
+        <!-- Ícone central da Splash Screen -->
+
+        <!-- Duração da animação da Splash Screen -->
+        <item name="windowSplashScreenAnimationDuration">500</item>
+
+        <!-- Tema para a atividade após a Splash Screen -->
+        <item name="postSplashScreenTheme">@style/Theme.PatasFelizes.NoActionBar</item>
+    </style>
+</resources>
