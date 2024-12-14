@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -23,12 +24,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.patasfelizes.ui.components.DrawerContent
 import com.example.patasfelizes.ui.components.TopBar
+import com.example.patasfelizes.ui.screens.animals.AnimalScreen
 import com.example.patasfelizes.ui.theme.PatasFelizesTheme
 import com.example.patasfelizes.ui.theme.primaryColor
 import com.example.patasfelizes.ui.theme.whiteColor
@@ -93,7 +96,7 @@ fun MainScreen() {
 
                 NavHost(navController = navController, startDestination = "pets") {
                     composable("pets") {
-                        ScreenTemplate(title = "Tela Pets")
+                        AnimalScreen(navController = navController)
                     }
                     composable("adocoes") {
                         ScreenTemplate(title = "Tela Adoções")
