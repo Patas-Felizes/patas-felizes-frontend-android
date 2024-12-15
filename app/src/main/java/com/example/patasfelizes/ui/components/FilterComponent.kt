@@ -11,109 +11,127 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
-
 data class FilterOption(
     val name: String,
     val isSelected: Boolean = false
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilterComponent(
     filterOptions: List<FilterOption>,
-    onFilterChanged: (List<FilterOption>) -> Unit,
-    drawerState: DrawerState = rememberDrawerState(initialValue = DrawerValue.Closed),
-    screenContent: @Composable () -> Unit
+    onFilterChanged: (List<FilterOption>) -> Unit
 ) {
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            ModalDrawerSheet(
-                modifier = Modifier.width(300.dp)
-            ) {
-                FilterDrawerContent(
-                    filterOptions = filterOptions,
-                    onFilterChanged = onFilterChanged,
-                    drawerState = drawerState
-                )
+    var showFilterDialog by remember { mutableStateOf(false) }
+    var mutableFilterOptions by remember { mutableStateOf(filterOptions) }
+
+    // Filtro aplicados
+    FilterHeader(
+        appliedFilters = mutableFilterOptions,
+        onFilterIconClick = { showFilterDialog = true }
+    )
+
+    if (showFilterDialog) {
+        FilterOptionsDialog(
+            filterOptions = mutableFilterOptions,
+            onDismiss = { showFilterDialog = false },
+            onFilterChanged = { updatedFilters ->
+                mutableFilterOptions = updatedFilters
+                onFilterChanged(updatedFilters)
+                showFilterDialog = false
+            }
+        )
+    }
+}
+
+@Composable
+fun FilterOptionsDialog(
+    filterOptions: List<FilterOption>,
+    onDismiss: () -> Unit,
+    onFilterChanged: (List<FilterOption>) -> Unit
+) {
+    var currentFilterOptions by remember { mutableStateOf(filterOptions) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Filtros",
+                style = MaterialTheme.typography.titleLarge
+            )
+        },
+        text = {
+            LazyColumn {
+                items(currentFilterOptions) { filter ->
+                    FilterOptionItem(
+                        filter = filter,
+                        onToggle = { updatedFilter ->
+                            currentFilterOptions = currentFilterOptions.map {
+                                if (it.name == updatedFilter.name) updatedFilter else it
+                            }
+                        }
+                    )
+                }
             }
         },
-        content = screenContent
+        confirmButton = {
+            TextButton(onClick = { onFilterChanged(currentFilterOptions) }) {
+                Text("Aplicar")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.secondary,
+        tonalElevation = 6.dp
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FilterDrawerContent(
-    filterOptions: List<FilterOption>,
-    onFilterChanged: (List<FilterOption>) -> Unit,
-    drawerState: DrawerState
+fun FilterHeader(
+    appliedFilters: List<FilterOption>,
+    onFilterIconClick: () -> Unit
 ) {
-    val mutableFilterOptions = remember {
-        mutableStateOf(filterOptions.toMutableList())
-    }
-
-    Column(
+    Row(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(
-            text = "Filtros",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-
-        LazyColumn {
-            items(mutableFilterOptions.value) { filter ->
-                FilterOptionItem(
-                    filter = filter,
-                    onToggle = { updatedFilter ->
-                        val updatedOptions = mutableFilterOptions.value.map {
-                            if (it.name == updatedFilter.name) updatedFilter else it
-                        }
-                        mutableFilterOptions.value = updatedOptions.toMutableList()
+        // Filtros aplicados exibidos
+        LazyRow(
+            modifier = Modifier.fillMaxWidth(0.90f),
+            contentPadding = PaddingValues(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(appliedFilters.filter { it.isSelected }) { filter ->
+                FilterChip(
+                    text = filter.name,
+                    onClick = {
+                        // Implementação para remover filtro
                     }
                 )
             }
         }
 
-        Spacer(modifier = Modifier.weight(1f))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Button(
-                onClick = {
-                    mutableFilterOptions.value = filterOptions.toMutableList()
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondary
-                )
-            ) {
-                Text("Limpar")
-            }
-
-            Button(
-                onClick = {
-                    onFilterChanged(mutableFilterOptions.value)
-                    // Close drawer
-                }
-            ) {
-                Text("Aplicar")
-            }
-        }
+        // Ícone de filtro
+        Icon(
+            imageVector = Icons.Outlined.FilterList,
+            contentDescription = "Filtrar",
+            modifier = Modifier
+                .size(26.dp)
+                .clickable { onFilterIconClick() },
+            tint = MaterialTheme.colorScheme.primary
+        )
     }
 }
 
@@ -141,46 +159,6 @@ fun FilterOptionItem(
         Text(
             text = filter.name,
             style = MaterialTheme.typography.bodyMedium
-        )
-    }
-}
-
-@Composable
-fun FilterHeader(
-    appliedFilters: List<FilterOption>,
-    onFilterIconClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        // Filtros aplicados exibidos
-        LazyRow(
-            modifier = Modifier.fillMaxWidth(0.90f),
-            contentPadding = PaddingValues(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(appliedFilters.filter { it.isSelected }) { filter ->
-                FilterChip(
-                    text = filter.name,
-                    onClick = {
-                        // Implementação de remover filtro
-                    }
-                )
-            }
-        }
-
-        // Ícone de filtro
-        Icon(
-            imageVector = Icons.Outlined.FilterList,
-            contentDescription = "Filtrar",
-            modifier = Modifier
-                .size(26.dp)
-                .clickable { onFilterIconClick() },
-            tint = MaterialTheme.colorScheme.primary
         )
     }
 }
