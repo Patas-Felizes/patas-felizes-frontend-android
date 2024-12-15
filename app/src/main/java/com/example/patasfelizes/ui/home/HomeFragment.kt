@@ -9,6 +9,10 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.patasfelizes.databinding.FragmentHomeBinding
 
+
+// esse código veio quando criamos o projeto, deixei aí pra consuta
+
+
 class HomeFragment : Fragment() {
 
     private var _binding: FragmentHomeBinding? = null

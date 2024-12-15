@@ -25,8 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.patasfelizes.ui.theme.primaryColor
-import com.example.patasfelizes.ui.theme.whiteColor
+
 
 @Composable
 fun DrawerContent(
@@ -37,7 +36,7 @@ fun DrawerContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(primaryColor)
+            .background(MaterialTheme.colorScheme.primary)
             .padding(16.dp)
     ) {
         Row(
@@ -52,7 +51,7 @@ fun DrawerContent(
                 Icon(
                     imageVector = Icons.Default.Menu,
                     contentDescription = "Open Menu",
-                    tint = whiteColor
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
             IconButton(
@@ -62,7 +61,7 @@ fun DrawerContent(
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Close Drawer",
-                    tint = whiteColor
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }
@@ -85,7 +84,7 @@ fun DrawerContent(
             Text(
                 text = label,
                 style = MaterialTheme.typography.titleMedium,
-                color = whiteColor,
+                color = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable {

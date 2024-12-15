@@ -18,8 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import com.example.patasfelizes.ui.theme.primaryColor
-import com.example.patasfelizes.ui.theme.whiteColor
+
 
 
 
@@ -33,13 +32,13 @@ fun TopBar(
     TopAppBar(
         modifier = Modifier
             .fillMaxWidth()
-            .background(whiteColor),
+            .background(MaterialTheme.colorScheme.background),
         navigationIcon = {
             IconButton(onClick = onOpenDrawer) {
                 Icon(
                     Icons.Default.Menu,
                     contentDescription = "Open Menu",
-                    tint = primaryColor
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
         },
@@ -51,7 +50,7 @@ fun TopBar(
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
-                    color = primaryColor,
+                    color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center
                 )
             }
@@ -61,12 +60,12 @@ fun TopBar(
                 Icon(
                     imageVector = Icons.Default.AccountCircle,
                     contentDescription = "User Profile",
-                    tint = primaryColor
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = whiteColor
+            containerColor = MaterialTheme.colorScheme.background
         )
     )
 }

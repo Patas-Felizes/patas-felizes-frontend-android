@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 data class FilterOption(
     val name: String,
@@ -26,15 +27,22 @@ data class FilterOption(
 @Composable
 fun FilterComponent(
     filterOptions: List<FilterOption>,
-    onFilterChanged: (List<FilterOption>) -> Unit
+    onFilterChanged: (List<FilterOption>) -> Unit,
 ) {
     var showFilterDialog by remember { mutableStateOf(false) }
     var mutableFilterOptions by remember { mutableStateOf(filterOptions) }
 
-    // Filtro aplicados
     FilterHeader(
         appliedFilters = mutableFilterOptions,
-        onFilterIconClick = { showFilterDialog = true }
+        onFilterIconClick = { showFilterDialog = true },
+        onFilterRemoved = { removedFilter ->
+
+            val updatedFilters = mutableFilterOptions.map {
+                if (it.name == removedFilter.name) it.copy(isSelected = false) else it
+            }
+            mutableFilterOptions = updatedFilters
+            onFilterChanged(updatedFilters)
+        }
     )
 
     if (showFilterDialog) {
@@ -98,7 +106,8 @@ fun FilterOptionsDialog(
 @Composable
 fun FilterHeader(
     appliedFilters: List<FilterOption>,
-    onFilterIconClick: () -> Unit
+    onFilterIconClick: () -> Unit,
+    onFilterRemoved: (FilterOption) -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -107,23 +116,31 @@ fun FilterHeader(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        // Filtros aplicados exibidos
+
         LazyRow(
             modifier = Modifier.fillMaxWidth(0.90f),
             contentPadding = PaddingValues(horizontal = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(appliedFilters.filter { it.isSelected }) { filter ->
-                FilterChip(
-                    text = filter.name,
-                    onClick = {
-                        // Implementação para remover filtro
-                    }
-                )
+            val selectedFilters = appliedFilters.filter { it.isSelected }
+            if (selectedFilters.isNotEmpty()) {
+                items(selectedFilters) { filter ->
+                    FilterChip(
+                        text = filter.name,
+                        onRemove = { onFilterRemoved(filter) }
+                    )
+                }
+            } else {
+                item {
+                    Text(
+                        text = "Filtros",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
             }
         }
 
-        // Ícone de filtro
         Icon(
             imageVector = Icons.Outlined.FilterList,
             contentDescription = "Filtrar",
@@ -134,6 +151,9 @@ fun FilterHeader(
         )
     }
 }
+
+
+
 
 @Composable
 fun FilterOptionItem(
@@ -166,29 +186,27 @@ fun FilterOptionItem(
 @Composable
 fun FilterChip(
     text: String,
-    onClick: () -> Unit
+    onRemove: () -> Unit,
 ) {
     Row(
         modifier = Modifier
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(12.dp))
             .background(MaterialTheme.colorScheme.secondary)
-            .clickable { onClick() }
-            .padding(horizontal = 12.dp, vertical = 4.dp),
+            .clickable { onRemove() }
+            .padding(horizontal = 8.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         Text(
             text = text,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onTertiary
+            style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp),
+            color = MaterialTheme.colorScheme.onBackground
         )
         Icon(
             imageVector = Icons.Default.Close,
             contentDescription = "Remove Filter",
-            modifier = Modifier
-                .size(16.dp)
-                .clickable { onClick() },
-            tint = Color.Gray
+            modifier = Modifier.size(12.dp),
+            tint = MaterialTheme.colorScheme.onBackground
         )
     }
 }

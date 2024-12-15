@@ -24,6 +24,7 @@ import com.example.patasfelizes.models.Animal
 import com.example.patasfelizes.models.AnimalList
 import com.example.patasfelizes.ui.components.*
 
+// Tela Pets
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnimalScreen(navController: NavHostController) {
@@ -31,21 +32,30 @@ fun AnimalScreen(navController: NavHostController) {
 
     val filterOptions = remember {
         listOf(
-            FilterOption("Todos", true),
-            FilterOption("Disponível"),
+            FilterOption("Para adoção"),
             FilterOption("Adotado"),
-            FilterOption("Em Tratamento")
+            FilterOption("Em lar temporário"),
+            FilterOption("Em tratamento")
         )
     }
 
     var currentFilters by remember { mutableStateOf(filterOptions) }
 
+
+
     // Lógica de filtros
     val filteredAnimals = AnimalList.filter { animal ->
-        (animal.nome.contains(searchQuery.text, ignoreCase = true) ||
-                animal.especie.contains(searchQuery.text, ignoreCase = true)) &&
-                (currentFilters.first { it.name == "Todos" }.isSelected ||
-                        currentFilters.any { it.isSelected && it.name == animal.status })
+        // Verifique se há algum filtro selecionado
+        val activeFilters = currentFilters.filter { it.isSelected }
+
+        // Sem filtro ativo = retorna todos os animais
+        if (activeFilters.isEmpty()) {
+            true
+        } else {
+            (animal.nome.contains(searchQuery.text, ignoreCase = true) ||
+                    animal.especie.contains(searchQuery.text, ignoreCase = true)) &&
+                    activeFilters.any { it.name == animal.status }
+        }
     }
 
     Scaffold(
@@ -64,13 +74,13 @@ fun AnimalScreen(navController: NavHostController) {
             color = MaterialTheme.colorScheme.background
         ) {
             Column {
-
                 CustomSearchBar(
                     searchQuery = searchQuery,
                     onSearchQueryChanged = { searchQuery = it },
-                    placeholderText = "Pesquisar pet...",
+                    placeholderText = "Pesquisar...",
                     onClearSearch = { searchQuery = TextFieldValue("") }
                 )
+
 
                 FilterComponent(
                     filterOptions = currentFilters,
@@ -117,7 +127,7 @@ fun AnimalScreen(navController: NavHostController) {
                                     Column(
                                         modifier = Modifier
                                             .fillMaxHeight()
-                                            .padding(top = 18.dp),
+                                            .padding(top = 9.dp),
                                         verticalArrangement = Arrangement.Top
                                     ) {
                                         Text(
@@ -127,6 +137,11 @@ fun AnimalScreen(navController: NavHostController) {
                                             modifier = Modifier.padding(bottom = 2.dp)
                                         )
 
+                                        Text(
+                                            text = "${animal.especie}",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onTertiary
+                                        )
                                         Text(
                                             text = "${animal.idade}",
                                             style = MaterialTheme.typography.bodySmall,

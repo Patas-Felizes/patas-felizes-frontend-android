@@ -14,7 +14,7 @@ fun CustomFloatingActionButton(onClick: () -> Unit, contentDescription: String =
         onClick = onClick,
         containerColor = MaterialTheme.colorScheme.primary,
         contentColor = MaterialTheme.colorScheme.onPrimary,
-        shape = RoundedCornerShape(50) // Torna o botão completamente arredondado
+        shape = RoundedCornerShape(50)
     ) {
         Icon(Icons.Filled.Add, contentDescription = contentDescription)
     }
