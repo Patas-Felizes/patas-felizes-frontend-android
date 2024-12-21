@@ -21,33 +21,55 @@ import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import com.example.patasfelizes.models.Animal
+import com.example.patasfelizes.models.AnimalList
 import com.example.patasfelizes.navigation.setupNavHost
 import com.example.patasfelizes.ui.components.DrawerContent
 import com.example.patasfelizes.ui.components.TopBar
-import com.example.patasfelizes.navigation.setupNavHost
 import com.example.patasfelizes.ui.theme.PatasFelizesTheme
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
-    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
-        val splashScreen = installSplashScreen()
+        installSplashScreen()
 
         super.onCreate(savedInstanceState)
         setContent {
-            PatasFelizesTheme {
-                MainScreen()
+            // Variável para controlar o tema atual
+            var isDarkTheme by remember { mutableStateOf(false) }
+
+            PatasFelizesTheme(isDarkTheme = isDarkTheme) {
+                MainScreen(
+                    isDarkTheme = isDarkTheme,
+                    onToggleTheme = { isDarkTheme = !isDarkTheme }
+                )
             }
         }
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun MainScreen() {
+    fun MainScreen(
+        isDarkTheme: Boolean,
+        onToggleTheme: () -> Unit
+    ) {
         val navController = rememberNavController()
         var title by remember { mutableStateOf("Pets") }
         val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
         val coroutineScope = rememberCoroutineScope()
+
+        // Função para salvar animal
+        val onSaveAnimal: (Animal) -> Unit = { animal ->
+            val newId = if (AnimalList.isNotEmpty()) {
+                AnimalList.maxByOrNull { it.id }?.id?.plus(1) ?: 1
+            } else {
+                1
+            }
+
+            // Adicionar à lista de animais com novo ID
+            AnimalList.add(animal.copy(id = newId))
+        }
 
         ModalNavigationDrawer(
             drawerState = drawerState,
@@ -61,7 +83,9 @@ class MainActivity : ComponentActivity() {
                         },
                         onCloseDrawer = {
                             coroutineScope.launch { drawerState.close() }
-                        }
+                        },
+                        isDarkTheme = isDarkTheme,
+                        onToggleTheme = onToggleTheme // Passamos a função de alternância do tema
                     )
                 }
             }
@@ -77,7 +101,6 @@ class MainActivity : ComponentActivity() {
                         },
                         onProfileClick = {
                             // Ação ao clicar no perfil do usuário
-                            // Adicionar como navegar para uma tela de perfil
                         }
                     )
 
@@ -85,7 +108,7 @@ class MainActivity : ComponentActivity() {
                         navController = navController,
                         startDestination = "pets"
                     ) {
-                        setupNavHost(navController)
+                        setupNavHost(navController, onSaveAnimal)
                     }
                 }
             }

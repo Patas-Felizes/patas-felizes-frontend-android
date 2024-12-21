@@ -10,17 +10,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.patasfelizes.models.Animal
-import com.example.patasfelizes.models.AnimalList
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.text.style.TextAlign
+import com.example.patasfelizes.models.AnimalList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,11 +69,10 @@ fun DetailsAnimalScreen(
 
             Card(
                 modifier = Modifier
-                    .width(340.dp)
-                    .fillMaxWidth(),
+                    .fillMaxWidth(0.97f)
+                    .padding(horizontal = 16.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary)
-
             ) {
                 Column(
                     modifier = Modifier.padding(horizontal = 16.dp),
@@ -91,13 +87,12 @@ fun DetailsAnimalScreen(
                 }
             }
 
-
             Spacer(modifier = Modifier.height(24.dp))
 
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 45.dp),
+                    .fillMaxWidth(0.9f)
+                    .padding(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Button(
@@ -132,27 +127,22 @@ fun DetailsAnimalScreen(
 
             Spacer(modifier = Modifier.height(11.dp))
 
-            Row(
+            Button(
+                onClick = { showDeleteConfirmation = true },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError
+                ),
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 45.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .fillMaxWidth(0.9f)
+                    .padding(horizontal = 16.dp),
+                contentPadding = PaddingValues(vertical = 8.dp, horizontal = 16.dp)
             ) {
-                Button(
-                    onClick = { showDeleteConfirmation = true },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error,
-                        contentColor = MaterialTheme.colorScheme.onError
-                    ),
-                    modifier = Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(vertical = 8.dp, horizontal = 16.dp)
-                ) {
-                    Text(
-                        text = "Remover pet",
-                        style = MaterialTheme.typography.labelSmall,
-                        textAlign = TextAlign.Center
-                    )
-                }
+                Text(
+                    text = "Remover pet",
+                    style = MaterialTheme.typography.labelSmall,
+                    textAlign = TextAlign.Center
+                )
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -167,8 +157,6 @@ fun DetailsAnimalScreen(
                     confirmButton = {
                         TextButton(
                             onClick = {
-                                // Lógica de remoção do animal
-                                // Por exemplo: AnimalList.remove(animal)
                                 navController.navigateUp()
                             }
                         ) {

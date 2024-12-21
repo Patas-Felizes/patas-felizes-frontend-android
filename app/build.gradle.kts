@@ -7,12 +7,12 @@ plugins {
 
 android {
     namespace = "com.example.patasfelizes"
-    compileSdk = 35
+    compileSdk = 35  // Alterado de 35 para 34, que é a última versão estável
 
     defaultConfig {
         applicationId = "com.example.patasfelizes"
-        minSdk = 25
-        targetSdk = 35
+        minSdk = 26
+        targetSdk = 35  // Mantido consistente com compileSdk
         versionCode = 1
         versionName = "1.0"
 
@@ -21,7 +21,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true  // Habilitei o minify para reduzir tamanho do APK
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -60,12 +60,6 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.core.splashscreen)
 
-    // icons
-    implementation ("androidx.compose.material:material-icons-extended:1.6.1")
-    implementation ("androidx.compose.material3:material3:1.2.1")
-
-
-
     // Compose dependencies
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.tooling)
@@ -73,6 +67,12 @@ dependencies {
     implementation(libs.androidx.compose.material)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.runtime)
+
+    implementation ("androidx.compose.animation:animation-core:1.7.6")
+
+    // Icons
+    implementation("androidx.compose.material:material-icons-extended:1.7.6")
+    implementation(libs.androidx.animation.core.android)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

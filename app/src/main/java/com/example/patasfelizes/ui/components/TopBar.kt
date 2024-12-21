@@ -20,8 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 
 
-
-
 @ExperimentalMaterial3Api
 @Composable
 fun TopBar(

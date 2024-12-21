@@ -42,21 +42,19 @@ fun AnimalScreen(navController: NavHostController) {
     var currentFilters by remember { mutableStateOf(filterOptions) }
 
 
+    // Ordenação e filtragem
+    val filteredAnimals = AnimalList
+        .filter { animal ->
+            val matchesSearch = searchQuery.text.isEmpty() ||
+                    animal.nome.contains(searchQuery.text, ignoreCase = true) ||
+                    animal.especie.contains(searchQuery.text, ignoreCase = true)
 
-    // Lógica de filtros
-    val filteredAnimals = AnimalList.filter { animal ->
-        // Verifique se há algum filtro selecionado
-        val activeFilters = currentFilters.filter { it.isSelected }
+            val activeFilters = currentFilters.filter { it.isSelected }
+            val matchesFilter = activeFilters.isEmpty() || activeFilters.any { it.name == animal.status }
 
-        // Sem filtro ativo = retorna todos os animais
-        if (activeFilters.isEmpty()) {
-            true
-        } else {
-            (animal.nome.contains(searchQuery.text, ignoreCase = true) ||
-                    animal.especie.contains(searchQuery.text, ignoreCase = true)) &&
-                    activeFilters.any { it.name == animal.status }
+            matchesSearch && matchesFilter
         }
-    }
+        .sortedByDescending { it.dataCadastro }
 
     Scaffold(
         floatingActionButton = {
@@ -81,7 +79,6 @@ fun AnimalScreen(navController: NavHostController) {
                     onClearSearch = { searchQuery = TextFieldValue("") }
                 )
 
-
                 FilterComponent(
                     filterOptions = currentFilters,
                     onFilterChanged = { updatedFilters ->
@@ -90,7 +87,8 @@ fun AnimalScreen(navController: NavHostController) {
                 )
 
                 LazyColumn(
-                    modifier = Modifier.padding(horizontal = 16.dp),
+                    modifier = Modifier.padding(horizontal = 5.dp),
+                    contentPadding = PaddingValues(bottom = 20.dp)
                 ) {
                     items(filteredAnimals) { animal ->
                         Box(
@@ -104,14 +102,13 @@ fun AnimalScreen(navController: NavHostController) {
                                     .clickable {
                                         navController.navigate("animalDetails/${animal.id}")
                                     }
-                                    .width(340.dp),
+                                    .fillMaxWidth(0.9f),
                                 elevation = CardDefaults.cardElevation(3.dp),
                                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary)
                             ) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    // Foto do animal
                                     Image(
                                         painter = painterResource(id = animal.imageRes),
                                         contentDescription = animal.nome,
@@ -123,7 +120,7 @@ fun AnimalScreen(navController: NavHostController) {
                                     )
 
                                     Spacer(modifier = Modifier.width(16.dp))
-                                    // Informações do animal
+
                                     Column(
                                         modifier = Modifier
                                             .fillMaxHeight()
@@ -147,13 +144,11 @@ fun AnimalScreen(navController: NavHostController) {
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onTertiary
                                         )
-
                                         Text(
                                             text = "${animal.sexo}",
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onTertiary
                                         )
-
                                         Text(
                                             text = "${animal.status}",
                                             style = MaterialTheme.typography.bodySmall,

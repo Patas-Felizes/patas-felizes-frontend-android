@@ -14,7 +14,7 @@ import com.example.patasfelizes.ui.components.*
 @Composable
 fun FinancesScreen(navController: NavHostController) {
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
-    var isExpensesSelected by remember { mutableStateOf(true) }
+    var selectedTabIndex by remember { mutableStateOf(0) }
 
     // editar filtros conforme cada tela
     val filterOptions = remember {
@@ -25,16 +25,17 @@ fun FinancesScreen(navController: NavHostController) {
             FilterOption("Em tratamento")
         )
     }
+
     var currentFilters by remember { mutableStateOf(filterOptions) }
 
     Scaffold(
         floatingActionButton = {
             CustomFloatingActionButton(
                 onClick = {
-                    val route = if (isExpensesSelected) "addExpense" else "addDonation"
+                    val route = if (selectedTabIndex == 0) "addExpense" else "addDonation"
                     navController.navigate(route)
                 },
-                contentDescription = if (isExpensesSelected) "Adicionar Despesa" else "Adicionar Doação"
+                contentDescription = if (selectedTabIndex == 0) "Adicionar Despesa" else "Adicionar Doação"
             )
         },
         floatingActionButtonPosition = FabPosition.End
@@ -46,34 +47,34 @@ fun FinancesScreen(navController: NavHostController) {
             color = MaterialTheme.colorScheme.background
         ) {
             Column {
-                // Barra de busca
                 CustomSearchBar(
                     searchQuery = searchQuery,
                     onSearchQueryChanged = { searchQuery = it },
-                    placeholderText = if (isExpensesSelected) "Pesquisar..." else "Pesquisar doação...",
+                    placeholderText = if (selectedTabIndex == 0) "Pesquisar..." else "Pesquisar...",
                     onClearSearch = { searchQuery = TextFieldValue("") }
                 )
 
-                // Toggle para alternar entre Despesas e Doações
                 ToggleSwitch(
                     options = listOf("Despesas", "Doações"),
-                    isSelected = isExpensesSelected,
-                    onOptionSelected = { isExpensesSelected = it }
+                    selectedOptionIndex = selectedTabIndex,
+                    onOptionSelected = { selectedTabIndex = it }
                 )
 
-                // Filtros
                 FilterComponent(
                     filterOptions = currentFilters,
-                    onFilterChanged = { updatedFilters -> currentFilters = updatedFilters }
+                    onFilterChanged = { updatedFilters ->
+                        currentFilters = updatedFilters
+                    }
                 )
 
                 // Conteúdo baseado na aba selecionada
-                if (isExpensesSelected) {
-                    //ExpensesContent(searchQuery.text, currentFilters)
+                if (selectedTabIndex == 0) {
+                    // ExpensesContent(searchQuery.text)
                 } else {
-                    //DonationsContent(searchQuery.text, currentFilters)
+                    // DonationsContent(searchQuery.text)
                 }
             }
         }
     }
 }
+

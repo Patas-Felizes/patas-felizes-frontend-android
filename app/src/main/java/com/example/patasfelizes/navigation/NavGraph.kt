@@ -5,9 +5,11 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.patasfelizes.models.Animal
 import com.example.patasfelizes.ui.screens.adoptions.AdoptionsScreen
 import com.example.patasfelizes.ui.screens.animals.AnimalScreen
 import com.example.patasfelizes.ui.screens.animals.DetailsAnimalScreen
+import com.example.patasfelizes.ui.screens.animals.AnimalRegistrationScreen
 import com.example.patasfelizes.ui.screens.campaigns.CampaignsScreen
 import com.example.patasfelizes.ui.screens.finances.FinancesScreen
 import com.example.patasfelizes.ui.screens.procedures.ProceduresScreen
@@ -19,7 +21,9 @@ import com.example.patasfelizes.ui.screens.support.SupportScreen
 
 import com.example.patasfelizes.ui.screens.temporaryhomes.TemporaryHomesScreen
 
-fun NavGraphBuilder.setupNavHost(navController: NavHostController) {
+fun NavGraphBuilder.setupNavHost(navController: NavHostController, onSaveAnimal: (Animal) -> Unit) {
+
+    //Navegação da Tela Pets
     composable("pets") {
         AnimalScreen(navController = navController)
     }
@@ -32,6 +36,13 @@ fun NavGraphBuilder.setupNavHost(navController: NavHostController) {
             DetailsAnimalScreen(navController, animalId = it)
         }
     }
+
+    composable(
+        route = "addAnimal"
+    ) {
+        AnimalRegistrationScreen(navController = navController, onSave = onSaveAnimal)
+    }
+
     composable("adocoes") {
         AdoptionsScreen(navController = navController)
     }

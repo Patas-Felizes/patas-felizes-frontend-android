@@ -28,7 +28,7 @@ fun CustomSearchBar(
     placeholderText: String = "Pesquisar...",
     onClearSearch: () -> Unit = {},
     cursorColor: Color = MaterialTheme.colorScheme.primary,
-    iconSize: Modifier = Modifier.size(26.dp)
+    iconSize: Modifier = Modifier.size(28.dp)
 ) {
     Box(
         modifier = Modifier
@@ -42,13 +42,13 @@ fun CustomSearchBar(
             cursorBrush = SolidColor(cursorColor),
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 40.dp, max = 44.dp)
+                .heightIn(min = 48.dp, max = 52.dp)
                 .clip(RoundedCornerShape(32.dp))
                 .background(MaterialTheme.colorScheme.secondary)
-                .padding(horizontal = 12.dp, vertical = 8.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             textStyle = MaterialTheme.typography.bodySmall.copy(
                 color = MaterialTheme.colorScheme.onSecondary,
-                fontSize = 14.sp
+                fontSize = 15.sp
             ),
             decorationBox = { innerTextField ->
                 Row(
@@ -58,14 +58,14 @@ fun CustomSearchBar(
                     Icon(
                         Icons.Filled.Search,
                         contentDescription = "Ícone de Busca",
-                        modifier = iconSize.padding(end = 8.dp)
+                        modifier = iconSize.padding(end = 12.dp)
                     )
                     Box(modifier = Modifier.weight(1f)) {
                         if (searchQuery.text.isEmpty()) {
                             Text(
                                 text = placeholderText,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.6f)
+                                color = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.8f)
                             )
                         }
                         innerTextField()
@@ -75,7 +75,7 @@ fun CustomSearchBar(
                             imageVector = Icons.Default.Clear,
                             contentDescription = "Limpar Busca",
                             modifier = iconSize
-                                .padding(start = 8.dp)
+                                .padding(start = 12.dp)
                                 .clickable { onClearSearch() }
                         )
                     }

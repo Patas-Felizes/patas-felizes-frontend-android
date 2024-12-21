@@ -16,7 +16,7 @@ data class Animal(
     val imageRes: Int
 )
 
-val AnimalList = listOf(
+val AnimalList = mutableListOf(
     Animal(
         id = 1,
         nome = "Nazaré",
