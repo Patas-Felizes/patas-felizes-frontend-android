@@ -23,7 +23,6 @@ import java.time.format.DateTimeFormatter
 fun AdoptionsScreen(navController: NavHostController) {
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
 
-    // Filtros (mantendo estrutura original)
     val filterOptions = remember {
         listOf(
             FilterOption("Para adoção"),
@@ -51,7 +50,6 @@ fun AdoptionsScreen(navController: NavHostController) {
             color = MaterialTheme.colorScheme.background
         ) {
             Column {
-                // Barra de pesquisa
                 CustomSearchBar(
                     searchQuery = searchQuery,
                     onSearchQueryChanged = { searchQuery = it },
@@ -59,7 +57,6 @@ fun AdoptionsScreen(navController: NavHostController) {
                     onClearSearch = { searchQuery = TextFieldValue("") }
                 )
 
-                // Componente de filtros
                 FilterComponent(
                     filterOptions = currentFilters,
                     onFilterChanged = { updatedFilters ->
@@ -69,14 +66,12 @@ fun AdoptionsScreen(navController: NavHostController) {
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Listagem de adoções
                 AdoptionList(
                     adopters = AdopterList.filter {
                         it.petNome.contains(searchQuery.text, ignoreCase = true) ||
                                 it.nome.contains(searchQuery.text, ignoreCase = true)
                     },
                     onAdopterClick = { adopter ->
-                        // Ação ao clicar em um item (navegar ou exibir detalhes)
                         navController.navigate("adoptionDetails/${adopter.id}")
                     }
                 )
@@ -97,7 +92,7 @@ fun AdoptionList(
     ) {
         itemsIndexed(adopters) { index, adopter ->
             val backgroundColor = if (index % 2 == 0) {
-                MaterialTheme.colorScheme.surface // Cor 1
+                MaterialTheme.colorScheme.secondary // Cor 1
             } else {
                 MaterialTheme.colorScheme.background // Cor 2
             }
@@ -130,7 +125,7 @@ fun AdoptionListItem(
         ) {
             Text(
                 text = adopter.petNome,
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleSmall
             )
             Text(
                 text = "Adotante: ${adopter.nome}",

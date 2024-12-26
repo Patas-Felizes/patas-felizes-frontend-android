@@ -5,8 +5,11 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.patasfelizes.models.AdopterList
 import com.example.patasfelizes.models.Animal
 import com.example.patasfelizes.ui.screens.adoptions.AdoptionsScreen
+import com.example.patasfelizes.ui.screens.adoptions.DetailsAdoptionsScreen
+import com.example.patasfelizes.ui.screens.adoptions.AdoptionRegistrationScreen
 import com.example.patasfelizes.ui.screens.animals.AnimalScreen
 import com.example.patasfelizes.ui.screens.animals.DetailsAnimalScreen
 import com.example.patasfelizes.ui.screens.animals.AnimalRegistrationScreen
@@ -46,9 +49,28 @@ fun NavGraphBuilder.setupNavHost(navController: NavHostController, onSaveAnimal:
     composable("adocoes") {
         AdoptionsScreen(navController = navController)
     }
+    composable(
+        route = "adoptionDetails/{adopterId}",
+        arguments = listOf(navArgument("adopterId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val adopterId = backStackEntry.arguments?.getInt("adopterId")
+        adopterId?.let {
+            DetailsAdoptionsScreen(navController = navController, adopterId = it, animalId = it)
+        }
+    }
+    composable("addAdoption") {
+        AdoptionRegistrationScreen(
+            navController = navController,
+            onSave = { pet, name, contact, state, city, address, neighborhood, number, cep ->
+                // Salve os dados do adotante aqui ou execute uma lógica
+            }
+        )
+    }
+
     composable("lar_temporario") {
         TemporaryHomesScreen(navController = navController)
     }
+
     composable("apadrinhamento") {
         SupportScreen(navController = navController)
     }
