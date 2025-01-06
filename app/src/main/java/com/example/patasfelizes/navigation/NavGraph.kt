@@ -72,6 +72,7 @@ fun NavGraphBuilder.setupNavHost(navController: NavHostController, onSaveAnimal:
     composable("adocoes") {
         AdoptionsScreen(navController = navController)
     }
+    
     composable("lar_temporario") {
         TemporaryHomesScreen(navController = navController)
     }
