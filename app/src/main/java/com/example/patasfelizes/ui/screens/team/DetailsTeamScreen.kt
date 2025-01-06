@@ -1,14 +1,8 @@
-package com.example.patasfelizes.ui.screens.animals
+package com.example.patasfelizes.ui.screens.team
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,28 +12,22 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.window.Dialog
-import coil.compose.AsyncImage
-import com.example.patasfelizes.models.AnimalList
+import com.example.patasfelizes.models.VoluntaryList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DetailsAnimalScreen(
+fun DetailsTeamScreen(
     navController: NavHostController,
-    animalId: Int
+    voluntaryId: Int
 ) {
-    val animal = AnimalList.find { it.id == animalId }
+    val voluntary = VoluntaryList.find { it.id == voluntaryId }
         ?: return
 
     var showDeleteConfirmation by remember { mutableStateOf(false) }
-    var showExpandedImage by remember { mutableStateOf(false) }
-    var selectedImageUri by remember { mutableStateOf<String?>(null) }
 
     Scaffold { innerPadding ->
         Column(
@@ -56,100 +44,21 @@ fun DetailsAnimalScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            LazyRow(
+            Image(
+                painter = painterResource(id = voluntary.imageRes),
+                contentDescription = voluntary.nome,
                 modifier = Modifier
+                    .size(120.dp)
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                if (animal.imageUris.isEmpty()) {
-                    item {
-                        AsyncImage(
-                            model = animal.imageRes,
-                            contentDescription = animal.nome,
-                            modifier = Modifier
-                                .size(120.dp)
-                                .border(
-                                    BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
-                                    CircleShape
-                                )
-                                .clip(CircleShape)
-                                .clickable {
-                                    selectedImageUri = null
-                                    showExpandedImage = true
-                                },
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-                } else {
-                    items(animal.imageUris) { imageUri ->
-                        Box(
-                            modifier = Modifier.padding(horizontal = 4.dp)
-                        ) {
-                            AsyncImage(
-                                model = imageUri,
-                                contentDescription = animal.nome,
-                                modifier = Modifier
-                                    .size(120.dp)
-                                    .border(
-                                        BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
-                                        CircleShape
-                                    )
-                                    .clip(CircleShape)
-                                    .clickable {
-                                        selectedImageUri = imageUri
-                                        showExpandedImage = true
-                                    },
-                                contentScale = ContentScale.Crop
-                            )
-                        }
-                    }
-                }
-            }
-
-            if (showExpandedImage) {
-                Dialog(onDismissRequest = { showExpandedImage = false }) {
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(400.dp),
-                        color = MaterialTheme.colorScheme.background.copy(alpha = 0.9f),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            AsyncImage(
-                                model = selectedImageUri ?: animal.imageRes,
-                                contentDescription = "${animal.nome} - Expandida",
-                                modifier = Modifier.padding(16.dp),
-                                contentScale = ContentScale.Crop
-                            )
-
-                            IconButton(
-                                onClick = { showExpandedImage = false },
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .padding(16.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = "Fechar",
-                                    tint = MaterialTheme.colorScheme.onBackground
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-
+                    .height(300.dp)
+                    .clip(RoundedCornerShape(300.dp)),
+                contentScale = ContentScale.Crop
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = animal.nome,
+                text = voluntary.nome,
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center
@@ -168,12 +77,8 @@ fun DetailsAnimalScreen(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     horizontalAlignment = Alignment.Start
                 ) {
-                    DetailRow(label = "Descrição", value = animal.descricao)
-                    DetailRow(label = "Idade", value = animal.idade)
-                    DetailRow(label = "Sexo", value = animal.sexo)
-                    DetailRow(label = "Castração", value = animal.castracao)
-                    DetailRow(label = "Status", value = animal.status)
-                    DetailRow(label = "Espécie", value = animal.especie)
+                    DetailRow(label = "Email", value = voluntary.email)
+                    DetailRow(label = "Telefone", value = voluntary.telefone)
                 }
             }
 
@@ -203,7 +108,7 @@ fun DetailsAnimalScreen(
                 Spacer(modifier = Modifier.width(16.dp))
 
                 Button(
-                    onClick = { navController.navigate("editAnimal/${animal.id}") },
+                    onClick = { navController.navigate("editVoluntary/${voluntary.id}") },
                     modifier = Modifier.weight(1f),
                     contentPadding = PaddingValues(vertical = 8.dp, horizontal = 16.dp)
                 ) {
@@ -229,20 +134,18 @@ fun DetailsAnimalScreen(
                 contentPadding = PaddingValues(vertical = 8.dp, horizontal = 16.dp)
             ) {
                 Text(
-                    text = "Remover pet",
+                    text = "Remover voluntário",
                     style = MaterialTheme.typography.labelSmall,
                     textAlign = TextAlign.Center
                 )
             }
-
-            Spacer(modifier = Modifier.height(32.dp))
 
             if (showDeleteConfirmation) {
                 AlertDialog(
                     onDismissRequest = { showDeleteConfirmation = false },
                     title = { Text("Confirmar Exclusão") },
                     text = {
-                        Text("Tem certeza que deseja remover ${animal.nome} permanentemente?")
+                        Text("Tem certeza que deseja remover ${voluntary.nome} permanentemente?")
                     },
                     confirmButton = {
                         TextButton(
@@ -267,7 +170,7 @@ fun DetailsAnimalScreen(
 }
 
 @Composable
-fun DetailRow(label: String, value: String) {
+private fun DetailRow(label: String, value: String) {
     Column(
         modifier = Modifier
             .fillMaxWidth()

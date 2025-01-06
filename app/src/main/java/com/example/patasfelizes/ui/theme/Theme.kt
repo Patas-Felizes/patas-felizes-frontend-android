@@ -6,7 +6,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.darkColorScheme
 
-// Definição de cores (como já existente)
 val paws_blue = Color(0xFF84A1DB)
 val paws_blue_desaturated = Color(0xFFEBEFF9)
 val white = Color(0xFFFFFFFF)
@@ -19,7 +18,7 @@ val cardDark = Color(0x3B3E44)
 
 @Composable
 fun PatasFelizesTheme(
-    isDarkTheme: Boolean = false, // Passar booleano para controlar o tema
+    isDarkTheme: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colors = if (isDarkTheme) {

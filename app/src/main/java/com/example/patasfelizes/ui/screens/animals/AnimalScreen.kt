@@ -23,6 +23,7 @@ import androidx.navigation.NavHostController
 import com.example.patasfelizes.models.Animal
 import com.example.patasfelizes.models.AnimalList
 import com.example.patasfelizes.ui.components.*
+import coil.compose.AsyncImage
 
 // Tela Pets
 @OptIn(ExperimentalMaterial3Api::class)
@@ -109,15 +110,27 @@ fun AnimalScreen(navController: NavHostController) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    Image(
-                                        painter = painterResource(id = animal.imageRes),
-                                        contentDescription = animal.nome,
-                                        modifier = Modifier
-                                            .size(130.dp)
-                                            .clip(RoundedCornerShape(topEnd = 0.dp, bottomEnd = 0.dp))
-                                            .aspectRatio(1f),
-                                        contentScale = ContentScale.Crop
-                                    )
+                                    if (animal.imageUris.isNotEmpty()) {
+                                        AsyncImage(
+                                            model = animal.imageUris[0],  // URI da primeira imagem
+                                            contentDescription = animal.nome,
+                                            modifier = Modifier
+                                                .size(130.dp)
+                                                .clip(RoundedCornerShape(topEnd = 0.dp, bottomEnd = 0.dp))
+                                                .aspectRatio(1f),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    } else {
+                                        AsyncImage(
+                                            model = animal.imageRes,
+                                            contentDescription = animal.nome,
+                                            modifier = Modifier
+                                                .size(130.dp)
+                                                .clip(RoundedCornerShape(topEnd = 0.dp, bottomEnd = 0.dp))
+                                                .aspectRatio(1f),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    }
 
                                     Spacer(modifier = Modifier.width(16.dp))
 

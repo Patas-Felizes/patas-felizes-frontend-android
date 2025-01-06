@@ -70,6 +70,9 @@ dependencies {
 
     implementation ("androidx.compose.animation:animation-core:1.7.6")
 
+    implementation("io.coil-kt:coil-compose:2.4.0")
+
+
     // Icons
     implementation("androidx.compose.material:material-icons-extended:1.7.6")
     implementation(libs.androidx.animation.core.android)
