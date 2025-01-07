@@ -7,6 +7,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.example.patasfelizes.models.DonationList
+import com.example.patasfelizes.models.ExtenseList
 import com.example.patasfelizes.ui.components.*
 
 // Tela Finanças
@@ -16,7 +18,7 @@ fun FinancesScreen(navController: NavHostController) {
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     var selectedTabIndex by remember { mutableStateOf(0) }
 
-    // editar filtros conforme cada tela
+    // Filtros específicos para cada aba
     val filterOptions = remember {
         listOf(
             FilterOption("Para adoção"),
@@ -28,11 +30,26 @@ fun FinancesScreen(navController: NavHostController) {
 
     var currentFilters by remember { mutableStateOf(filterOptions) }
 
+    // Dados filtrados e buscados
+    val filteredExpenses = remember {
+        mutableStateListOf(*ExtenseList.toTypedArray())
+    }.filter {
+        it.tipo.contains(searchQuery.text, ignoreCase = true) ||
+                it.valor.contains(searchQuery.text, ignoreCase = true)
+    }
+
+    val filteredDonations = remember {
+        mutableStateListOf(*DonationList.toTypedArray())
+    }.filter {
+        it.doador.contains(searchQuery.text, ignoreCase = true) ||
+                it.valor.contains(searchQuery.text, ignoreCase = true)
+    }
+
     Scaffold(
         floatingActionButton = {
             CustomFloatingActionButton(
                 onClick = {
-                    val route = if (selectedTabIndex == 0) "addExpense" else "addDonation"
+                    val route = if (selectedTabIndex == 0) "addExtense" else "addDonation"
                     navController.navigate(route)
                 },
                 contentDescription = if (selectedTabIndex == 0) "Adicionar Despesa" else "Adicionar Doação"
@@ -50,7 +67,7 @@ fun FinancesScreen(navController: NavHostController) {
                 CustomSearchBar(
                     searchQuery = searchQuery,
                     onSearchQueryChanged = { searchQuery = it },
-                    placeholderText = if (selectedTabIndex == 0) "Pesquisar..." else "Pesquisar...",
+                    placeholderText = if (selectedTabIndex == 0) "Pesquisar despesas..." else "Pesquisar doações...",
                     onClearSearch = { searchQuery = TextFieldValue("") }
                 )
 
@@ -67,14 +84,27 @@ fun FinancesScreen(navController: NavHostController) {
                     }
                 )
 
-                // Conteúdo baseado na aba selecionada
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Listagem de conteúdo baseado na aba selecionada
                 if (selectedTabIndex == 0) {
-                    // ExpensesContent(searchQuery.text)
+                    ExtensesContent(
+                        expenses = filteredExpenses,
+                        onExtenseClick = { expense ->
+                            navController.navigate("extenseDetails/${expense.id}")
+                        }
+                    )
                 } else {
-                    // DonationsContent(searchQuery.text)
+                    DonationsContent(
+                        donations = filteredDonations,
+                        onDonationClick = { donation ->
+                            navController.navigate("donationDetails/${donation.id}")
+                        }
+                    )
                 }
             }
         }
     }
 }
+
 

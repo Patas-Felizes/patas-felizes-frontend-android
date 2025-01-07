@@ -7,7 +7,8 @@ data class Voluntary(
     val nome: String,
     val email: String,
     val telefone: String,
-    val imageRes: Int
+    val imageRes: Int = R.drawable.default_image,
+    val imageUris: List<String> = emptyList()
 )
 
 val VoluntaryList = mutableListOf(

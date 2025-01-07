@@ -23,6 +23,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.example.patasfelizes.models.Animal
 import com.example.patasfelizes.models.AnimalList
+import com.example.patasfelizes.models.Donation
+import com.example.patasfelizes.models.DonationList
+import com.example.patasfelizes.models.Extense
+import com.example.patasfelizes.models.ExtenseList
+import com.example.patasfelizes.models.Voluntary
+import com.example.patasfelizes.models.VoluntaryList
 import com.example.patasfelizes.navigation.setupNavHost
 import com.example.patasfelizes.ui.components.DrawerContent
 import com.example.patasfelizes.ui.components.TopBar
@@ -71,6 +77,39 @@ class MainActivity : ComponentActivity() {
             AnimalList.add(animal.copy(id = newId))
         }
 
+        val onSaveVoluntary: (Voluntary) -> Unit = { voluntary ->
+            val newId = if (VoluntaryList.isNotEmpty()) {
+                VoluntaryList.maxByOrNull { it.id }?.id?.plus(1) ?: 1
+            } else {
+                1
+            }
+
+            // Adicionar à lista de animais com novo ID
+            VoluntaryList.add(voluntary.copy(id = newId))
+        }
+
+        val onSaveExtense: (Extense) -> Unit = { extense ->
+            val newId = if (ExtenseList.isNotEmpty()) {
+                ExtenseList.maxByOrNull { it.id }?.id?.plus(1) ?: 1
+            } else {
+                1
+            }
+
+            // Adicionar à lista de animais com novo ID
+            ExtenseList.add(extense.copy(id = newId))
+        }
+
+        val onSaveDonation: (Donation) -> Unit = { donation ->
+            val newId = if (DonationList.isNotEmpty()) {
+                DonationList.maxByOrNull { it.id }?.id?.plus(1) ?: 1
+            } else {
+                1
+            }
+
+            // Adicionar à lista de animais com novo ID
+            DonationList.add(donation.copy(id = newId))
+        }
+
         ModalNavigationDrawer(
             drawerState = drawerState,
             drawerContent = {
@@ -108,7 +147,11 @@ class MainActivity : ComponentActivity() {
                         navController = navController,
                         startDestination = "pets"
                     ) {
-                        setupNavHost(navController, onSaveAnimal)
+                        setupNavHost(navController,
+                            onSaveAnimal,
+                            onSaveVoluntary,
+                            onSaveExtense,
+                            onSaveDonation)
                     }
                 }
             }

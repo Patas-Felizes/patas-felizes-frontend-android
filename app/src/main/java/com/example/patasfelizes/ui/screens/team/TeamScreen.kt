@@ -50,7 +50,7 @@ fun TeamScreen(navController: NavHostController) {
     Scaffold(
         floatingActionButton = {
             CustomFloatingActionButton(
-                onClick = { navController.navigate("addTeam") },
+                onClick = { navController.navigate("addVoluntary") },
                 contentDescription = "Adicionar Membro da Equipe"
             )
         },
