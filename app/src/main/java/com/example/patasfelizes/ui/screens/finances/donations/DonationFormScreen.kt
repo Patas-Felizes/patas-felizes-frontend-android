@@ -1,4 +1,4 @@
-package com.example.patasfelizes.ui.screens.finances
+package com.example.patasfelizes.ui.screens.finances.donations
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -14,7 +14,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.patasfelizes.models.Animal
 import com.example.patasfelizes.models.Donation
 import com.example.patasfelizes.models.AnimalList
 import com.example.patasfelizes.ui.components.CustomDropdown

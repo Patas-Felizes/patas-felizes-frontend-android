@@ -1,5 +1,4 @@
-package com.example.patasfelizes.ui.screens.finances
-
+package com.example.patasfelizes.ui.screens.finances.donations
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -9,19 +8,19 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.patasfelizes.models.ExtenseList
+import com.example.patasfelizes.models.DonationList
+import com.example.patasfelizes.ui.screens.finances.extenses.DetailRow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DetailsExtenseScreen(
+fun DetailsDonationScreen(
     navController: NavHostController,
-    extenseId: Int
+    donationId: Int
 ) {
-    val extense = ExtenseList.find { it.id == extenseId }
+    val donation = DonationList.find { it.id == donationId }
         ?: return
 
     var showDeleteConfirmation by remember { mutableStateOf(false) }
@@ -42,7 +41,7 @@ fun DetailsExtenseScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Detalhes da Despesa",
+                text = "Detalhes da Doação",
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center
@@ -61,13 +60,12 @@ fun DetailsExtenseScreen(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     horizontalAlignment = Alignment.Start
                 ) {
-                    DetailRow(label = "Valor", value = "R$ ${extense.valor}")
-                    DetailRow(label = "Tipo", value = extense.tipo)
-                    DetailRow(label = "Data da Despesa", value = extense.dataDespesa)
-                    DetailRow(label = "Data de Cadastro", value = extense.dataCadastro.toString())
+                    DetailRow(label = "Doador", value = donation.doador)
+                    DetailRow(label = "Valor", value = "R$ ${donation.valor}")
+                    DetailRow(label = "Data da Doação", value = donation.dataDoacao)
                     DetailRow(
                         label = "Animal Relacionado",
-                        value = extense.idAnimal?.nome ?: "Despesa Geral"
+                        value = donation.idAnimal?.nome ?: "Doação Geral"
                     )
                 }
             }
@@ -98,7 +96,7 @@ fun DetailsExtenseScreen(
                 Spacer(modifier = Modifier.width(16.dp))
 
                 Button(
-                    onClick = { navController.navigate("editExtense/${extense.id}") },
+                    onClick = { navController.navigate("editDonation/${donation.id}") },
                     modifier = Modifier.weight(1f),
                     contentPadding = PaddingValues(vertical = 8.dp, horizontal = 16.dp)
                 ) {
@@ -124,7 +122,7 @@ fun DetailsExtenseScreen(
                 contentPadding = PaddingValues(vertical = 8.dp, horizontal = 16.dp)
             ) {
                 Text(
-                    text = "Remover despesa",
+                    text = "Remover doação",
                     style = MaterialTheme.typography.labelSmall,
                     textAlign = TextAlign.Center
                 )
@@ -137,7 +135,7 @@ fun DetailsExtenseScreen(
                     onDismissRequest = { showDeleteConfirmation = false },
                     title = { Text("Confirmar Exclusão") },
                     text = {
-                        Text("Tem certeza que deseja remover esta despesa permanentemente?")
+                        Text("Tem certeza que deseja remover esta doação permanentemente?")
                     },
                     confirmButton = {
                         TextButton(
@@ -161,23 +159,3 @@ fun DetailsExtenseScreen(
     }
 }
 
-@Composable
-fun DetailRow(label: String, value: String) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp)
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-    }
-}

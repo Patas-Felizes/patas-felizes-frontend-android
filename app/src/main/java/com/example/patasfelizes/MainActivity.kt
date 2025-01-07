@@ -27,6 +27,8 @@ import com.example.patasfelizes.models.Donation
 import com.example.patasfelizes.models.DonationList
 import com.example.patasfelizes.models.Extense
 import com.example.patasfelizes.models.ExtenseList
+import com.example.patasfelizes.models.Task
+import com.example.patasfelizes.models.TaskList
 import com.example.patasfelizes.models.Voluntary
 import com.example.patasfelizes.models.VoluntaryList
 import com.example.patasfelizes.navigation.setupNavHost
@@ -72,7 +74,6 @@ class MainActivity : ComponentActivity() {
             } else {
                 1
             }
-
             // Adicionar à lista de animais com novo ID
             AnimalList.add(animal.copy(id = newId))
         }
@@ -83,8 +84,6 @@ class MainActivity : ComponentActivity() {
             } else {
                 1
             }
-
-            // Adicionar à lista de animais com novo ID
             VoluntaryList.add(voluntary.copy(id = newId))
         }
 
@@ -94,8 +93,6 @@ class MainActivity : ComponentActivity() {
             } else {
                 1
             }
-
-            // Adicionar à lista de animais com novo ID
             ExtenseList.add(extense.copy(id = newId))
         }
 
@@ -105,9 +102,16 @@ class MainActivity : ComponentActivity() {
             } else {
                 1
             }
-
-            // Adicionar à lista de animais com novo ID
             DonationList.add(donation.copy(id = newId))
+        }
+
+        val onSaveTask: (Task) -> Unit = { task ->
+            val newId = if (TaskList.isNotEmpty()) {
+                TaskList.maxByOrNull { it.id }?.id?.plus(1) ?: 1
+            } else {
+                1
+            }
+            TaskList.add(task.copy(id = newId))
         }
 
         ModalNavigationDrawer(
@@ -151,7 +155,8 @@ class MainActivity : ComponentActivity() {
                             onSaveAnimal,
                             onSaveVoluntary,
                             onSaveExtense,
-                            onSaveDonation)
+                            onSaveDonation,
+                            onSaveTask)
                     }
                 }
             }

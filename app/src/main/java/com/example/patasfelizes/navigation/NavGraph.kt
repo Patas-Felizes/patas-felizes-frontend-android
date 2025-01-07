@@ -14,23 +14,22 @@ import com.example.patasfelizes.models.Donation
 import com.example.patasfelizes.models.DonationList
 import com.example.patasfelizes.models.Extense
 import com.example.patasfelizes.models.ExtenseList
+import com.example.patasfelizes.models.Task
+import com.example.patasfelizes.models.TaskList
 import com.example.patasfelizes.models.Voluntary
 import com.example.patasfelizes.models.VoluntaryList
 import com.example.patasfelizes.ui.screens.adoptions.AdoptionsScreen
-import com.example.patasfelizes.ui.screens.animals.AnimalEditScreen
 import com.example.patasfelizes.ui.screens.animals.AnimalFormScreen
 import com.example.patasfelizes.ui.screens.adoptions.DetailsAdoptionsScreen
 import com.example.patasfelizes.ui.screens.adoptions.AdoptionRegistrationScreen
-import com.example.patasfelizes.ui.screens.adoptions.AdoptionFormScreen
 import com.example.patasfelizes.ui.screens.adoptions.AdoptionEditScreen
 import com.example.patasfelizes.ui.screens.animals.AnimalScreen
 import com.example.patasfelizes.ui.screens.animals.DetailsAnimalScreen
-import com.example.patasfelizes.ui.screens.animals.AnimalRegistrationScreen
 import com.example.patasfelizes.ui.screens.campaigns.CampaignsScreen
-import com.example.patasfelizes.ui.screens.finances.DetailsDonationScreen
-import com.example.patasfelizes.ui.screens.finances.DetailsExtenseScreen
-import com.example.patasfelizes.ui.screens.finances.DonationFormScreen
-import com.example.patasfelizes.ui.screens.finances.ExtenseFormScreen
+import com.example.patasfelizes.ui.screens.finances.donations.DetailsDonationScreen
+import com.example.patasfelizes.ui.screens.finances.extenses.DetailsExtenseScreen
+import com.example.patasfelizes.ui.screens.finances.donations.DonationFormScreen
+import com.example.patasfelizes.ui.screens.finances.extenses.ExtenseFormScreen
 import com.example.patasfelizes.ui.screens.finances.FinancesScreen
 import com.example.patasfelizes.ui.screens.procedures.ProceduresScreen
 import com.example.patasfelizes.ui.screens.stock.StockScreen
@@ -38,6 +37,8 @@ import com.example.patasfelizes.ui.screens.tasks.TasksScreen
 import com.example.patasfelizes.ui.screens.team.TeamScreen
 import com.example.patasfelizes.ui.screens.reports.ReportsScreen
 import com.example.patasfelizes.ui.screens.support.SupportScreen
+import com.example.patasfelizes.ui.screens.tasks.DetailsTaskScreen
+import com.example.patasfelizes.ui.screens.tasks.TaskFormScreen
 import com.example.patasfelizes.ui.screens.team.DetailsTeamScreen
 import com.example.patasfelizes.ui.screens.team.TeamFormScreen
 import com.example.patasfelizes.ui.screens.temporaryhomes.TemporaryHomesScreen
@@ -47,14 +48,22 @@ fun NavGraphBuilder.setupNavHost(
     onSaveAnimal: (Animal) -> Unit,
     onSaveVoluntary: (Voluntary) -> Unit,
     onSaveExtense: (Extense) -> Unit,
-    onSaveDonation: (Donation) -> Unit
+    onSaveDonation: (Donation) -> Unit,
+    onSaveTask: (Task) -> Unit
 
 ) {
 
-    //Navegação da Tela Pets
+    /*
+    ***
+    ****
+        Navegação da Tela PETS
+    ****
+    ***
+    */
     composable("pets") {
         AnimalScreen(navController = navController)
     }
+
     composable(
         route = "animalDetails/{animalId}",
         arguments = listOf(navArgument("animalId") { type = NavType.IntType })
@@ -94,9 +103,17 @@ fun NavGraphBuilder.setupNavHost(
         )
     }
 
+    /*
+    ***
+    ****
+        Navegação da Tela ADOÇÕES
+    ****
+    ***
+    */
     composable("adocoes") {
         AdoptionsScreen(navController = navController)
     }
+
     composable(
         route = "adoptionDetails/{adopterId}",
         arguments = listOf(navArgument("adopterId") { type = NavType.IntType })
@@ -106,6 +123,7 @@ fun NavGraphBuilder.setupNavHost(
             DetailsAdoptionsScreen(navController = navController, adopterId = it, animalId = it)
         }
     }
+
     composable("addAdoption") {
         AdoptionRegistrationScreen(
             navController = navController,
@@ -144,41 +162,59 @@ fun NavGraphBuilder.setupNavHost(
         )
     }
 
-
+    /*
+    ***
+    ****
+        Navegação da Tela LAR TEMPORÁRIO
+    ****
+    ***
+    */
     composable("lar_temporario") {
         TemporaryHomesScreen(navController = navController)
     }
+
+    /*
+    ***
+    ****
+        Navegação da Tela APADRINHAMENTO
+    ****
+    ***
+    */
     composable("apadrinhamento") {
         SupportScreen(navController = navController)
     }
+
+    /*
+    ***
+    ****
+        Navegação da Tela PROCEDIMENTOS
+    ****
+    ***
+    */
     composable("procedimentos") {
         ProceduresScreen(navController = navController)
     }
+
+    /*
+    ***
+    ****
+        Navegação da Tela CAMPANHAS
+    ****
+    ***
+    */
     composable("campanhas") {
         CampaignsScreen(navController = navController)
     }
+
+    /*
+    ***
+    ****
+        Navegação da Tela FINANÇAS - DESPESAS
+    ****
+    ***
+    */
     composable("financas") {
         FinancesScreen(navController = navController)
-    }
-
-    composable(
-        route = "extenseDetails/{extenseId}",
-        arguments = listOf(navArgument("extenseId") { type = NavType.IntType })
-    ) { backStackEntry ->
-        val extenseId = backStackEntry.arguments?.getInt("extenseId")
-        extenseId?.let {
-            DetailsExtenseScreen(navController, extenseId = it)
-        }
-    }
-
-    composable(
-        route = "donationDetails/{donationId}",
-        arguments = listOf(navArgument("donationId") { type = NavType.IntType })
-    ) { backStackEntry ->
-        val donationId = backStackEntry.arguments?.getInt("donationId")
-        donationId?.let {
-            DetailsDonationScreen(navController, donationId = it)
-        }
     }
 
     composable("addExtense") {
@@ -189,12 +225,14 @@ fun NavGraphBuilder.setupNavHost(
         )
     }
 
-    composable("addDonation") {
-        DonationFormScreen(
-            navController = navController,
-            onSave = onSaveDonation,
-            isEditMode = false
-        )
+    composable(
+        route = "extenseDetails/{extenseId}",
+        arguments = listOf(navArgument("extenseId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val extenseId = backStackEntry.arguments?.getInt("extenseId")
+        extenseId?.let {
+            DetailsExtenseScreen(navController, extenseId = it)
+        }
     }
 
     composable(
@@ -218,6 +256,31 @@ fun NavGraphBuilder.setupNavHost(
         )
     }
 
+    /*
+    ***
+    ****
+        Navegação da Tela FINANÇAS - DOAÇÕES
+    ****
+    ***
+    */
+    composable("addDonation") {
+        DonationFormScreen(
+            navController = navController,
+            onSave = onSaveDonation,
+            isEditMode = false
+        )
+    }
+
+    composable(
+        route = "donationDetails/{donationId}",
+        arguments = listOf(navArgument("donationId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val donationId = backStackEntry.arguments?.getInt("donationId")
+        donationId?.let {
+            DetailsDonationScreen(navController, donationId = it)
+        }
+    }
+
     composable(
         route = "editDonation/{donationId}",
         arguments = listOf(navArgument("donationId") { type = NavType.IntType })
@@ -239,23 +302,76 @@ fun NavGraphBuilder.setupNavHost(
         )
     }
 
+    /*
+    ***
+    ****
+        Navegação da Tela ESTOQUE
+    ****
+    ***
+    */
     composable("estoque") {
         StockScreen(navController = navController)
     }
+
+    /*
+    ***
+    ****
+        Navegação da Tela TAREFAS
+    ****
+    ***
+    */
     composable("tarefas") {
         TasksScreen(navController = navController)
     }
+
+    composable("addTask") {
+        TaskFormScreen(
+            navController = navController,
+            onSave = onSaveTask,
+            isEditMode = false
+        )
+    }
+
+    composable(
+        route = "taskDetails/{taskId}",
+        arguments = listOf(navArgument("taskId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val taskId = backStackEntry.arguments?.getInt("taskId")
+        taskId?.let {
+            DetailsTaskScreen(navController, taskId = it)
+        }
+    }
+
+    composable(
+        route = "editTask/{taskId}",
+        arguments = listOf(navArgument("taskId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val taskId = backStackEntry.arguments?.getInt("taskId") ?: return@composable
+        val task = TaskList.find { it.id == taskId } ?: return@composable
+
+        TaskFormScreen(
+            navController = navController,
+            initialTask = task,
+            onSave = { updatedTask ->
+                // Atualizar o animal na lista
+                val index = TaskList.indexOfFirst { it.id == taskId }
+                if (index != -1) {
+                    TaskList[index] = updatedTask
+                }
+            },
+            isEditMode = true
+        )
+    }
+
+    /*
+    ***
+    ****
+        Navegação da Tela EQUIPE
+    ****
+    ***
+    */
     composable("equipe") {
         TeamScreen(navController = navController)
-    }
-    composable(
-        route = "voluntaryDetails/{voluntaryId}",
-        arguments = listOf(navArgument("voluntaryId") { type = NavType.IntType })
-    ) { backStackEntry ->
-        val voluntaryId = backStackEntry.arguments?.getInt("voluntaryId")
-        voluntaryId?.let {
-            DetailsTeamScreen(navController, voluntaryId = it)
-        }
     }
 
     composable("addVoluntary") {
@@ -264,6 +380,16 @@ fun NavGraphBuilder.setupNavHost(
             onSave = onSaveVoluntary,
             isEditMode = false
         )
+    }
+
+    composable(
+        route = "voluntaryDetails/{voluntaryId}",
+        arguments = listOf(navArgument("voluntaryId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val voluntaryId = backStackEntry.arguments?.getInt("voluntaryId")
+        voluntaryId?.let {
+            DetailsTeamScreen(navController, voluntaryId = it)
+        }
     }
 
     composable(
@@ -286,6 +412,14 @@ fun NavGraphBuilder.setupNavHost(
             isEditMode = true
         )
     }
+
+    /*
+    ***
+    ****
+        Navegação da Tela RELATÓRIOS
+    ****
+    ***
+    */
     composable("relatorios") {
         ReportsScreen(navController = navController)
     }

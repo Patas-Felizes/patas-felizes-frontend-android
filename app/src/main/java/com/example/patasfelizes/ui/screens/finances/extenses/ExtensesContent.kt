@@ -1,46 +1,44 @@
-package com.example.patasfelizes.ui.screens.finances
+package com.example.patasfelizes.ui.screens.finances.extenses
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import com.example.patasfelizes.models.Donation
-import java.time.format.DateTimeFormatter
+import com.example.patasfelizes.models.Extense
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
-fun DonationsContent(
-    donations: List<Donation>,
-    onDonationClick: (Donation) -> Unit
+fun ExtensesContent(
+    expenses: List<Extense>,
+    onExtenseClick: (Extense) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
     ) {
-        itemsIndexed(donations) { index, donation ->
+        itemsIndexed(expenses) { index, expense ->
             val backgroundColor = if (index % 2 == 0) {
                 MaterialTheme.colorScheme.secondary
             } else {
                 MaterialTheme.colorScheme.background
             }
-            DonationListItem(
-                donation = donation,
+            ExtenseListItem(
+                extense = expense,
                 backgroundColor = backgroundColor,
-                onClick = { onDonationClick(donation) }
+                onClick = { onExtenseClick(expense) }
             )
         }
     }
 }
 
 @Composable
-fun DonationListItem(
-    donation: Donation,
+fun ExtenseListItem(
+    extense: Extense,
     backgroundColor: Color,
     onClick: () -> Unit
 ) {
@@ -56,20 +54,18 @@ fun DonationListItem(
                 .padding(16.dp)
         ) {
             Text(
-                text = "Doador: ${donation.doador}",
+                text = "Tipo: ${extense.tipo}",
                 style = MaterialTheme.typography.titleSmall
             )
             Text(
-                text = "Valor: R$ ${donation.valor}",
+                text = "Valor: R$ ${extense.valor}",
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
-                text = "Data: ${
-                    donation.dataDoacao.format(DateTimeFormatter.ofPattern("dd/MM/uuuu"))
-                }",
-                style = MaterialTheme.typography.bodySmall
+                text = "Data: ${extense.dataDespesa}",
+                style = MaterialTheme.typography.bodyMedium
             )
-            donation.idAnimal?.let { animal ->
+            extense.idAnimal?.let { animal ->
                 Text(
                     text = "Animal associado: ${animal.nome}",
                     style = MaterialTheme.typography.bodySmall

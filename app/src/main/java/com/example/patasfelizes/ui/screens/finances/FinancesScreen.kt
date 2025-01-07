@@ -10,6 +10,8 @@ import androidx.navigation.NavHostController
 import com.example.patasfelizes.models.DonationList
 import com.example.patasfelizes.models.ExtenseList
 import com.example.patasfelizes.ui.components.*
+import com.example.patasfelizes.ui.screens.finances.donations.DonationsContent
+import com.example.patasfelizes.ui.screens.finances.extenses.ExtensesContent
 
 // Tela Finanças
 @OptIn(ExperimentalMaterial3Api::class)

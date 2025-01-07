@@ -1,4 +1,4 @@
-package com.example.patasfelizes.ui.screens.finances
+package com.example.patasfelizes.ui.screens.finances.extenses
 
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable

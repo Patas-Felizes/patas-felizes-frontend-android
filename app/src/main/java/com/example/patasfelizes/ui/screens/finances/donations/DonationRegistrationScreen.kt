@@ -1,17 +1,17 @@
-package com.example.patasfelizes.ui.screens.finances
+package com.example.patasfelizes.ui.screens.finances.donations
 
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
-import com.example.patasfelizes.models.Extense
+import com.example.patasfelizes.models.Donation
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExtenseRegistrationScreen(
+fun DonationRegistrationScreen(
     navController: NavHostController,
-    onSave: (Extense) -> Unit
+    onSave: (Donation) -> Unit
 ) {
-    ExtenseFormScreen(
+    DonationFormScreen(
         navController = navController,
         onSave = onSave,
         isEditMode = false
