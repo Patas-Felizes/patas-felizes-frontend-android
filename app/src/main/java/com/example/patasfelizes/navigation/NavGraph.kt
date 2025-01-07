@@ -1,10 +1,12 @@
 package com.example.patasfelizes.navigation
 
+import java.time.LocalDate
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.patasfelizes.models.Adopter
 import com.example.patasfelizes.models.AdopterList
 import com.example.patasfelizes.models.Animal
 import com.example.patasfelizes.models.AnimalList
@@ -13,6 +15,8 @@ import com.example.patasfelizes.ui.screens.animals.AnimalEditScreen
 import com.example.patasfelizes.ui.screens.animals.AnimalFormScreen
 import com.example.patasfelizes.ui.screens.adoptions.DetailsAdoptionsScreen
 import com.example.patasfelizes.ui.screens.adoptions.AdoptionRegistrationScreen
+import com.example.patasfelizes.ui.screens.adoptions.AdoptionFormScreen
+import com.example.patasfelizes.ui.screens.adoptions.AdoptionEditScreen
 import com.example.patasfelizes.ui.screens.animals.AnimalScreen
 import com.example.patasfelizes.ui.screens.animals.DetailsAnimalScreen
 import com.example.patasfelizes.ui.screens.animals.AnimalRegistrationScreen
@@ -88,10 +92,40 @@ fun NavGraphBuilder.setupNavHost(navController: NavHostController, onSaveAnimal:
         AdoptionRegistrationScreen(
             navController = navController,
             onSave = { pet, name, contact, state, city, address, neighborhood, number, cep ->
-                // Salve os dados do adotante aqui ou execute uma lógica
+                AdopterList.add(
+                    Adopter(
+                        id = AdopterList.size + 1, nome = name, petNome = pet, telefone = contact,
+                        estado = state, cidade = city, endereco = address, bairro = neighborhood,
+                        numero = number, cep = cep, dataCadastro = LocalDate.now()
+                    )
+                )
             }
         )
     }
+
+    composable(
+        route = "editAdoption/{adoptionId}",
+        arguments = listOf(navArgument("adoptionId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val adoptionId = backStackEntry.arguments?.getInt("adoptionId") ?: return@composable
+        val adopter = AdopterList.find { it.id == adoptionId } ?: return@composable
+
+        AdoptionEditScreen(
+            navController = navController,
+            adopter = adopter,
+            onSave = { pet, name, contact, state, city, address, neighborhood, number, cep ->
+                val index = AdopterList.indexOfFirst { it.id == adoptionId }
+                if (index != -1) {
+                    AdopterList[index] = adopter.copy(
+                        petNome = pet, nome = name, telefone = contact, estado = state,
+                        cidade = city, endereco = address, bairro = neighborhood,
+                        numero = number, cep = cep
+                    )
+                }
+            }
+        )
+    }
+
 
     composable("lar_temporario") {
         TemporaryHomesScreen(navController = navController)

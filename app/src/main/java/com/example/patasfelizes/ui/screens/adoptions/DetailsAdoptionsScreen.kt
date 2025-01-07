@@ -123,7 +123,7 @@ fun DetailsAdoptionsScreen(
                 Spacer(modifier = Modifier.width(16.dp))
 
                 Button(
-                    onClick = { },
+                    onClick = { navController.navigate("editAdoption/${adopter.id}") },
                     modifier = Modifier.weight(1f),
                     contentPadding = PaddingValues(vertical = 8.dp, horizontal = 16.dp)
                 ) {
