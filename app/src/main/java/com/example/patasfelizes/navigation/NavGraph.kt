@@ -14,6 +14,8 @@ import com.example.patasfelizes.models.Donation
 import com.example.patasfelizes.models.DonationList
 import com.example.patasfelizes.models.Extense
 import com.example.patasfelizes.models.ExtenseList
+import com.example.patasfelizes.models.GuardianTemp
+import com.example.patasfelizes.models.GuardianTempList
 import com.example.patasfelizes.models.Task
 import com.example.patasfelizes.models.TaskList
 import com.example.patasfelizes.models.Voluntary
@@ -41,7 +43,10 @@ import com.example.patasfelizes.ui.screens.tasks.DetailsTaskScreen
 import com.example.patasfelizes.ui.screens.tasks.TaskFormScreen
 import com.example.patasfelizes.ui.screens.team.DetailsTeamScreen
 import com.example.patasfelizes.ui.screens.team.TeamFormScreen
+import com.example.patasfelizes.ui.screens.temporaryhomes.TempHomeRegistrationScreen
+import com.example.patasfelizes.ui.screens.temporaryhomes.TempHomesDetailsScreen
 import com.example.patasfelizes.ui.screens.temporaryhomes.TemporaryHomesScreen
+import com.example.patasfelizes.ui.screens.temporaryhomes.TempHomeEditScreen
 
 fun NavGraphBuilder.setupNavHost(
     navController: NavHostController,
@@ -172,6 +177,69 @@ fun NavGraphBuilder.setupNavHost(
     composable("lar_temporario") {
         TemporaryHomesScreen(navController = navController)
     }
+    composable(
+        route = "temporaryHomeDetails/{guardianId}",
+        arguments = listOf(navArgument("guardianId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val guardianId = backStackEntry.arguments?.getInt("guardianId")
+        guardianId?.let {
+            TempHomesDetailsScreen(navController = navController, guardianId = it)
+        }
+    }
+    composable("addTemporaryHome") {
+        TempHomeRegistrationScreen(
+            navController = navController,
+            onSave = { petName, guardianName, contactInfo, period, state, city, address, neighborhood, number, cep ->
+                GuardianTempList.add(
+                    GuardianTemp(
+                        id = GuardianTempList.size + 1,
+                        petNome = petName,
+                        nome = guardianName,
+                        telefone = contactInfo,
+                        periodo = period,
+                        estado = state,
+                        cidade = city,
+                        endereco = address,
+                        bairro = neighborhood,
+                        numero = number,
+                        cep = cep,
+                        dataCadastro = LocalDate.now()
+                    )
+                )
+            }
+        )
+    }
+
+    composable(
+        route = "editTemporaryHome/{guardianId}",
+        arguments = listOf(navArgument("guardianId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val guardianId = backStackEntry.arguments?.getInt("guardianId") ?: return@composable
+        val guardian = GuardianTempList.find { it.id == guardianId } ?: return@composable
+
+        TempHomeEditScreen(
+            navController = navController,
+            guardian = guardian,
+            onSave = { petName, guardianName, contactInfo, period, state, city, address, neighborhood, number, cep ->
+                val index = GuardianTempList.indexOfFirst { it.id == guardianId }
+                if (index != -1) {
+                    GuardianTempList[index] = guardian.copy(
+                        petNome = petName,
+                        nome = guardianName,
+                        telefone = contactInfo,
+                        periodo = period,
+                        estado = state,
+                        cidade = city,
+                        endereco = address,
+                        bairro = neighborhood,
+                        numero = number,
+                        cep = cep
+                    )
+                }
+            }
+        )
+    }
+
 
     /*
     ***
