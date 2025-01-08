@@ -17,6 +17,7 @@ import androidx.navigation.NavHostController
 import com.example.patasfelizes.models.Extense
 import com.example.patasfelizes.models.AnimalList
 import com.example.patasfelizes.ui.components.CustomDropdown
+import com.example.patasfelizes.ui.components.DatePickerField
 import com.example.patasfelizes.ui.components.FormField
 import java.time.LocalDate
 
@@ -84,13 +85,14 @@ fun ExtenseFormScreen(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                FormField(
+                DatePickerField(
                     label = "Data da Despesa",
-                    placeholder = "AAAA-MM-DD",
-                    value = dataDespesa,
-                    onValueChange = { dataDespesa = it },
-                    modifier = Modifier.padding(bottom = 16.dp),
-                    trailingIcon = { EditIcon() }
+                    placeholder = "XX-XX-XXXX",
+                    value = dataDespesa.text,
+                    onDateSelected = { newDate ->
+                        dataDespesa = TextFieldValue(newDate)
+                    },
+                    modifier = Modifier.padding(bottom = 16.dp)
                 )
 
                 CustomDropdown(

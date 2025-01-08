@@ -17,6 +17,7 @@ import androidx.navigation.NavHostController
 import com.example.patasfelizes.models.Donation
 import com.example.patasfelizes.models.AnimalList
 import com.example.patasfelizes.ui.components.CustomDropdown
+import com.example.patasfelizes.ui.components.DatePickerField
 import com.example.patasfelizes.ui.components.FormField
 import java.time.LocalDate
 
@@ -82,13 +83,14 @@ fun DonationFormScreen(
                     trailingIcon = { EditIcon() }
                 )
 
-                FormField(
+                DatePickerField(
                     label = "Data da Doação",
-                    placeholder = "AAAA-MM-DD",
-                    value = dataDoacao,
-                    onValueChange = { dataDoacao = it },
-                    modifier = Modifier.padding(bottom = 16.dp),
-                    trailingIcon = { EditIcon() }
+                    placeholder = "XX-XX-XXXX",
+                    value = dataDoacao.text,
+                    onDateSelected = { newDate ->
+                        dataDoacao = TextFieldValue(newDate)
+                    },
+                    modifier = Modifier.padding(bottom = 16.dp)
                 )
 
                 CustomDropdown(

@@ -15,6 +15,7 @@ import com.example.patasfelizes.models.AnimalList
 import com.example.patasfelizes.models.Task
 import com.example.patasfelizes.models.VoluntaryList
 import com.example.patasfelizes.ui.components.CustomDropdown
+import com.example.patasfelizes.ui.components.DatePickerField
 import com.example.patasfelizes.ui.components.FormField
 import java.time.LocalDate
 
@@ -68,11 +69,13 @@ fun TaskFormScreen(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                FormField(
+                DatePickerField(
                     label = "Data da Tarefa",
-                    placeholder = "YYYY-MM-DD",
-                    value = dataTarefa,
-                    onValueChange = { dataTarefa = it },
+                    placeholder = "XX-XX-XXXX",
+                    value = dataTarefa.text,
+                    onDateSelected = { newDate ->
+                        dataTarefa = TextFieldValue(newDate)
+                    },
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 

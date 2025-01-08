@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.patasfelizes.models.*
 import com.example.patasfelizes.ui.components.CustomDropdown
+import com.example.patasfelizes.ui.components.DatePickerField
 import com.example.patasfelizes.ui.components.FormField
 import java.time.LocalDate
 
@@ -78,13 +79,16 @@ fun ProcedureFormScreen(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                FormField(
+                DatePickerField(
                     label = "Data do Procedimento",
-                    placeholder = "YYYY-MM-DD",
-                    value = dataProcedimento,
-                    onValueChange = { dataProcedimento = it },
+                    placeholder = "XX-XX-XXXX",
+                    value = dataProcedimento.text,
+                    onDateSelected = { newDate ->
+                        dataProcedimento = TextFieldValue(newDate)
+                    },
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
+
 
                 CustomDropdown(
                     modifier = Modifier
