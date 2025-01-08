@@ -27,6 +27,8 @@ import com.example.patasfelizes.models.Donation
 import com.example.patasfelizes.models.DonationList
 import com.example.patasfelizes.models.Extense
 import com.example.patasfelizes.models.ExtenseList
+import com.example.patasfelizes.models.Procedure
+import com.example.patasfelizes.models.ProcedureList
 import com.example.patasfelizes.models.Task
 import com.example.patasfelizes.models.TaskList
 import com.example.patasfelizes.models.Voluntary
@@ -114,6 +116,15 @@ class MainActivity : ComponentActivity() {
             TaskList.add(task.copy(id = newId))
         }
 
+        val onSaveProcedure: (Procedure) -> Unit = { procedure ->
+            val newId = if (ProcedureList.isNotEmpty()) {
+                ProcedureList.maxByOrNull { it.id }?.id?.plus(1) ?: 1
+            } else {
+                1
+            }
+            ProcedureList.add(procedure.copy(id = newId))
+        }
+
         ModalNavigationDrawer(
             drawerState = drawerState,
             drawerContent = {
@@ -156,7 +167,8 @@ class MainActivity : ComponentActivity() {
                             onSaveVoluntary,
                             onSaveExtense,
                             onSaveDonation,
-                            onSaveTask)
+                            onSaveTask,
+                            onSaveProcedure)
                     }
                 }
             }

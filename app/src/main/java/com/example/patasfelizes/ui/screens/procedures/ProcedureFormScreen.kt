@@ -1,4 +1,4 @@
-package com.example.patasfelizes.ui.screens.tasks
+package com.example.patasfelizes.ui.screens.procedures
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -11,27 +11,29 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.patasfelizes.models.AnimalList
-import com.example.patasfelizes.models.Task
-import com.example.patasfelizes.models.VoluntaryList
+import com.example.patasfelizes.models.*
 import com.example.patasfelizes.ui.components.CustomDropdown
 import com.example.patasfelizes.ui.components.FormField
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaskFormScreen(
+fun ProcedureFormScreen(
     navController: NavHostController,
-    initialTask: Task? = null,
-    onSave: (Task) -> Unit,
+    initialProcedure: Procedure? = null,
+    onSave: (Procedure) -> Unit,
     isEditMode: Boolean = false
 ) {
-    var tipo by remember { mutableStateOf(TextFieldValue(initialTask?.tipo ?: "")) }
-    var descricao by remember { mutableStateOf(TextFieldValue(initialTask?.descricao ?: "")) }
-    var dataTarefa by remember { mutableStateOf(TextFieldValue(initialTask?.dataTarefa ?: "")) }
+    var tipo by remember { mutableStateOf(TextFieldValue(initialProcedure?.tipo ?: "")) }
+    var descricao by remember { mutableStateOf(TextFieldValue(initialProcedure?.descricao ?: "")) }
+    var valor by remember { mutableStateOf(TextFieldValue(initialProcedure?.valor ?: "")) }
+    var dataProcedimento by remember { mutableStateOf(TextFieldValue(initialProcedure?.dataProcedimento ?: "")) }
 
-    var selectedAnimalId by remember { mutableStateOf(initialTask?.idAnimal?.id) }
-    var selectedVoluntaryId by remember { mutableStateOf(initialTask?.idVoluntary?.id) }
+    // Dropdowns para Animal e Voluntário
+    var selectedAnimalId by remember { mutableStateOf(initialProcedure?.idAnimal?.id) }
+    var selectedVoluntaryId by remember { mutableStateOf(initialProcedure?.idVoluntary?.id) }
+    var expandedAnimal by remember { mutableStateOf(false) }
+    var expandedVoluntary by remember { mutableStateOf(false) }
 
     Scaffold { innerPadding ->
         Column(
@@ -54,7 +56,7 @@ fun TaskFormScreen(
             ) {
                 FormField(
                     label = "Tipo",
-                    placeholder = "Informe o tipo da tarefa...",
+                    placeholder = "Informe o tipo do procedimento...",
                     value = tipo,
                     onValueChange = { tipo = it },
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -62,17 +64,25 @@ fun TaskFormScreen(
 
                 FormField(
                     label = "Descrição",
-                    placeholder = "Descreva a tarefa...",
+                    placeholder = "Descreva o procedimento...",
                     value = descricao,
                     onValueChange = { descricao = it },
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
                 FormField(
-                    label = "Data da Tarefa",
+                    label = "Valor",
+                    placeholder = "Informe o valor...",
+                    value = valor,
+                    onValueChange = { valor = it },
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                FormField(
+                    label = "Data do Procedimento",
                     placeholder = "YYYY-MM-DD",
-                    value = dataTarefa,
-                    onValueChange = { dataTarefa = it },
+                    value = dataProcedimento,
+                    onValueChange = { dataProcedimento = it },
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
@@ -102,6 +112,8 @@ fun TaskFormScreen(
                     placeholder = "Selecione um voluntário"
                 )
 
+
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -126,21 +138,24 @@ fun TaskFormScreen(
 
                     Button(
                         onClick = {
-                            if (tipo.text.isBlank() || descricao.text.isBlank() || dataTarefa.text.isBlank()) {
+                            if (tipo.text.isBlank() || descricao.text.isBlank() ||
+                                valor.text.isBlank() || dataProcedimento.text.isBlank()) {
                                 return@Button
                             }
 
-                            val newTask = Task(
-                                id = initialTask?.id ?: 0,
+                            val newProcedure = Procedure(
+                                id = initialProcedure?.id ?: 0,
                                 tipo = tipo.text.trim(),
                                 descricao = descricao.text.trim(),
-                                dataTarefa = dataTarefa.text.trim(),
+                                valor = valor.text.trim(),
+                                dataProcedimento = dataProcedimento.text.trim(),
                                 dataCadastro = LocalDate.now(),
-                                idAnimal = null,
-                                idVoluntary = null
+                                idAnimal = AnimalList.find { it.id == selectedAnimalId },
+                                idVoluntary = VoluntaryList.find { it.id == selectedVoluntaryId },
+                                idExtense = null
                             )
 
-                            onSave(newTask)
+                            onSave(newProcedure)
                             navController.navigateUp()
                         },
                         modifier = Modifier.weight(1f)

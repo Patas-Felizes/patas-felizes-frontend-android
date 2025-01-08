@@ -16,6 +16,8 @@ import com.example.patasfelizes.models.Extense
 import com.example.patasfelizes.models.ExtenseList
 import com.example.patasfelizes.models.GuardianTemp
 import com.example.patasfelizes.models.GuardianTempList
+import com.example.patasfelizes.models.Procedure
+import com.example.patasfelizes.models.ProcedureList
 import com.example.patasfelizes.models.Task
 import com.example.patasfelizes.models.TaskList
 import com.example.patasfelizes.models.Voluntary
@@ -33,6 +35,8 @@ import com.example.patasfelizes.ui.screens.finances.extenses.DetailsExtenseScree
 import com.example.patasfelizes.ui.screens.finances.donations.DonationFormScreen
 import com.example.patasfelizes.ui.screens.finances.extenses.ExtenseFormScreen
 import com.example.patasfelizes.ui.screens.finances.FinancesScreen
+import com.example.patasfelizes.ui.screens.procedures.DetailsProcedureScreen
+import com.example.patasfelizes.ui.screens.procedures.ProcedureFormScreen
 import com.example.patasfelizes.ui.screens.procedures.ProceduresScreen
 import com.example.patasfelizes.ui.screens.stock.StockScreen
 import com.example.patasfelizes.ui.screens.tasks.TasksScreen
@@ -54,7 +58,8 @@ fun NavGraphBuilder.setupNavHost(
     onSaveVoluntary: (Voluntary) -> Unit,
     onSaveExtense: (Extense) -> Unit,
     onSaveDonation: (Donation) -> Unit,
-    onSaveTask: (Task) -> Unit
+    onSaveTask: (Task) -> Unit,
+    onSaveProcedure: (Procedure) -> Unit
 
 ) {
 
@@ -262,6 +267,46 @@ fun NavGraphBuilder.setupNavHost(
     composable("procedimentos") {
         ProceduresScreen(navController = navController)
     }
+
+    composable(
+        route = "procedureDetails/{procedureId}",
+        arguments = listOf(navArgument("procedureId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val procedureId = backStackEntry.arguments?.getInt("procedureId")
+        procedureId?.let {
+            DetailsProcedureScreen(navController, procedureId = it)
+        }
+    }
+
+    composable("addProcedure") {
+        ProcedureFormScreen(
+            navController = navController,
+            onSave = onSaveProcedure,
+            isEditMode = false
+        )
+    }
+
+    composable(
+        route = "editProcedure/{procedureId}",
+        arguments = listOf(navArgument("procedureId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val procedureId = backStackEntry.arguments?.getInt("procedureId") ?: return@composable
+        val procedure = ProcedureList.find { it.id == procedureId } ?: return@composable
+
+        ProcedureFormScreen(
+            navController = navController,
+            initialProcedure = procedure,
+            onSave = { updatedProcedure ->
+                // Atualizar o animal na lista
+                val index = ProcedureList.indexOfFirst { it.id == procedureId }
+                if (index != -1) {
+                    ProcedureList[index] = updatedProcedure
+                }
+            },
+            isEditMode = true
+        )
+    }
+
 
     /*
     ***
