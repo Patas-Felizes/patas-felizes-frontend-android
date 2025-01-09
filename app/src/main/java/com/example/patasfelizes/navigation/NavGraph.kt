@@ -18,6 +18,8 @@ import com.example.patasfelizes.models.GuardianTemp
 import com.example.patasfelizes.models.GuardianTempList
 import com.example.patasfelizes.models.Procedure
 import com.example.patasfelizes.models.ProcedureList
+import com.example.patasfelizes.models.Stock
+import com.example.patasfelizes.models.StockList
 import com.example.patasfelizes.models.Task
 import com.example.patasfelizes.models.TaskList
 import com.example.patasfelizes.models.Voluntary
@@ -42,6 +44,9 @@ import com.example.patasfelizes.ui.screens.stock.StockScreen
 import com.example.patasfelizes.ui.screens.tasks.TasksScreen
 import com.example.patasfelizes.ui.screens.team.TeamScreen
 import com.example.patasfelizes.ui.screens.reports.ReportsScreen
+import com.example.patasfelizes.ui.screens.stock.StockDetailsScreen
+import com.example.patasfelizes.ui.screens.stock.StockEditScreen
+import com.example.patasfelizes.ui.screens.stock.StockRegistrationScreen
 import com.example.patasfelizes.ui.screens.support.SupportScreen
 import com.example.patasfelizes.ui.screens.tasks.DetailsTaskScreen
 import com.example.patasfelizes.ui.screens.tasks.TaskFormScreen
@@ -425,6 +430,63 @@ fun NavGraphBuilder.setupNavHost(
     composable("estoque") {
         StockScreen(navController = navController)
     }
+    composable(
+        route = "stockDetails/{stockId}",
+        arguments = listOf(navArgument("stockId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val stockId = backStackEntry.arguments?.getInt("stockId")
+        stockId?.let {
+            StockDetailsScreen(
+                navController = navController,
+                stockId = it,
+                onDelete = { id ->
+                    StockList.removeIf { stock -> stock.id == id }
+                }
+            )
+        }
+    }
+    composable("addStock") {
+        StockRegistrationScreen(
+            navController = navController,
+            onSave = { category, type, animalSpecies, quantity ->
+                StockList.add(
+                    Stock(
+                        id = StockList.size + 1,
+                        categoria = category,
+                        tipoItem = type,
+                        animalEspecie = animalSpecies,
+                        quantidade = quantity
+                    )
+                )
+            }
+        )
+    }
+
+    composable(
+        route = "editStock/{stockId}",
+        arguments = listOf(navArgument("stockId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val stockId = backStackEntry.arguments?.getInt("stockId") ?: return@composable
+        val stock = StockList.find { it.id == stockId } ?: return@composable
+
+        StockEditScreen(
+            navController = navController,
+            stock = stock,
+            onSave = { category, type, animalSpecies, quantity ->
+                val index = StockList.indexOfFirst { it.id == stockId }
+                if (index != -1) {
+                    StockList[index] = stock.copy(
+                        categoria = category,
+                        tipoItem = type,
+                        animalEspecie = animalSpecies,
+                        quantidade = quantity
+                    )
+                }
+            }
+        )
+    }
+
+
 
     /*
     ***
