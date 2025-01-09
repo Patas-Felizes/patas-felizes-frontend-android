@@ -50,6 +50,10 @@ import com.example.patasfelizes.ui.screens.stock.StockScreen
 import com.example.patasfelizes.ui.screens.tasks.TasksScreen
 import com.example.patasfelizes.ui.screens.team.TeamScreen
 import com.example.patasfelizes.ui.screens.reports.ReportsScreen
+import com.example.patasfelizes.ui.screens.settings.NotificationPreferencesScreen
+import com.example.patasfelizes.ui.screens.settings.RolesPermissionsScreen
+import com.example.patasfelizes.ui.screens.settings.SettingsScreen
+import com.example.patasfelizes.ui.screens.settings.VolunteerManagementScreen
 import com.example.patasfelizes.ui.screens.stock.StockDetailsScreen
 import com.example.patasfelizes.ui.screens.stock.StockEditScreen
 import com.example.patasfelizes.ui.screens.stock.StockRegistrationScreen
@@ -680,5 +684,27 @@ fun NavGraphBuilder.setupNavHost(
     */
     composable("relatorios") {
         ReportsScreen(navController = navController)
+    }
+
+
+    /*
+    ***
+    ****
+        Navegação da Tela CONFIGURAÇÕES
+    ****
+    ***
+    */
+    composable("configuracoes") {
+        SettingsScreen(navController = navController)
+    }
+
+    composable("volunteer_management") {
+        VolunteerManagementScreen()
+    }
+    composable("roles_permissions") {
+        RolesPermissionsScreen()
+    }
+    composable("notification_preferences") {
+        NotificationPreferencesScreen()
     }
 }
