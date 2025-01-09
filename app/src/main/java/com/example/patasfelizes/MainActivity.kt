@@ -31,6 +31,8 @@ import com.example.patasfelizes.models.Extense
 import com.example.patasfelizes.models.ExtenseList
 import com.example.patasfelizes.models.Procedure
 import com.example.patasfelizes.models.ProcedureList
+import com.example.patasfelizes.models.Sponsor
+import com.example.patasfelizes.models.SponsorList
 import com.example.patasfelizes.models.Task
 import com.example.patasfelizes.models.TaskList
 import com.example.patasfelizes.models.Voluntary
@@ -134,6 +136,15 @@ class MainActivity : ComponentActivity() {
             }
             CampaignList.add(campaign.copy(id = newId))
         }
+        val onSaveSupport: (Sponsor) -> Unit = { sponsor ->
+            val newId = if (SponsorList.isNotEmpty()) {
+                SponsorList.maxByOrNull { it.id }?.id?.plus(1) ?: 1
+            } else {
+                1
+            }
+            SponsorList.add(sponsor.copy(id = newId))
+        }
+
 
         ModalNavigationDrawer(
             drawerState = drawerState,
@@ -179,7 +190,8 @@ class MainActivity : ComponentActivity() {
                             onSaveDonation,
                             onSaveTask,
                             onSaveProcedure,
-                            onSaveCampaign)
+                            onSaveCampaign,
+                            onSaveSupport)
                     }
                 }
             }

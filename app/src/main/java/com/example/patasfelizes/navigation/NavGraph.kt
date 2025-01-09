@@ -20,6 +20,8 @@ import com.example.patasfelizes.models.GuardianTemp
 import com.example.patasfelizes.models.GuardianTempList
 import com.example.patasfelizes.models.Procedure
 import com.example.patasfelizes.models.ProcedureList
+import com.example.patasfelizes.models.Sponsor
+import com.example.patasfelizes.models.SponsorList
 import com.example.patasfelizes.models.Stock
 import com.example.patasfelizes.models.StockList
 import com.example.patasfelizes.models.Task
@@ -51,6 +53,9 @@ import com.example.patasfelizes.ui.screens.reports.ReportsScreen
 import com.example.patasfelizes.ui.screens.stock.StockDetailsScreen
 import com.example.patasfelizes.ui.screens.stock.StockEditScreen
 import com.example.patasfelizes.ui.screens.stock.StockRegistrationScreen
+import com.example.patasfelizes.ui.screens.support.SupportDetailsScreen
+import com.example.patasfelizes.ui.screens.support.SupportEditScreen
+import com.example.patasfelizes.ui.screens.support.SupportRegistrationScreen
 import com.example.patasfelizes.ui.screens.support.SupportScreen
 import com.example.patasfelizes.ui.screens.tasks.DetailsTaskScreen
 import com.example.patasfelizes.ui.screens.tasks.TaskFormScreen
@@ -69,8 +74,8 @@ fun NavGraphBuilder.setupNavHost(
     onSaveDonation: (Donation) -> Unit,
     onSaveTask: (Task) -> Unit,
     onSaveProcedure: (Procedure) -> Unit,
-    onSaveCampaign: (Campaign) -> Unit
-
+    onSaveCampaign: (Campaign) -> Unit,
+    onSaveSupport: (Sponsor) -> Unit
 ) {
 
     /*
@@ -266,6 +271,41 @@ fun NavGraphBuilder.setupNavHost(
     composable("apadrinhamento") {
         SupportScreen(navController = navController)
     }
+    composable(
+        route = "supportDetails/{sponsorId}",
+        arguments = listOf(navArgument("sponsorId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val sponsorId = backStackEntry.arguments?.getInt("sponsorId") ?: return@composable
+        SupportDetailsScreen(
+            navController = navController,
+            sponsorId = sponsorId,
+            onDelete = { id -> SponsorList.removeIf { it.id == id } }
+        )
+    }
+
+    composable("addSupport") {
+        SupportRegistrationScreen(
+            navController = navController,
+            onSave = { SponsorList.add(it.copy(id = SponsorList.size + 1)) }
+        )
+    }
+
+    composable(
+        route = "editSupport/{sponsorId}",
+        arguments = listOf(navArgument("sponsorId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val sponsorId = backStackEntry.arguments?.getInt("sponsorId") ?: return@composable
+        val sponsor = SponsorList.find { it.id == sponsorId } ?: return@composable
+        SupportEditScreen(
+            navController = navController,
+            sponsor = sponsor,
+            onSave = { updatedSponsor ->
+                val index = SponsorList.indexOfFirst { it.id == sponsorId }
+                if (index != -1) SponsorList[index] = updatedSponsor
+            }
+        )
+    }
+
 
     /*
     ***
