@@ -23,6 +23,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.example.patasfelizes.models.Animal
 import com.example.patasfelizes.models.AnimalList
+import com.example.patasfelizes.models.Campaign
+import com.example.patasfelizes.models.CampaignList
 import com.example.patasfelizes.models.Donation
 import com.example.patasfelizes.models.DonationList
 import com.example.patasfelizes.models.Extense
@@ -124,6 +126,14 @@ class MainActivity : ComponentActivity() {
             }
             ProcedureList.add(procedure.copy(id = newId))
         }
+        val onSaveCampaign: (Campaign) -> Unit = { campaign ->
+            val newId = if (CampaignList.isNotEmpty()) {
+                CampaignList.maxByOrNull { it.id }?.id?.plus(1) ?: 1
+            } else {
+                1
+            }
+            CampaignList.add(campaign.copy(id = newId))
+        }
 
         ModalNavigationDrawer(
             drawerState = drawerState,
@@ -168,7 +178,8 @@ class MainActivity : ComponentActivity() {
                             onSaveExtense,
                             onSaveDonation,
                             onSaveTask,
-                            onSaveProcedure)
+                            onSaveProcedure,
+                            onSaveCampaign)
                     }
                 }
             }

@@ -1,26 +1,32 @@
 package com.example.patasfelizes.ui.screens.campaigns
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.patasfelizes.ui.components.*
+import com.example.patasfelizes.models.Campaign
+import com.example.patasfelizes.models.CampaignList
 
-// Tela Campanhas
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CampaignsScreen(navController: NavHostController) {
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
 
-    // editar filtros conforme cada tela
     val filterOptions = remember {
         listOf(
-            FilterOption("Para adoção"),
-            FilterOption("Adotado"),
-            FilterOption("Em lar temporário"),
-            FilterOption("Em tratamento")
+            FilterOption("Evento"),
+            FilterOption("Financeira"),
+            FilterOption("Saúde"),
+            FilterOption("Alimentação"),
+            FilterOption("Adoção")
         )
     }
 
@@ -29,7 +35,7 @@ fun CampaignsScreen(navController: NavHostController) {
     Scaffold(
         floatingActionButton = {
             CustomFloatingActionButton(
-                onClick = { navController.navigate("addCampaigns") },
+                onClick = { navController.navigate("addCampaign") },
                 contentDescription = "Adicionar Campanha"
             )
         },
@@ -42,11 +48,10 @@ fun CampaignsScreen(navController: NavHostController) {
             color = MaterialTheme.colorScheme.background
         ) {
             Column {
-
                 CustomSearchBar(
                     searchQuery = searchQuery,
                     onSearchQueryChanged = { searchQuery = it },
-                    placeholderText = "Pesquisar...",
+                    placeholderText = "Pesquisar campanha...",
                     onClearSearch = { searchQuery = TextFieldValue("") }
                 )
 
@@ -56,7 +61,77 @@ fun CampaignsScreen(navController: NavHostController) {
                         currentFilters = updatedFilters
                     }
                 )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                CampaignList(
+                    campaigns = CampaignList.filter {
+                        it.nome.contains(searchQuery.text, ignoreCase = true) ||
+                                it.tipo.contains(searchQuery.text, ignoreCase = true)
+                    },
+                    onCampaignClick = { campaign ->
+                        navController.navigate("campaignDetails/${campaign.id}")
+                    }
+                )
             }
+        }
+    }
+}
+
+@Composable
+fun CampaignList(
+    campaigns: List<Campaign>,
+    onCampaignClick: (Campaign) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        itemsIndexed(campaigns) { index, campaign ->
+            val backgroundColor = if (index % 2 == 0) {
+                MaterialTheme.colorScheme.secondary
+            } else {
+                MaterialTheme.colorScheme.background
+            }
+            CampaignListItem(
+                campaign = campaign,
+                backgroundColor = backgroundColor,
+                onClick = { onCampaignClick(campaign) }
+            )
+        }
+    }
+}
+
+@Composable
+fun CampaignListItem(
+    campaign: Campaign,
+    backgroundColor: Color,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(containerColor = backgroundColor)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Text(
+                text = campaign.nome,
+                style = MaterialTheme.typography.titleSmall
+            )
+            Text(
+                text = campaign.tipo,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                text = "Período: ${campaign.dataInicio} a ${campaign.dataTermino}",
+                style = MaterialTheme.typography.bodySmall
+            )
         }
     }
 }

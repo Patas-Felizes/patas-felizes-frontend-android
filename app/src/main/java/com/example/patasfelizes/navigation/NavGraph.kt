@@ -10,6 +10,8 @@ import com.example.patasfelizes.models.Adopter
 import com.example.patasfelizes.models.AdopterList
 import com.example.patasfelizes.models.Animal
 import com.example.patasfelizes.models.AnimalList
+import com.example.patasfelizes.models.Campaign
+import com.example.patasfelizes.models.CampaignList
 import com.example.patasfelizes.models.Donation
 import com.example.patasfelizes.models.DonationList
 import com.example.patasfelizes.models.Extense
@@ -31,7 +33,9 @@ import com.example.patasfelizes.ui.screens.adoptions.AdoptionRegistrationScreen
 import com.example.patasfelizes.ui.screens.adoptions.AdoptionEditScreen
 import com.example.patasfelizes.ui.screens.animals.AnimalScreen
 import com.example.patasfelizes.ui.screens.animals.DetailsAnimalScreen
+import com.example.patasfelizes.ui.screens.campaigns.CampaignFormScreen
 import com.example.patasfelizes.ui.screens.campaigns.CampaignsScreen
+import com.example.patasfelizes.ui.screens.campaigns.DetailsCampaignScreen
 import com.example.patasfelizes.ui.screens.finances.donations.DetailsDonationScreen
 import com.example.patasfelizes.ui.screens.finances.extenses.DetailsExtenseScreen
 import com.example.patasfelizes.ui.screens.finances.donations.DonationFormScreen
@@ -64,7 +68,8 @@ fun NavGraphBuilder.setupNavHost(
     onSaveExtense: (Extense) -> Unit,
     onSaveDonation: (Donation) -> Unit,
     onSaveTask: (Task) -> Unit,
-    onSaveProcedure: (Procedure) -> Unit
+    onSaveProcedure: (Procedure) -> Unit,
+    onSaveCampaign: (Campaign) -> Unit
 
 ) {
 
@@ -322,6 +327,44 @@ fun NavGraphBuilder.setupNavHost(
     */
     composable("campanhas") {
         CampaignsScreen(navController = navController)
+    }
+    composable(
+        route = "campaignDetails/{campaignId}",
+        arguments = listOf(navArgument("campaignId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val campaignId = backStackEntry.arguments?.getInt("campaignId")
+        campaignId?.let {
+            DetailsCampaignScreen(navController, campaignId = it)
+        }
+    }
+
+    composable("addCampaign") {
+        CampaignFormScreen(
+            navController = navController,
+            onSave = onSaveCampaign,
+            isEditMode = false
+        )
+    }
+
+    composable(
+        route = "editCampaign/{campaignId}",
+        arguments = listOf(navArgument("campaignId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val campaignId = backStackEntry.arguments?.getInt("campaignId") ?: return@composable
+        val campaign = CampaignList.find { it.id == campaignId } ?: return@composable
+
+        CampaignFormScreen(
+            navController = navController,
+            initialCampaign = campaign,
+            onSave = { updatedCampaign ->
+                // Atualizar o animal na lista
+                val index = CampaignList.indexOfFirst { it.id == campaignId }
+                if (index != -1) {
+                    CampaignList[index] = updatedCampaign
+                }
+            },
+            isEditMode = true
+        )
     }
 
     /*
