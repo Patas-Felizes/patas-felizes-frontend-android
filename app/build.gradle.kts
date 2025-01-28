@@ -69,6 +69,8 @@ dependencies {
     implementation(libs.androidx.compose.runtime)
 
     implementation ("androidx.compose.animation:animation-core:1.7.6")
+    implementation ("androidx.compose.animation:animation:1.6.0")
+
 
     implementation("io.coil-kt:coil-compose:2.4.0")
 
