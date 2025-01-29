@@ -41,7 +41,16 @@ import com.example.patasfelizes.navigation.setupNavHost
 import com.example.patasfelizes.ui.components.DrawerContent
 import com.example.patasfelizes.ui.components.TopBar
 import com.example.patasfelizes.ui.theme.PatasFelizesTheme
+import com.example.patasfelizes.utils.checkNotificationPermission
+import com.example.patasfelizes.utils.requestNotificationPermission
+import com.example.patasfelizes.utils.scheduleTaskNotification
 import kotlinx.coroutines.launch
+import android.content.Context
+import java.util.Calendar
+import android.util.Log
+import java.text.SimpleDateFormat
+import java.util.Locale
+import com.example.patasfelizes.utils.scheduleTaskNotification
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
@@ -49,6 +58,10 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
 
         super.onCreate(savedInstanceState)
+
+        requestNotificationPermission(this)
+
+
         setContent {
             // Variável para controlar o tema atual
             var isDarkTheme by remember { mutableStateOf(false) }
@@ -60,6 +73,20 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
+    }
+
+    fun testNotification() {
+        val calendar = Calendar.getInstance().apply {
+            add(Calendar.SECOND, 30) // Agenda para 30 segundos no futuro
+        }
+
+        scheduleTaskNotification(
+            context = this,
+            taskId = 999,
+            taskType = "Teste",
+            taskDescription = "Notificação de teste - ${calendar.time}",
+            taskDate = "${calendar.get(Calendar.DAY_OF_MONTH)}-${calendar.get(Calendar.MONTH) + 1}-${calendar.get(Calendar.YEAR)}"
+        )
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -117,8 +144,19 @@ class MainActivity : ComponentActivity() {
             } else {
                 1
             }
-            TaskList.add(task.copy(id = newId))
+            val newTask = task.copy(id = newId)
+            TaskList.add(newTask)
+
+            // Agendar notificação para a tarefa
+            scheduleTaskNotification(
+                context = this@MainActivity,
+                taskId = newTask.id,
+                taskType = newTask.tipo,
+                taskDescription = newTask.descricao,
+                taskDate = newTask.dataTarefa
+            )
         }
+
 
         val onSaveProcedure: (Procedure) -> Unit = { procedure ->
             val newId = if (ProcedureList.isNotEmpty()) {
