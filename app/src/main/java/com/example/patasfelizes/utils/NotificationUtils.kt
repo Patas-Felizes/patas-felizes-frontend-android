@@ -13,8 +13,11 @@ import android.provider.Settings
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import com.example.patasfelizes.PatasFelizesApp
+import com.example.patasfelizes.R
 import com.example.patasfelizes.receivers.TaskNotificationReceiver
 import java.util.Calendar
 
@@ -112,4 +115,27 @@ fun cancelTaskNotification(context: Context, taskId: Int) {
         PendingIntent.FLAG_IMMUTABLE
     )
     alarmManager.cancel(pendingIntent)
+}
+
+fun showInstantNotification(context: Context, taskId: Int, taskType: String, taskDescription: String) {
+    if (!checkNotificationPermission(context)) {
+        Log.d("NotificationTest", "Notificações não permitidas")
+        return
+    }
+
+    val notification = NotificationCompat.Builder(context, PatasFelizesApp.CHANNEL_ID)
+        .setSmallIcon(R.drawable.defaul_patas)
+        .setContentTitle("Tarefa Adicionada: $taskType")
+        .setContentText(taskDescription)
+        .setPriority(NotificationCompat.PRIORITY_HIGH)
+        .setAutoCancel(true)
+        .setVibrate(longArrayOf(1000, 1000, 1000))
+        .build()
+
+    try {
+        NotificationManagerCompat.from(context).notify(taskId, notification)
+        Log.d("NotificationTest", "Notificação instantânea mostrada com sucesso")
+    } catch (e: SecurityException) {
+        Log.e("NotificationTest", "Erro ao mostrar notificação: ${e.message}")
+    }
 }

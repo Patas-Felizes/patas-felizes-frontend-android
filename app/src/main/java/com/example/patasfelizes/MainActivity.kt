@@ -51,6 +51,7 @@ import android.util.Log
 import java.text.SimpleDateFormat
 import java.util.Locale
 import com.example.patasfelizes.utils.scheduleTaskNotification
+import com.example.patasfelizes.utils.showInstantNotification
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
@@ -146,6 +147,15 @@ class MainActivity : ComponentActivity() {
             }
             val newTask = task.copy(id = newId)
             TaskList.add(newTask)
+
+            // Agendar notificação para a tarefa
+
+            showInstantNotification(
+                context = this@MainActivity,
+                taskId = newTask.id,
+                taskType = newTask.tipo,
+                taskDescription = newTask.descricao
+            )
 
             // Agendar notificação para a tarefa
             scheduleTaskNotification(
