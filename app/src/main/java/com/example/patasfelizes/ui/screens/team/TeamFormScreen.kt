@@ -32,6 +32,11 @@ import coil.compose.AsyncImage
 import com.example.patasfelizes.R
 import com.example.patasfelizes.models.Voluntary
 import com.example.patasfelizes.ui.components.FormField
+import com.example.patasfelizes.ui.components.LinearProgressBar
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,6 +74,7 @@ fun TeamFormScreen(
         }
     }
 
+    var isLoading by remember { mutableStateOf(false) }
 
     @Composable
     fun EditIcon() {
@@ -94,6 +100,8 @@ fun TeamFormScreen(
                 modifier = Modifier.fillMaxWidth(),
                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
             )
+
+            LinearProgressBar(isLoading = isLoading)
 
             Column(
                 modifier = Modifier
@@ -243,18 +251,27 @@ fun TeamFormScreen(
                                 return@Button
                             }
 
-                            // Cria ou atualiza o voluntário
-                            val newVoluntary = Voluntary(
-                                id = initialVoluntary?.id ?: 0,
-                                nome = nome.text.trim(),
-                                email = email.text.trim(),
-                                telefone = telefone.text.trim(),
-                                imageRes = imageRes // Pode ser atualizado com o upload da imagem
-                            )
+                            isLoading = true
 
-                            onSave(newVoluntary)
-                            navController.navigateUp()
+
+
+                            // Simular um delay para mostrar o loading
+                            CoroutineScope(Dispatchers.Main).launch {
+                                delay(1000) // Simular operação
+                                val newVoluntary = Voluntary(
+                                    id = initialVoluntary?.id ?: 0,
+                                    nome = nome.text.trim(),
+                                    email = email.text.trim(),
+                                    telefone = telefone.text.trim(),
+                                    imageRes = imageRes
+                                )
+
+                                onSave(newVoluntary)
+                                isLoading = false
+                                navController.navigateUp()
+                            }
                         },
+                        enabled = !isLoading,
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary

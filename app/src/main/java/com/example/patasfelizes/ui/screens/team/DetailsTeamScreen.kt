@@ -17,6 +17,11 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.compose.foundation.shape.RoundedCornerShape
 import com.example.patasfelizes.models.VoluntaryList
+import com.example.patasfelizes.ui.components.LinearProgressBar
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,6 +32,7 @@ fun DetailsTeamScreen(
     val voluntary = VoluntaryList.find { it.id == voluntaryId }
         ?: return
 
+    var isLoading by remember { mutableStateOf(false) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
 
     Scaffold { innerPadding ->
@@ -41,6 +47,8 @@ fun DetailsTeamScreen(
                 modifier = Modifier.fillMaxWidth(),
                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
             )
+
+            LinearProgressBar(isLoading = isLoading)
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -150,15 +158,22 @@ fun DetailsTeamScreen(
                     confirmButton = {
                         TextButton(
                             onClick = {
-                                navController.navigateUp()
-                            }
+                                isLoading = true
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    delay(1000) // Simular operação
+                                    isLoading = false
+                                    navController.navigateUp()
+                                }
+                            },
+                            enabled = !isLoading
                         ) {
                             Text("Confirmar")
                         }
                     },
                     dismissButton = {
                         TextButton(
-                            onClick = { showDeleteConfirmation = false }
+                            onClick = { showDeleteConfirmation = false },
+                            enabled = !isLoading
                         ) {
                             Text("Cancelar")
                         }
