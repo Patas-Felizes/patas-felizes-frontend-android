@@ -138,7 +138,7 @@ fun AnimalScreen(navController: NavHostController) {
                                                 Row(
                                                     modifier = Modifier.fillMaxWidth()
                                                 ) {
-                                                    if (animal.imageUris.isNotEmpty()) {
+                                                    if (!animal.imageUris.isNullOrEmpty()) {
                                                         AsyncImage(
                                                             model = animal.imageUris[0], // URI da primeira imagem
                                                             contentDescription = animal.nome,

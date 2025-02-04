@@ -52,16 +52,33 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import com.example.patasfelizes.utils.scheduleTaskNotification
 import com.example.patasfelizes.utils.showInstantNotification
+import com.example.patasfelizes.api.RetrofitInitializer
+import com.example.patasfelizes.repository.AnimalsRepository
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        println("Join onCreate")
         installSplashScreen()
 
         super.onCreate(savedInstanceState)
 
         requestNotificationPermission(this)
 
+        val animalsRepository = AnimalsRepository()
+        animalsRepository.listAnimals(
+            onSuccess = { animals ->
+                println("AnimalsRepository: Response: onSuccess: $animals")
+                AnimalList.addAll(animals)
+                Log.d("AnimalsRepository", "Animais carregados: ${animals.size}")
+            },
+            onError = { errorMessage ->
+                Log.e("AnimalsRepository", errorMessage)
+            }
+        )
 
         setContent {
             // Variável para controlar o tema atual
