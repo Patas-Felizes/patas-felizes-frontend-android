@@ -53,6 +53,12 @@ import java.util.Locale
 import com.example.patasfelizes.utils.scheduleTaskNotification
 import com.example.patasfelizes.utils.showInstantNotification
 import com.example.patasfelizes.api.RetrofitInitializer
+import com.example.patasfelizes.models.Adopter
+import com.example.patasfelizes.models.AdopterList
+import com.example.patasfelizes.models.GuardianTemp
+import com.example.patasfelizes.models.GuardianTempList
+import com.example.patasfelizes.models.Stock
+import com.example.patasfelizes.models.StockList
 import com.example.patasfelizes.repository.AnimalsRepository
 import retrofit2.Call
 import retrofit2.Callback
@@ -129,6 +135,15 @@ class MainActivity : ComponentActivity() {
             AnimalList.add(animal.copy(id = newId))
         }
 
+        val onSaveAdoption: (Adopter) -> Unit = { adopter ->
+            val newId = if (AdopterList.isNotEmpty()) {
+                AdopterList.maxByOrNull { it.id }?.id?.plus(1) ?: 1
+            } else {
+                1
+            }
+            AdopterList.add(adopter.copy(id = newId))
+        }
+
         val onSaveVoluntary: (Voluntary) -> Unit = { voluntary ->
             val newId = if (VoluntaryList.isNotEmpty()) {
                 VoluntaryList.maxByOrNull { it.id }?.id?.plus(1) ?: 1
@@ -201,6 +216,14 @@ class MainActivity : ComponentActivity() {
             }
             CampaignList.add(campaign.copy(id = newId))
         }
+        val onSaveTemporaryHome: (GuardianTemp) -> Unit = { guardian ->
+            val newId = if (GuardianTempList.isNotEmpty()) {
+                GuardianTempList.maxByOrNull { it.id }?.id?.plus(1) ?: 1
+            } else {
+                1
+            }
+            GuardianTempList.add(guardian.copy(id = newId))
+        }
         val onSaveSupport: (Sponsor) -> Unit = { sponsor ->
             val newId = if (SponsorList.isNotEmpty()) {
                 SponsorList.maxByOrNull { it.id }?.id?.plus(1) ?: 1
@@ -208,6 +231,14 @@ class MainActivity : ComponentActivity() {
                 1
             }
             SponsorList.add(sponsor.copy(id = newId))
+        }
+        val onSaveStock: (Stock) -> Unit = { stock ->
+            val newId = if (StockList.isNotEmpty()) {
+                StockList.maxByOrNull { it.id }?.id?.plus(1) ?: 1
+            } else {
+                1
+            }
+            StockList.add(stock.copy(id = newId))
         }
 
 
@@ -250,13 +281,16 @@ class MainActivity : ComponentActivity() {
                     ) {
                         setupNavHost(navController,
                             onSaveAnimal,
+                            onSaveAdoption,
+                            onSaveStock,
                             onSaveVoluntary,
                             onSaveExtense,
                             onSaveDonation,
                             onSaveTask,
                             onSaveProcedure,
                             onSaveCampaign,
-                            onSaveSupport)
+                            onSaveSupport,
+                            onSaveTemporaryHome)
                     }
                 }
             }

@@ -2,17 +2,20 @@ package com.example.patasfelizes.ui.screens.temporaryhomes
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import com.example.patasfelizes.models.GuardianTemp
 
 @Composable
 fun TempHomeRegistrationScreen(
     navController: NavHostController,
-    onSave: (String, String, String, String, String, String, String, String, String, String) -> Unit
+    onSave: (GuardianTemp) -> Unit
 ) {
     TempHomeFormScreen(
-        onSave = { petName, guardianName, contactInfo, period, state, city, address, neighborhood, number, cep ->
-            onSave(petName, guardianName, contactInfo, period, state, city, address, neighborhood, number, cep)
+        navController = navController,
+        initialGuardian = null,
+        onSave = { guardian ->
+            onSave(guardian)
             navController.navigateUp()
         },
-        onCancel = { navController.navigateUp() }
+        isEditMode = false
     )
 }

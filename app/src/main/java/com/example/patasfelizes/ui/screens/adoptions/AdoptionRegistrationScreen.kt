@@ -2,17 +2,20 @@ package com.example.patasfelizes.ui.screens.adoptions
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import com.example.patasfelizes.models.Adopter
 
 @Composable
 fun AdoptionRegistrationScreen(
     navController: NavHostController,
-    onSave: (String, String, String, String, String, String, String, String, String) -> Unit
+    onSave: (Adopter) -> Unit
 ) {
     AdoptionFormScreen(
-        onSave = { pet, name, contact, state, city, address, neighborhood, number, cep ->
-            onSave(pet, name, contact, state, city, address, neighborhood, number, cep)
+        navController = navController,
+        initialAdopter = null,
+        onSave = { adopter ->
+            onSave(adopter)
             navController.navigateUp()
         },
-        onCancel = { navController.navigateUp() }
+        isEditMode = false
     )
 }

@@ -8,22 +8,15 @@ import com.example.patasfelizes.models.Adopter
 fun AdoptionEditScreen(
     navController: NavHostController,
     adopter: Adopter,
-    onSave: (String, String, String, String, String, String, String, String, String) -> Unit
+    onSave: (Adopter) -> Unit
 ) {
     AdoptionFormScreen(
-        initialPet = adopter.petNome,
-        initialAdopterName = adopter.nome,
-        initialContactInfo = adopter.telefone,
-        initialState = adopter.estado,
-        initialCity = adopter.cidade,
-        initialAddress = adopter.endereco,
-        initialNeighborhood = adopter.bairro,
-        initialNumber = adopter.numero,
-        initialCep = adopter.cep,
-        onSave = { pet, name, contact, state, city, address, neighborhood, number, cep ->
-            onSave(pet, name, contact, state, city, address, neighborhood, number, cep)
+        navController = navController,
+        initialAdopter = adopter,
+        onSave = { updatedAdopter ->
+            onSave(updatedAdopter)
             navController.navigateUp()
         },
-        onCancel = { navController.navigateUp() }
+        isEditMode = true
     )
 }

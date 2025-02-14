@@ -8,23 +8,15 @@ import com.example.patasfelizes.models.GuardianTemp
 fun TempHomeEditScreen(
     navController: NavHostController,
     guardian: GuardianTemp,
-    onSave: (String, String, String, String, String, String, String, String, String, String) -> Unit
+    onSave: (GuardianTemp) -> Unit
 ) {
     TempHomeFormScreen(
-        initialPetName = guardian.petNome,
-        initialGuardianName = guardian.nome,
-        initialContactInfo = guardian.telefone,
-        initialPeriod = guardian.periodo,
-        initialState = guardian.estado,
-        initialCity = guardian.cidade,
-        initialAddress = guardian.endereco,
-        initialNeighborhood = guardian.bairro,
-        initialNumber = guardian.numero,
-        initialCep = guardian.cep,
-        onSave = { petName, guardianName, contactInfo, period, state, city, address, neighborhood, number, cep ->
-            onSave(petName, guardianName, contactInfo, period, state, city, address, neighborhood, number, cep)
+        navController = navController,
+        initialGuardian = guardian,
+        onSave = { updatedGuardian ->
+            onSave(updatedGuardian)
             navController.navigateUp()
         },
-        onCancel = { navController.navigateUp() }
+        isEditMode = true
     )
 }

@@ -2,17 +2,20 @@ package com.example.patasfelizes.ui.screens.stock
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import com.example.patasfelizes.models.Stock
 
 @Composable
 fun StockRegistrationScreen(
     navController: NavHostController,
-    onSave: (String, String, String, String) -> Unit
+    onSave: (Stock) -> Unit
 ) {
     StockFormScreen(
-        onSave = { category, type, animalSpecies, quantity ->
-            onSave(category, type, animalSpecies, quantity)
+        navController = navController,
+        initialStock = null,
+        onSave = { stock ->
+            onSave(stock)
             navController.navigateUp()
         },
-        onCancel = { navController.navigateUp() }
+        isEditMode = false
     )
 }

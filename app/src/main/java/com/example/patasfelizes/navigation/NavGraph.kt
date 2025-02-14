@@ -56,6 +56,7 @@ import com.example.patasfelizes.ui.screens.settings.SettingsScreen
 import com.example.patasfelizes.ui.screens.settings.VolunteerManagementScreen
 import com.example.patasfelizes.ui.screens.stock.StockDetailsScreen
 import com.example.patasfelizes.ui.screens.stock.StockEditScreen
+import com.example.patasfelizes.ui.screens.stock.StockFormScreen
 import com.example.patasfelizes.ui.screens.stock.StockRegistrationScreen
 import com.example.patasfelizes.ui.screens.support.SupportDetailsScreen
 import com.example.patasfelizes.ui.screens.support.SupportEditScreen
@@ -73,13 +74,17 @@ import com.example.patasfelizes.ui.screens.temporaryhomes.TempHomeEditScreen
 fun NavGraphBuilder.setupNavHost(
     navController: NavHostController,
     onSaveAnimal: (Animal) -> Unit,
+    onSaveAdoption: (Adopter) -> Unit,
+    onSaveStock: (Stock) -> Unit,
     onSaveVoluntary: (Voluntary) -> Unit,
     onSaveExtense: (Extense) -> Unit,
     onSaveDonation: (Donation) -> Unit,
     onSaveTask: (Task) -> Unit,
     onSaveProcedure: (Procedure) -> Unit,
     onSaveCampaign: (Campaign) -> Unit,
-    onSaveSupport: (Sponsor) -> Unit
+    onSaveSupport: (Sponsor) -> Unit,
+    onSaveTemporaryHome: (GuardianTemp) -> Unit
+
 ) {
 
     /*
@@ -156,15 +161,7 @@ fun NavGraphBuilder.setupNavHost(
     composable("addAdoption") {
         AdoptionRegistrationScreen(
             navController = navController,
-            onSave = { pet, name, contact, state, city, address, neighborhood, number, cep ->
-                AdopterList.add(
-                    Adopter(
-                        id = AdopterList.size + 1, nome = name, petNome = pet, telefone = contact,
-                        estado = state, cidade = city, endereco = address, bairro = neighborhood,
-                        numero = number, cep = cep, dataCadastro = LocalDate.now()
-                    )
-                )
-            }
+            onSave = onSaveAdoption
         )
     }
 
@@ -178,14 +175,10 @@ fun NavGraphBuilder.setupNavHost(
         AdoptionEditScreen(
             navController = navController,
             adopter = adopter,
-            onSave = { pet, name, contact, state, city, address, neighborhood, number, cep ->
+            onSave = { updatedAdopter ->
                 val index = AdopterList.indexOfFirst { it.id == adoptionId }
                 if (index != -1) {
-                    AdopterList[index] = adopter.copy(
-                        petNome = pet, nome = name, telefone = contact, estado = state,
-                        cidade = city, endereco = address, bairro = neighborhood,
-                        numero = number, cep = cep
-                    )
+                    AdopterList[index] = updatedAdopter
                 }
             }
         )
@@ -213,58 +206,42 @@ fun NavGraphBuilder.setupNavHost(
     composable("addTemporaryHome") {
         TempHomeRegistrationScreen(
             navController = navController,
-            onSave = { petName, guardianName, contactInfo, period, state, city, address, neighborhood, number, cep ->
-                GuardianTempList.add(
-                    GuardianTemp(
-                        id = GuardianTempList.size + 1,
-                        petNome = petName,
-                        nome = guardianName,
-                        telefone = contactInfo,
-                        periodo = period,
-                        estado = state,
-                        cidade = city,
-                        endereco = address,
-                        bairro = neighborhood,
-                        numero = number,
-                        cep = cep,
-                        dataCadastro = LocalDate.now()
-                    )
-                )
-            }
+            onSave = onSaveTemporaryHome
         )
     }
-
     composable(
         route = "editTemporaryHome/{guardianId}",
         arguments = listOf(navArgument("guardianId") { type = NavType.IntType })
     ) { backStackEntry ->
         val guardianId = backStackEntry.arguments?.getInt("guardianId") ?: return@composable
         val guardian = GuardianTempList.find { it.id == guardianId } ?: return@composable
-
         TempHomeEditScreen(
             navController = navController,
             guardian = guardian,
-            onSave = { petName, guardianName, contactInfo, period, state, city, address, neighborhood, number, cep ->
+            onSave = { updateGuardian ->
                 val index = GuardianTempList.indexOfFirst { it.id == guardianId }
-                if (index != -1) {
-                    GuardianTempList[index] = guardian.copy(
-                        petNome = petName,
-                        nome = guardianName,
-                        telefone = contactInfo,
-                        periodo = period,
-                        estado = state,
-                        cidade = city,
-                        endereco = address,
-                        bairro = neighborhood,
-                        numero = number,
-                        cep = cep
-                    )
+                if (index != 1) {
+                    GuardianTempList[index] = updateGuardian
                 }
             }
         )
     }
 
-
+    composable(
+        route = "editSupport/{sponsorId}",
+        arguments = listOf(navArgument("sponsorId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val sponsorId = backStackEntry.arguments?.getInt("sponsorId") ?: return@composable
+        val sponsor = SponsorList.find { it.id == sponsorId } ?: return@composable
+        SupportEditScreen(
+            navController = navController,
+            sponsor = sponsor,
+            onSave = { updatedSponsor ->
+                val index = SponsorList.indexOfFirst { it.id == sponsorId }
+                if (index != -1) SponsorList[index] = updatedSponsor
+            }
+        )
+    }
     /*
     ***
     ****
@@ -535,17 +512,7 @@ fun NavGraphBuilder.setupNavHost(
     composable("addStock") {
         StockRegistrationScreen(
             navController = navController,
-            onSave = { category, type, animalSpecies, quantity ->
-                StockList.add(
-                    Stock(
-                        id = StockList.size + 1,
-                        categoria = category,
-                        tipoItem = type,
-                        animalEspecie = animalSpecies,
-                        quantidade = quantity
-                    )
-                )
-            }
+            onSave = onSaveStock
         )
     }
 
@@ -559,21 +526,14 @@ fun NavGraphBuilder.setupNavHost(
         StockEditScreen(
             navController = navController,
             stock = stock,
-            onSave = { category, type, animalSpecies, quantity ->
+            onSave = { updateStock ->
                 val index = StockList.indexOfFirst { it.id == stockId }
-                if (index != -1) {
-                    StockList[index] = stock.copy(
-                        categoria = category,
-                        tipoItem = type,
-                        animalEspecie = animalSpecies,
-                        quantidade = quantity
-                    )
+                if (index != 1) {
+                    StockList[index] = updateStock
                 }
             }
         )
     }
-
-
 
     /*
     ***

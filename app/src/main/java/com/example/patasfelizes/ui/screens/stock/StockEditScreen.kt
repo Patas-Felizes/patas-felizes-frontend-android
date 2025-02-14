@@ -8,17 +8,15 @@ import com.example.patasfelizes.models.Stock
 fun StockEditScreen(
     navController: NavHostController,
     stock: Stock,
-    onSave: (String, String, String, String) -> Unit
+    onSave: (Stock) -> Unit
 ) {
     StockFormScreen(
-        initialCategory = stock.categoria,
-        initialType = stock.tipoItem,
-        initialAnimalSpecies = stock.animalEspecie,
-        initialQuantity = stock.quantidade,
-        onSave = { category, type, animalSpecies, quantity ->
-            onSave(category, type, animalSpecies, quantity)
+        navController = navController,
+        initialStock = stock,
+        onSave = { updatedStock ->
+            onSave(updatedStock)
             navController.navigateUp()
         },
-        onCancel = { navController.navigateUp() }
+        isEditMode = true
     )
 }
