@@ -35,6 +35,11 @@ import com.example.patasfelizes.ui.components.ToggleSwitch
 import java.time.LocalDate
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import com.example.patasfelizes.ui.components.BoxWithProgressBar
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,6 +53,7 @@ fun AnimalFormScreen(
     val especieOptions = listOf("Gato", "Cachorro", "Outro")
     val idadeOptions = listOf("Dias", "Meses", "Anos")
 
+    var isLoading by remember { mutableStateOf(false) }
 
     var nome by remember { mutableStateOf(TextFieldValue(initialAnimal?.nome ?: "")) }
     var idade by remember { mutableStateOf(TextFieldValue(initialAnimal?.idade?.split(" ")?.get(0) ?: "")) }
@@ -95,276 +101,288 @@ fun AnimalFormScreen(
         }
     }
 
-    Scaffold { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            HorizontalDivider(
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-            )
-
+    BoxWithProgressBar(isLoading = isLoading) {
+        Scaffold { innerPadding ->
             Column(
                 modifier = Modifier
-                    .fillMaxWidth(0.88f)
-                    .padding(vertical = 16.dp),
-                horizontalAlignment = Alignment.Start
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = "Fotos do pet",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSecondary,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                HorizontalDivider(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
                 )
-                LazyRow(
+
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        .fillMaxWidth(0.88f)
+                        .padding(vertical = 16.dp),
+                    horizontalAlignment = Alignment.Start
                 ) {
-                    items(imageUris) { uri ->
-                        Box(
-                            modifier = Modifier.size(120.dp)
-                        ) {
-                            Card(
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary),
-                                shape = RoundedCornerShape(16.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    AsyncImage(
-                                        model = uri,
-                                        contentDescription = "Foto do pet",
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentScale = ContentScale.Crop,
-                                        error = painterResource(id = R.drawable.default_image)
-                                    )
-                                }
-                            }
-
-                            // Botão de remover
-                            IconButton(
-                                onClick = {
-                                    imageUris = imageUris.filter { it != uri }
-                                },
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .size(24.dp)
-                            ) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.remover),
-                                    contentDescription = "Remover foto",
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                        .padding(top = 4.dp, end = 8.dp)
-                                )
-                            }
-                        }
-                    }
-
-                    // Botão de adicionar nova foto (se houver menos de 10 fotos)
-                    if (imageUris.size < 10) {
-                        item {
-                            Card(
-                                modifier = Modifier
-                                    .size(120.dp)
-                                    .clickable { galleryLauncher.launch("image/*") },
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary),
-                                shape = RoundedCornerShape(16.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.AddPhotoAlternate,
-                                        contentDescription = "Adicionar foto",
-                                        modifier = Modifier.size(32.dp),
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
-
-                FormField(
-                    label = "Nome",
-                    placeholder = "Informe o nome do pet...",
-                    value = nome,
-                    onValueChange = { nome = it },
-                    modifier = Modifier.padding(bottom = 16.dp),
-                    trailingIcon = { EditIcon() }
-                )
-
-                Text(
-                    text = "Idade",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSecondary,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    FormField(
-                        placeholder = "Ex.: 2...",
-                        value = idade,
-                        onValueChange = { idade = it },
+                    Text(
+                        text = "Fotos do pet",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSecondary,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    LazyRow(
                         modifier = Modifier
-                            .weight(1f)
-                            .padding(end = 8.dp),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(imageUris) { uri ->
+                            Box(
+                                modifier = Modifier.size(120.dp)
+                            ) {
+                                Card(
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary),
+                                    shape = RoundedCornerShape(16.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        AsyncImage(
+                                            model = uri,
+                                            contentDescription = "Foto do pet",
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop,
+                                            error = painterResource(id = R.drawable.default_image)
+                                        )
+                                    }
+                                }
+
+                                // Botão de remover
+                                IconButton(
+                                    onClick = {
+                                        imageUris = imageUris.filter { it != uri }
+                                    },
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .size(24.dp)
+                                ) {
+                                    Image(
+                                        painter = painterResource(id = R.drawable.remover),
+                                        contentDescription = "Remover foto",
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .padding(top = 4.dp, end = 8.dp)
+                                    )
+                                }
+                            }
+                        }
+
+                        // Botão de adicionar nova foto (se houver menos de 10 fotos)
+                        if (imageUris.size < 10) {
+                            item {
+                                Card(
+                                    modifier = Modifier
+                                        .size(120.dp)
+                                        .clickable { galleryLauncher.launch("image/*") },
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary),
+                                    shape = RoundedCornerShape(16.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.AddPhotoAlternate,
+                                            contentDescription = "Adicionar foto",
+                                            modifier = Modifier.size(32.dp),
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+
+                    FormField(
+                        label = "Nome",
+                        placeholder = "Informe o nome do pet...",
+                        value = nome,
+                        onValueChange = { nome = it },
+                        modifier = Modifier.padding(bottom = 16.dp),
                         trailingIcon = { EditIcon() }
                     )
-                    CustomDropdown(
-                        selectedOption = unidadeIdade,
-                        placeholder = "Ex.: Meses...",
-                        options = idadeOptions,
-                        onOptionSelected = { unidadeIdade = it },
-                        label = null,
-                        modifier = Modifier.weight(1f)
+
+                    Text(
+                        text = "Idade",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSecondary,
+                        modifier = Modifier.padding(bottom = 8.dp)
                     )
-                }
-
-                Text(
-                    text = "Sexo",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSecondary,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                ToggleSwitch(
-                    options = listOf("Fêmea", "Macho"),
-                    selectedOptionIndex = sexoIndex,
-                    onOptionSelected = { sexoIndex = it },
-                    horizontalPadding = 0.dp,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                Text(
-                    text = "Castração",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSecondary,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                ToggleSwitch(
-                    options = listOf("Não", "Sim"),
-                    selectedOptionIndex = castracaoIndex,
-                    onOptionSelected = { castracaoIndex = it },
-                    horizontalPadding = 0.dp,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                CustomDropdown(
-                    selectedOption = status,
-                    placeholder = "Selecione o status do pet...",
-                    options = statusOptions,
-                    onOptionSelected = { status = it },
-                    label = "Status",
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                CustomDropdown(
-                    selectedOption = especie,
-                    placeholder = "Selecione a espécie do pet...",
-                    options = especieOptions,
-                    onOptionSelected = { especie = it },
-                    label = "Espécie",
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                FormField(
-                    label = "Descrição",
-                    placeholder = "Descreva a situação em que o pet foi encontrado...",
-                    value = descricao,
-                    onValueChange = { descricao = it },
-                    modifier = Modifier.padding(bottom = 20.dp),
-                    trailingIcon = { EditIcon() }
-                )
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Button(
-                        onClick = { navController.navigateUp() },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = MaterialTheme.colorScheme.secondary
-                        ),
-                        contentPadding = PaddingValues(vertical = 8.dp, horizontal = 16.dp)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = if (isEditMode) "Cancelar" else "Voltar",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onTertiary,
-                            textAlign = TextAlign.Center
+                        FormField(
+                            placeholder = "Ex.: 2...",
+                            value = idade,
+                            onValueChange = { idade = it },
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(end = 8.dp),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            trailingIcon = { EditIcon() }
+                        )
+                        CustomDropdown(
+                            selectedOption = unidadeIdade,
+                            placeholder = "Ex.: Meses...",
+                            options = idadeOptions,
+                            onOptionSelected = { unidadeIdade = it },
+                            label = null,
+                            modifier = Modifier.weight(1f)
                         )
                     }
 
-                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(
+                        text = "Sexo",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSecondary,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    ToggleSwitch(
+                        options = listOf("Fêmea", "Macho"),
+                        selectedOptionIndex = sexoIndex,
+                        onOptionSelected = { sexoIndex = it },
+                        horizontalPadding = 0.dp,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
 
-                    Button(
-                        onClick = {
-                            if (nome.text.isBlank() || especie.isBlank() || status.isBlank()) {
-                                return@Button
-                            }
+                    Text(
+                        text = "Castração",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSecondary,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    ToggleSwitch(
+                        options = listOf("Não", "Sim"),
+                        selectedOptionIndex = castracaoIndex,
+                        onOptionSelected = { castracaoIndex = it },
+                        horizontalPadding = 0.dp,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
 
-                            val animal = if (isEditMode) {
-                                initialAnimal!!.copy(
-                                    nome = nome.text.trim(),
-                                    descricao = descricao.text.trim(),
-                                    idade = "${idade.text.trim()} $unidadeIdade",
-                                    sexo = if (sexoIndex == 0) "Fêmea" else "Macho",
-                                    castracao = if (castracaoIndex == 1) "Sim" else "Não",
-                                    status = status,
-                                    especie = especie,
-                                    imageUris = imageUris.map { it.toString() }
-                                )
-                            } else {
-                                Animal(
-                                    id = 0,
-                                    nome = nome.text.trim(),
-                                    descricao = descricao.text.trim(),
-                                    idade = "${idade.text.trim()} $unidadeIdade",
-                                    sexo = if (sexoIndex == 0) "Fêmea" else "Macho",
-                                    castracao = if (castracaoIndex == 1) "Sim" else "Não",
-                                    status = status,
-                                    especie = especie,
-                                    dataCadastro = LocalDate.now(),
-                                    imageUris = imageUris.map { it.toString() }
-                                )
-                            }
-                            onSave(animal)
-                            navController.navigateUp()
-                        },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        ),
-                        contentPadding = PaddingValues(vertical = 8.dp, horizontal = 16.dp)
+                    CustomDropdown(
+                        selectedOption = status,
+                        placeholder = "Selecione o status do pet...",
+                        options = statusOptions,
+                        onOptionSelected = { status = it },
+                        label = "Status",
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
+                    CustomDropdown(
+                        selectedOption = especie,
+                        placeholder = "Selecione a espécie do pet...",
+                        options = especieOptions,
+                        onOptionSelected = { especie = it },
+                        label = "Espécie",
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
+                    FormField(
+                        label = "Descrição",
+                        placeholder = "Descreva a situação em que o pet foi encontrado...",
+                        value = descricao,
+                        onValueChange = { descricao = it },
+                        modifier = Modifier.padding(bottom = 20.dp),
+                        trailingIcon = { EditIcon() }
+                    )
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = "Salvar",
-                            style = MaterialTheme.typography.labelSmall,
-                            textAlign = TextAlign.Center
-                        )
+                        Button(
+                            onClick = { navController.navigateUp() },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = MaterialTheme.colorScheme.secondary
+                            ),
+                            contentPadding = PaddingValues(vertical = 8.dp, horizontal = 16.dp)
+                        ) {
+                            Text(
+                                text = if (isEditMode) "Cancelar" else "Voltar",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onTertiary,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        Button(
+                            onClick = {
+                                if (nome.text.isBlank() || especie.isBlank() || status.isBlank()) {
+                                    return@Button
+                                }
+
+                                isLoading = true
+
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    delay(1000) // Simular operação
+                                    val animal = if (isEditMode) {
+                                        initialAnimal!!.copy(
+                                            nome = nome.text.trim(),
+                                            descricao = descricao.text.trim(),
+                                            idade = "${idade.text.trim()} $unidadeIdade",
+                                            sexo = if (sexoIndex == 0) "Fêmea" else "Macho",
+                                            castracao = if (castracaoIndex == 1) "Sim" else "Não",
+                                            status = status,
+                                            especie = especie,
+                                            imageUris = imageUris.map { it.toString() }
+                                        )
+                                    } else {
+                                        Animal(
+                                            id = 0,
+                                            nome = nome.text.trim(),
+                                            descricao = descricao.text.trim(),
+                                            idade = "${idade.text.trim()} $unidadeIdade",
+                                            sexo = if (sexoIndex == 0) "Fêmea" else "Macho",
+                                            castracao = if (castracaoIndex == 1) "Sim" else "Não",
+                                            status = status,
+                                            especie = especie,
+                                            dataCadastro = LocalDate.now(),
+                                            imageUris = imageUris.map { it.toString() }
+                                        )
+                                    }
+
+                                    onSave(animal)
+                                    isLoading = false
+                                    navController.navigateUp()
+                                }
+                            },
+
+                            enabled = !isLoading,
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary
+                            ),
+                            contentPadding = PaddingValues(vertical = 8.dp, horizontal = 16.dp)
+                        ) {
+                            Text(
+                                text = "Salvar",
+                                style = MaterialTheme.typography.labelSmall,
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
+                    Spacer(modifier = Modifier.height(32.dp))
                 }
-                Spacer(modifier = Modifier.height(32.dp))
             }
         }
     }
+
 }

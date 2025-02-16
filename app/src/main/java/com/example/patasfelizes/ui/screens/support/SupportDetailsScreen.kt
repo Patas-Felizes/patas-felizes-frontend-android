@@ -12,6 +12,11 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.patasfelizes.models.Sponsor
 import com.example.patasfelizes.models.SponsorList
+import com.example.patasfelizes.ui.components.BoxWithProgressBar
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -22,96 +27,108 @@ fun SupportDetailsScreen(
 ) {
     val sponsor = SponsorList.find { it.id == sponsorId } ?: return
 
+    var isLoading by remember { mutableStateOf(false) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
 
-    Scaffold { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Card(
+    BoxWithProgressBar(isLoading = isLoading) {
+        Scaffold { innerPadding ->
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth(0.95f)
-                    .padding(horizontal = 16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary)
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    horizontalAlignment = Alignment.Start
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth(0.95f)
+                        .padding(horizontal = 16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary)
                 ) {
-                    sponsor.idAnimal?.let { DetailRow("Pet", it.nome) }
-                    DetailRow("Padrinho", sponsor.padrinhoNome)
-                    DetailRow("Valor", "R$ ${sponsor.valor}")
-                    DetailRow("Data de Cadastro", sponsor.dataCadastro.toString())
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Button(
-                    onClick = { navController.navigateUp() },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Voltar")
-                }
-
-                Spacer(modifier = Modifier.width(16.dp))
-
-                Button(
-                    onClick = { navController.navigate("editSupport/$sponsorId") },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Editar")
-                }
-            }
-
-            Spacer(modifier = Modifier.height(11.dp))
-
-            Button(
-                onClick = { showDeleteConfirmation = true },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error,
-                    contentColor = MaterialTheme.colorScheme.onError
-                ),
-                modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .padding(horizontal = 16.dp)
-            ) {
-                Text("Remover apadrinhamento")
-            }
-
-            if (showDeleteConfirmation) {
-                AlertDialog(
-                    onDismissRequest = { showDeleteConfirmation = false },
-                    title = { Text("Confirmar Exclusão") },
-                    text = { Text("Tem certeza que deseja remover este apadrinhamento permanentemente?") },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                onDelete(sponsor.id)
-                                navController.navigateUp()
-                            }
-                        ) {
-                            Text("Confirmar")
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { showDeleteConfirmation = false }) {
-                            Text("Cancelar")
-                        }
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        sponsor.idAnimal?.let { DetailRow("Pet", it.nome) }
+                        DetailRow("Padrinho", sponsor.padrinhoNome)
+                        DetailRow("Valor", "R$ ${sponsor.valor}")
+                        DetailRow("Data de Cadastro", sponsor.dataCadastro.toString())
                     }
-                )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(0.9f)
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Button(
+                        onClick = { navController.navigateUp() },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Voltar")
+                    }
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Button(
+                        onClick = { navController.navigate("editSupport/$sponsorId") },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Editar")
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(11.dp))
+
+                Button(
+                    onClick = { showDeleteConfirmation = true },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth(0.9f)
+                        .padding(horizontal = 16.dp)
+                ) {
+                    Text("Remover apadrinhamento")
+                }
+
+                if (showDeleteConfirmation) {
+                    AlertDialog(
+                        onDismissRequest = { showDeleteConfirmation = false },
+                        title = { Text("Confirmar Exclusão") },
+                        text = { Text("Tem certeza que deseja remover este apadrinhamento permanentemente?") },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    onDelete(sponsor.id)
+                                    isLoading = true
+                                    CoroutineScope(Dispatchers.Main).launch {
+                                        delay(1000) // Simular operação
+                                        isLoading = false
+                                        navController.navigateUp()
+                                    }
+                                },
+                                enabled = !isLoading
+                            ) {
+                                Text("Confirmar")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(
+                                onClick = { showDeleteConfirmation = false },
+                                enabled = !isLoading
+                            ) {
+                                Text("Cancelar")
+                            }
+                        }
+                    )
+                }
             }
         }
     }

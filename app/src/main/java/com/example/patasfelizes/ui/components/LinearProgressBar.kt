@@ -11,6 +11,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.ui.layout.layoutId
 
 @Composable
 fun LinearProgressBar(
@@ -21,6 +25,8 @@ fun LinearProgressBar(
         modifier = modifier
             .fillMaxWidth()
             .height(4.dp)
+            .zIndex(Float.MAX_VALUE)
+            .layoutId("progressBar"), // Identificador único para o layout
     ) {
         AnimatedVisibility(
             visible = isLoading,
@@ -33,5 +39,22 @@ fun LinearProgressBar(
                 trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
             )
         }
+    }
+}
+
+@Composable
+fun BoxWithProgressBar(
+    isLoading: Boolean,
+    modifier: Modifier = Modifier,
+    content: @Composable BoxScope.() -> Unit
+) {
+    Box(
+        modifier = modifier.fillMaxWidth()
+    ) {
+        content()
+        LinearProgressBar(
+            isLoading = isLoading,
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
     }
 }

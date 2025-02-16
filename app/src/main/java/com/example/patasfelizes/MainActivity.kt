@@ -60,9 +60,7 @@ import com.example.patasfelizes.models.GuardianTempList
 import com.example.patasfelizes.models.Stock
 import com.example.patasfelizes.models.StockList
 import com.example.patasfelizes.repository.AnimalsRepository
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {

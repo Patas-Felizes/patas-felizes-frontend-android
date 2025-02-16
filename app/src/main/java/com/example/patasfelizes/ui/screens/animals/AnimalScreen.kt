@@ -88,9 +88,7 @@ fun AnimalScreen(navController: NavHostController) {
                 )
 
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
+                    modifier = Modifier.padding(horizontal = 5.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     val isVisible = remember { mutableStateOf(false) }
