@@ -11,14 +11,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.patasfelizes.ui.components.*
 import com.example.patasfelizes.models.Campaign
-import com.example.patasfelizes.models.CampaignList
+import com.example.patasfelizes.ui.viewmodels.campaigns.CampaignListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CampaignsScreen(navController: NavHostController) {
+fun CampaignsScreen(
+    navController: NavHostController,
+    viewModel: CampaignListViewModel = viewModel()
+) {
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
+    val campaigns by viewModel.campaigns.collectAsState()
 
     val filterOptions = remember {
         listOf(
@@ -31,6 +36,10 @@ fun CampaignsScreen(navController: NavHostController) {
     }
 
     var currentFilters by remember { mutableStateOf(filterOptions) }
+
+    LaunchedEffect(Unit) {
+        viewModel.reloadCampaigns()
+    }
 
     Scaffold(
         floatingActionButton = {
@@ -65,12 +74,12 @@ fun CampaignsScreen(navController: NavHostController) {
                 Spacer(modifier = Modifier.height(8.dp))
 
                 CampaignList(
-                    campaigns = CampaignList.filter {
+                    campaigns = campaigns.filter {
                         it.nome.contains(searchQuery.text, ignoreCase = true) ||
                                 it.tipo.contains(searchQuery.text, ignoreCase = true)
                     },
                     onCampaignClick = { campaign ->
-                        navController.navigate("campaignDetails/${campaign.id}")
+                        navController.navigate("campaignDetails/${campaign.campanha_id}")
                     }
                 )
             }
@@ -129,7 +138,7 @@ fun CampaignListItem(
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
-                text = "Período: ${campaign.dataInicio} a ${campaign.dataTermino}",
+                text = "Período: ${campaign.data_inicio} a ${campaign.data_termino}",
                 style = MaterialTheme.typography.bodySmall
             )
         }

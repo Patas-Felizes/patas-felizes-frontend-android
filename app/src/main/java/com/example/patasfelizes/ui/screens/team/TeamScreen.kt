@@ -15,37 +15,31 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.example.patasfelizes.models.VoluntaryList
+import coil.compose.AsyncImage
+import com.example.patasfelizes.R
 import com.example.patasfelizes.ui.components.*
+import com.example.patasfelizes.ui.viewmodels.team.TeamListViewModel
 
-// Tela Equipe
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TeamScreen(navController: NavHostController) {
+fun TeamScreen(
+    navController: NavHostController,
+    viewModel: TeamListViewModel = viewModel()
+) {
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
+    val voluntarios by viewModel.voluntarios.collectAsState()
 
-    // editar filtros conforme cada tela
-    val filterOptions = remember {
-        listOf(
-            FilterOption("Para adoção"),
-            FilterOption("Adotado"),
-            FilterOption("Em lar temporário"),
-            FilterOption("Em tratamento")
-        )
+    LaunchedEffect(true) {
+        viewModel.reloadVoluntarios()
     }
 
-    var currentFilters by remember { mutableStateOf(filterOptions) }
-
-    val filteredVolunteers = VoluntaryList
-        .filter { voluntary ->
-            val matchesSearch = searchQuery.text.isEmpty() ||
-                    voluntary.nome.contains(searchQuery.text, ignoreCase = true) ||
-                    voluntary.email.contains(searchQuery.text, ignoreCase = true)
-
-            val activeFilters = currentFilters.filter { it.isSelected }
-            matchesSearch
-        }
+    val filteredVolunteers = voluntarios.filter { voluntary ->
+        searchQuery.text.isEmpty() ||
+                voluntary.nome.contains(searchQuery.text, ignoreCase = true) ||
+                voluntary.email.contains(searchQuery.text, ignoreCase = true)
+    }
 
     Scaffold(
         floatingActionButton = {
@@ -70,13 +64,6 @@ fun TeamScreen(navController: NavHostController) {
                     onClearSearch = { searchQuery = TextFieldValue("") }
                 )
 
-                FilterComponent(
-                    filterOptions = currentFilters,
-                    onFilterChanged = { updatedFilters ->
-                        currentFilters = updatedFilters
-                    }
-                )
-
                 LazyColumn(
                     modifier = Modifier.padding(horizontal = 5.dp),
                     contentPadding = PaddingValues(bottom = 20.dp)
@@ -90,7 +77,7 @@ fun TeamScreen(navController: NavHostController) {
                                 modifier = Modifier
                                     .padding(vertical = 6.dp)
                                     .clickable {
-                                        navController.navigate("voluntaryDetails/${voluntary.id}")
+                                        navController.navigate("voluntaryDetails/${voluntary.voluntario_id}")
                                     }
                                     .fillMaxWidth(0.9f),
                                 elevation = CardDefaults.cardElevation(3.dp),
@@ -99,14 +86,15 @@ fun TeamScreen(navController: NavHostController) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    Image(
-                                        painter = painterResource(id = voluntary.imageRes),
+                                    AsyncImage(
+                                        model = voluntary.foto,
                                         contentDescription = voluntary.nome,
                                         modifier = Modifier
                                             .size(130.dp)
                                             .clip(RoundedCornerShape(topEnd = 0.dp, bottomEnd = 0.dp))
                                             .aspectRatio(1f),
-                                        contentScale = ContentScale.Crop
+                                        contentScale = ContentScale.Crop,
+                                        error = painterResource(id = R.drawable.default_image)
                                     )
 
                                     Spacer(modifier = Modifier.width(16.dp))

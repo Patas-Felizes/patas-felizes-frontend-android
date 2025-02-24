@@ -23,9 +23,11 @@ fun StockFormScreen(
     isEditMode: Boolean = false
 ) {
     var category by remember { mutableStateOf(initialStock?.categoria ?: "") }
-    var type by remember { mutableStateOf(initialStock?.tipoItem ?: "") }
-    var animalSpecies by remember { mutableStateOf(initialStock?.animalEspecie ?: "") }
+    var type by remember { mutableStateOf(initialStock?.tipo_item ?: "") }
+    var description by remember { mutableStateOf(initialStock?.descricao ?: "") }
+    var animalSpecies by remember { mutableStateOf(initialStock?.especie_animal ?: "") }
     var quantity by remember { mutableStateOf(TextFieldValue(initialStock?.quantidade ?: "")) }
+    var totalQuantity by remember { mutableStateOf(TextFieldValue(initialStock?.quantidade_total ?: "")) }
 
     Scaffold { innerPadding ->
         Column(
@@ -64,6 +66,14 @@ fun StockFormScreen(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
+                FormField(
+                    label = "Descrição",
+                    value = TextFieldValue(description),
+                    onValueChange = { description = it.text },
+                    placeholder = "Informe a descrição",
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
                 CustomDropdown(
                     label = "Espécie de animal",
                     selectedOption = animalSpecies,
@@ -77,7 +87,15 @@ fun StockFormScreen(
                     label = "Quantidade",
                     value = quantity,
                     onValueChange = { quantity = it },
-                    placeholder = "Informe a quantidade",
+                    placeholder = "Informe a quantidade atual",
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                FormField(
+                    label = "Quantidade Total",
+                    value = totalQuantity,
+                    onValueChange = { totalQuantity = it },
+                    placeholder = "Informe a quantidade total",
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
@@ -105,20 +123,21 @@ fun StockFormScreen(
 
                     Button(
                         onClick = {
-                            if (quantity.text.isBlank()) {
+                            if (quantity.text.isBlank() || totalQuantity.text.isBlank()) {
                                 return@Button
                             }
 
                             val newStock = Stock(
-                                id = initialStock?.id ?: 0,
+                                estoque_id = initialStock?.estoque_id ?: 0,
                                 categoria = category,
-                                tipoItem = type,
-                                animalEspecie = animalSpecies,
-                                quantidade = quantity.text
+                                tipo_item = type,
+                                descricao = description,
+                                especie_animal = animalSpecies,
+                                quantidade = quantity.text,
+                                quantidade_total = totalQuantity.text
                             )
 
                             onSave(newStock)
-                            navController.navigateUp()
                         },
                         modifier = Modifier.weight(1f)
                     ) {

@@ -10,7 +10,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.patasfelizes.models.Donation
-import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,14 +62,18 @@ fun DonationListItem(
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
-                text = "Data: ${
-                    donation.dataDoacao.format(DateTimeFormatter.ofPattern("dd/MM/uuuu"))
-                }",
+                text = "Data: ${donation.data_doacao}",
                 style = MaterialTheme.typography.bodySmall
             )
-            donation.idAnimal?.let { animal ->
+            if (donation.animal_id != null) {
                 Text(
-                    text = "Animal associado: ${animal.nome}",
+                    text = "ID do Animal: ${donation.animal_id}",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+            if (donation.companha_id != null) {
+                Text(
+                    text = "ID da Campanha: ${donation.companha_id}",
                     style = MaterialTheme.typography.bodySmall
                 )
             }

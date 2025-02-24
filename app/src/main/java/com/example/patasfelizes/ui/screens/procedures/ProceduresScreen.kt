@@ -10,16 +10,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.patasfelizes.ui.components.*
 import com.example.patasfelizes.models.Procedure
-import com.example.patasfelizes.models.ProcedureList
-import java.time.format.DateTimeFormatter
+import com.example.patasfelizes.ui.viewmodels.procedure.ProcedureListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProceduresScreen(navController: NavHostController) {
+fun ProceduresScreen(
+    navController: NavHostController,
+    viewModel: ProcedureListViewModel = viewModel()
+) {
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
+    val procedures by viewModel.procedures.collectAsState()
 
     val filterOptions = remember {
         listOf(
@@ -33,6 +37,10 @@ fun ProceduresScreen(navController: NavHostController) {
     }
 
     var currentFilters by remember { mutableStateOf(filterOptions) }
+
+    LaunchedEffect(Unit) {
+        viewModel.reloadProcedures()
+    }
 
     Scaffold(
         floatingActionButton = {
@@ -67,14 +75,14 @@ fun ProceduresScreen(navController: NavHostController) {
                 Spacer(modifier = Modifier.height(8.dp))
 
                 ProcedureList(
-                    procedures = ProcedureList.filter {
+                    procedures = procedures.filter {
                         (it.descricao.contains(searchQuery.text, ignoreCase = true) ||
                                 it.tipo.contains(searchQuery.text, ignoreCase = true)) &&
                                 (currentFilters.find { filter -> filter.isSelected && filter.name == it.tipo } != null ||
                                         currentFilters.none { filter -> filter.isSelected })
                     },
                     onProcedureClick = { procedure ->
-                        navController.navigate("procedureDetails/${procedure.id}")
+                        navController.navigate("procedureDetails/${procedure.procedimento_id}")
                     }
                 )
             }
@@ -137,7 +145,7 @@ fun ProcedureListItem(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Data: ${procedure.dataProcedimento}",
+                    text = "Data: ${procedure.data_procedimento}",
                     style = MaterialTheme.typography.bodySmall
                 )
                 Text(
@@ -145,15 +153,15 @@ fun ProcedureListItem(
                     style = MaterialTheme.typography.bodySmall
                 )
             }
-            procedure.idAnimal?.let {
+            procedure.animal_id?.let {
                 Text(
-                    text = "Animal: ${it.nome}",
+                    text = "ID do Animal: $it",
                     style = MaterialTheme.typography.bodySmall
                 )
             }
-            procedure.idVoluntary?.let {
+            procedure.voluntario_id?.let {
                 Text(
-                    text = "Voluntário: ${it.nome}",
+                    text = "ID do Voluntário: $it",
                     style = MaterialTheme.typography.bodySmall
                 )
             }

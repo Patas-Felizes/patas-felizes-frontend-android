@@ -3,7 +3,6 @@ package com.example.patasfelizes.ui.screens.animals
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -18,28 +17,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import coil.compose.rememberImagePainter
 import coil.compose.AsyncImage
-import com.example.patasfelizes.R
 import com.example.patasfelizes.models.Animal
 import com.example.patasfelizes.ui.components.CustomDropdown
 import com.example.patasfelizes.ui.components.FormField
 import com.example.patasfelizes.ui.components.ToggleSwitch
-import java.time.LocalDate
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import com.example.patasfelizes.ui.components.BoxWithProgressBar
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
+import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,13 +37,15 @@ fun AnimalFormScreen(
     navController: NavHostController,
     initialAnimal: Animal? = null,
     onSave: (Animal) -> Unit,
-    isEditMode: Boolean = false
+    isEditMode: Boolean = false,
+    viewModel: AnimalListViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     val statusOptions = listOf("Para adoção", "Em tratamento", "Em lar temporário", "Adotado", "Falecido", "Desaparecido")
     val especieOptions = listOf("Gato", "Cachorro", "Outro")
     val idadeOptions = listOf("Dias", "Meses", "Anos")
 
     var isLoading by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     var nome by remember { mutableStateOf(TextFieldValue(initialAnimal?.nome ?: "")) }
     var idade by remember { mutableStateOf(TextFieldValue(initialAnimal?.idade?.split(" ")?.get(0) ?: "")) }
@@ -63,31 +55,15 @@ fun AnimalFormScreen(
     var status by remember { mutableStateOf(initialAnimal?.status ?: "") }
     var especie by remember { mutableStateOf(initialAnimal?.especie ?: "") }
     var descricao by remember { mutableStateOf(TextFieldValue(initialAnimal?.descricao ?: "")) }
-    var imageRes by remember { mutableStateOf(initialAnimal?.imageRes ?: R.drawable.default_image) }
-
-    var imageUris by remember {
-        mutableStateOf<List<Uri>>(
-            initialAnimal?.imageUris?.mapNotNull { uriString ->
-                try {
-                    Uri.parse(uriString)
-                } catch (e: Exception) {
-                    null
-                }
-            } ?: emptyList()
-        )
-    }
+    var fotoUri by remember { mutableStateOf<Uri?>(initialAnimal?.foto?.let { Uri.parse(it) }) }
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
-            if (imageUris.size < 10) {
-                imageUris = imageUris + it
-            }
+            fotoUri = it
         }
     }
-
-
 
     @Composable
     fun EditIcon() {
@@ -122,85 +98,58 @@ fun AnimalFormScreen(
                     horizontalAlignment = Alignment.Start
                 ) {
                     Text(
-                        text = "Fotos do pet",
+                        text = "Foto do pet",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSecondary,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
-                    LazyRow(
+
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        contentAlignment = Alignment.Center
                     ) {
-                        items(imageUris) { uri ->
+                        Card(
+                            modifier = Modifier
+                                .size(120.dp)
+                                .clickable { galleryLauncher.launch("image/*") },
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
                             Box(
-                                modifier = Modifier.size(120.dp)
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
                             ) {
-                                Card(
-                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary),
-                                    shape = RoundedCornerShape(16.dp)
-                                ) {
-                                    Box(
+                                if (fotoUri != null) {
+                                    AsyncImage(
+                                        model = fotoUri,
+                                        contentDescription = "Foto do pet",
                                         modifier = Modifier.fillMaxSize(),
-                                        contentAlignment = Alignment.Center
+                                        contentScale = ContentScale.Crop
+                                    )
+
+                                    IconButton(
+                                        onClick = { fotoUri = null },
+                                        modifier = Modifier.align(Alignment.TopEnd)
                                     ) {
-                                        AsyncImage(
-                                            model = uri,
-                                            contentDescription = "Foto do pet",
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentScale = ContentScale.Crop,
-                                            error = painterResource(id = R.drawable.default_image)
+                                        Icon(
+                                            imageVector = Icons.Default.Close,
+                                            contentDescription = "Remover foto",
+                                            tint = MaterialTheme.colorScheme.error
                                         )
                                     }
-                                }
-
-                                // Botão de remover
-                                IconButton(
-                                    onClick = {
-                                        imageUris = imageUris.filter { it != uri }
-                                    },
-                                    modifier = Modifier
-                                        .align(Alignment.TopEnd)
-                                        .size(24.dp)
-                                ) {
-                                    Image(
-                                        painter = painterResource(id = R.drawable.remover),
-                                        contentDescription = "Remover foto",
-                                        modifier = Modifier
-                                            .size(24.dp)
-                                            .padding(top = 4.dp, end = 8.dp)
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Default.AddPhotoAlternate,
+                                        contentDescription = "Adicionar foto",
+                                        modifier = Modifier.size(32.dp),
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
                             }
                         }
-
-                        // Botão de adicionar nova foto (se houver menos de 10 fotos)
-                        if (imageUris.size < 10) {
-                            item {
-                                Card(
-                                    modifier = Modifier
-                                        .size(120.dp)
-                                        .clickable { galleryLauncher.launch("image/*") },
-                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary),
-                                    shape = RoundedCornerShape(16.dp)
-                                ) {
-                                    Box(
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.AddPhotoAlternate,
-                                            contentDescription = "Adicionar foto",
-                                            modifier = Modifier.size(32.dp),
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                    }
-                                }
-                            }
-                        }
                     }
-
 
                     FormField(
                         label = "Nome",
@@ -299,29 +248,22 @@ fun AnimalFormScreen(
                     )
 
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         Button(
                             onClick = { navController.navigateUp() },
                             modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.outlinedButtonColors(
+                            colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.secondary
-                            ),
-                            contentPadding = PaddingValues(vertical = 8.dp, horizontal = 16.dp)
+                            )
                         ) {
                             Text(
                                 text = if (isEditMode) "Cancelar" else "Voltar",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onTertiary,
-                                textAlign = TextAlign.Center
+                                color = MaterialTheme.colorScheme.onTertiary
                             )
                         }
-
-                        Spacer(modifier = Modifier.width(16.dp))
 
                         Button(
                             onClick = {
@@ -330,59 +272,52 @@ fun AnimalFormScreen(
                                 }
 
                                 isLoading = true
-
-                                CoroutineScope(Dispatchers.Main).launch {
-                                    delay(1000) // Simular operação
+                                scope.launch {
                                     val animal = if (isEditMode) {
                                         initialAnimal!!.copy(
                                             nome = nome.text.trim(),
-                                            descricao = descricao.text.trim(),
                                             idade = "${idade.text.trim()} $unidadeIdade",
+                                            foto = fotoUri?.toString() ?: "",
+                                            descricao = descricao.text.trim(),
                                             sexo = if (sexoIndex == 0) "Fêmea" else "Macho",
                                             castracao = if (castracaoIndex == 1) "Sim" else "Não",
                                             status = status,
                                             especie = especie,
-                                            imageUris = imageUris.map { it.toString() }
+                                            data_cadastro = LocalDate.now().toString()
                                         )
                                     } else {
                                         Animal(
-                                            id = 0,
+                                            animal_id = 0,
                                             nome = nome.text.trim(),
-                                            descricao = descricao.text.trim(),
                                             idade = "${idade.text.trim()} $unidadeIdade",
+                                            foto = fotoUri?.toString() ?: "",
+                                            descricao = descricao.text.trim(),
                                             sexo = if (sexoIndex == 0) "Fêmea" else "Macho",
                                             castracao = if (castracaoIndex == 1) "Sim" else "Não",
                                             status = status,
                                             especie = especie,
-                                            dataCadastro = LocalDate.now(),
-                                            imageUris = imageUris.map { it.toString() }
+                                            data_cadastro = LocalDate.now().toString()
                                         )
                                     }
 
                                     onSave(animal)
                                     isLoading = false
-                                    navController.navigateUp()
+                                    viewModel.reloadAnimals()
                                 }
                             },
-
                             enabled = !isLoading,
-                            modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary
-                            ),
-                            contentPadding = PaddingValues(vertical = 8.dp, horizontal = 16.dp)
+                            modifier = Modifier.weight(1f)
                         ) {
                             Text(
                                 text = "Salvar",
-                                style = MaterialTheme.typography.labelSmall,
-                                textAlign = TextAlign.Center
+                                style = MaterialTheme.typography.labelSmall
                             )
                         }
                     }
+
                     Spacer(modifier = Modifier.height(32.dp))
                 }
             }
         }
     }
-
 }

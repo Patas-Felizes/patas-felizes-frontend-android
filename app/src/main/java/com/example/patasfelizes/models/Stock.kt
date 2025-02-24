@@ -1,48 +1,34 @@
 package com.example.patasfelizes.models
 
-//Adicionar Vencimento
 data class Stock(
-    val id: Int,
+    val estoque_id: Int = 0,  // Alterado de 'id' para 'estoque_id' para corresponder ao backend
     val categoria: String,
-    val tipoItem: String,
-    val animalEspecie: String,
-    val quantidade: String
+    val tipo_item: String,    // Alterado de 'tipoItem' para 'tipo_item' para corresponder ao backend
+    val descricao: String,    // Adicionado para corresponder ao backend
+    val especie_animal: String, // Alterado de 'animalEspecie' para 'especie_animal' para corresponder ao backend
+    val quantidade: String,
+    val quantidade_total: String // Adicionado para corresponder ao backend
 )
 
-val StockList = mutableListOf(
-    Stock(
-        id = 1,
-        categoria = "Alimentação",
-        tipoItem = "Ração",
-        animalEspecie = "Cachorro",
-        quantidade = "10 quilos"
-    ),
-    Stock(
-        id = 2,
-        categoria = "Saúde",
-        tipoItem = "Medicamento para pulgas",
-        animalEspecie = "Gato",
-        quantidade = "5 unidades"
-    ),
-    Stock(
-        id = 3,
-        categoria = "Alimentação",
-        tipoItem = "Ração",
-        animalEspecie = "Gato",
-        quantidade = "5 quilos"
-    ),
-    Stock(
-        id = 4,
-        categoria = "Higiene",
-        tipoItem = "Shampoo",
-        animalEspecie = "Cachorro",
-        quantidade = "1 unidade"
-    ),
-    Stock(
-        id = 5,
-        categoria = "Saúde",
-        tipoItem = "Vacina Raiva",
-        animalEspecie = "Cachorro",
-        quantidade = "2 unidades"
-    )
+// StockResponse.kt - Para deserialização da resposta da API, seguindo o padrão do AnimalResponse
+data class StockResponse(
+    val status: Int,
+    val data: Stock? = null,
+    val message: String? = null
+)
+
+data class StockListResponse(
+    val status: Int,
+    val data: List<Stock>? = null,
+    val message: String? = null
+)
+
+// Extension function para converter Stock do frontend para o formato do backend
+fun Stock.toBackendFormat(): Map<String, Any> = mapOf(
+    "categoria" to categoria,
+    "tipo_item" to tipo_item,
+    "descricao" to descricao,
+    "especie_animal" to especie_animal,
+    "quantidade" to quantidade,
+    "quantidade_total" to quantidade_total
 )

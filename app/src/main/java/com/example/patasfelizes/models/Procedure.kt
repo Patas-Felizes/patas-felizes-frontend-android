@@ -3,82 +3,38 @@ package com.example.patasfelizes.models
 import java.time.LocalDate
 
 data class Procedure(
-    val id: Int,
+    val procedimento_id: Int = 0, // Inicializa com 0; o backend deverá atribuir o ID real
     val tipo: String,
     val descricao: String,
     val valor: String,
-    val dataProcedimento: String,
-    val dataCadastro: LocalDate,
-    val idAnimal: Animal?,
-    val idVoluntary: Voluntary?,
-    val idExtense: Extense?
+    val data_procedimento: String,
+    val data_cadastro: String = LocalDate.now().toString(), // Garante consistência com o formato do backend
+    val animal_id: Int?,
+    val voluntario_id: Int?,
+    val despesa_id: Int?
 )
 
-val ProcedureList = mutableListOf(
-    Procedure(
-        id = 1,
-        tipo = "Castração",
-        descricao = "Realizada após 4 meses de idade",
-        valor = "100,00",
-        dataProcedimento = "2023-12-01",
-        dataCadastro = LocalDate.of(2023, 12, 16),
-        idAnimal = AnimalList.find { it.id == 1 },
-        idVoluntary = VoluntaryList.find { it.id == 1 },
-        idExtense = null,
-    ),
-    Procedure(
-        id = 2,
-        tipo = "Cirurgia",
-        descricao = "Amputação da perna",
-        valor = "100,00",
-        dataProcedimento = "2023-12-01",
-        dataCadastro = LocalDate.of(2023, 12, 16),
-        idAnimal = AnimalList.find { it.id == 1 },
-        idVoluntary = VoluntaryList.find { it.id == 1 },
-        idExtense = null,
-    ),
-    Procedure(
-        id = 3,
-        tipo = "Vacinação",
-        descricao = "Vacina contra raiva",
-        valor = "50,00",
-        dataProcedimento = "2023-11-15",
-        dataCadastro = LocalDate.of(2023, 11, 20),
-        idAnimal = AnimalList.find { it.id == 2 },
-        idVoluntary = VoluntaryList.find { it.id == 2 },
-        idExtense = null,
-    ),
-    Procedure(
-        id = 4,
-        tipo = "Consulta",
-        descricao = "Exame geral de rotina",
-        valor = "80,00",
-        dataProcedimento = "2023-10-10",
-        dataCadastro = LocalDate.of(2023, 10, 15),
-        idAnimal = AnimalList.find { it.id == 2 },
-        idVoluntary = VoluntaryList.find { it.id == 1 },
-        idExtense = null,
-    ),
-    Procedure(
-        id = 5,
-        tipo = "Exame de Sangue",
-        descricao = "Coleta de amostra para análise",
-        valor = "70,00",
-        dataProcedimento = "2023-09-05",
-        dataCadastro = LocalDate.of(2023, 9, 10),
-        idAnimal = AnimalList.find { it.id == 1 },
-        idVoluntary = VoluntaryList.find { it.id == 2 },
-        idExtense = null,
-    ),
-    Procedure(
-        id = 6,
-        tipo = "Microchipagem",
-        descricao = "Implantação de microchip para identificação",
-        valor = "90,00",
-        dataProcedimento = "2023-08-25",
-        dataCadastro = LocalDate.of(2023, 8, 30),
-        idAnimal = AnimalList.find { it.id == 2 },
-        idVoluntary = VoluntaryList.find { it.id == 1 },
-        idExtense = null,
-    )
+// ProcedureResponse.kt - Para deserialização da resposta da API
+data class ProcedureResponse(
+    val status: Int,
+    val data: Procedure? = null,
+    val message: String? = null
+)
+
+// ProcedureListResponse.kt - Para deserialização da resposta da API quando se retorna uma lista de Procedures
+data class ProcedureListResponse(
+    val status: Int,
+    val data: List<Procedure>? = null,
+    val message: String? = null
+)
+
+// Extension function para converter Procedure do frontend para o formato do backend
+fun Procedure.toBackendFormat(): Map<String, Any?> = mapOf(
+    "tipo" to tipo,
+    "descricao" to descricao,
+    "valor" to valor,
+    "data_procedimento" to data_procedimento,
+    "animal_id" to animal_id,
+    "voluntario_id" to voluntario_id,
+    "despesa_id" to despesa_id
 )

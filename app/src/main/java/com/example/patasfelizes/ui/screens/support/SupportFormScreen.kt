@@ -10,32 +10,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.patasfelizes.models.AnimalList
-import com.example.patasfelizes.models.Sponsor
+import com.example.patasfelizes.models.Support
 import com.example.patasfelizes.ui.components.BoxWithProgressBar
 import com.example.patasfelizes.ui.components.CustomDropdown
 import com.example.patasfelizes.ui.components.FormField
+import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
 import java.time.LocalDate
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SupportFormScreen(
     navController: NavHostController,
-    initialSponsor: Sponsor? = null,
-    onSave: (Sponsor) -> Unit,
-    isEditMode: Boolean = false
+    initialSupport: Support? = null,
+    onSave: (Support) -> Unit,
+    isEditMode: Boolean = false,
+    animalViewModel: AnimalListViewModel = viewModel()
 ) {
-    var padrinhoNome by remember { mutableStateOf(TextFieldValue(initialSponsor?.padrinhoNome ?: "")) }
-    var valor by remember { mutableStateOf(TextFieldValue(initialSponsor?.valor ?: "")) }
-    var selectedPetId by remember { mutableStateOf(initialSponsor?.idAnimal?.id) }
+    var padrinhoNome by remember { mutableStateOf(TextFieldValue(initialSupport?.nome_apadrinhador ?: "")) }
+    var valor by remember { mutableStateOf(TextFieldValue(initialSupport?.valor ?: "")) }
+    var selectedPetId by remember { mutableStateOf(initialSupport?.animal_id) }
 
-    var isLoading by remember { mutableStateOf(false) }
+    val animals by animalViewModel.animals.collectAsState()
 
-    BoxWithProgressBar(isLoading = isLoading) {
+    BoxWithProgressBar(isLoading = false) {
         Scaffold { innerPadding ->
             Column(
                 modifier = Modifier
@@ -47,10 +45,10 @@ fun SupportFormScreen(
                 Column(modifier = Modifier.padding(16.dp)) {
                     CustomDropdown(
                         label = "Pet",
-                        selectedOption = AnimalList.find { it.id == selectedPetId }?.nome ?: "Selecione o pet",
-                        options = AnimalList.map { it.nome },
+                        selectedOption = animals.find { it.animal_id == selectedPetId }?.nome ?: "Selecione o pet",
+                        options = animals.map { it.nome },
                         onOptionSelected = { selectedOption ->
-                            selectedPetId = AnimalList.find { it.nome == selectedOption }?.id
+                            selectedPetId = animals.find { it.nome == selectedOption }?.animal_id
                         }
                     )
 
@@ -92,24 +90,19 @@ fun SupportFormScreen(
                                 if (selectedPetId == null || padrinhoNome.text.isBlank() || valor.text.isBlank()) {
                                     return@Button
                                 }
-                                isLoading = true
 
-                                CoroutineScope(Dispatchers.Main).launch {
-                                    delay(1000) // Simular operação
-                                    val sponsor = Sponsor(
-                                        id = initialSponsor?.id ?: 0,
-                                        idAnimal = AnimalList.find { it.id == selectedPetId },
-                                        padrinhoNome = padrinhoNome.text,
-                                        valor = valor.text,
-                                        regularidade = "Mensalmente",
-                                        dataCadastro = LocalDate.now()
-                                    )
-                                    onSave(sponsor)
-                                    isLoading = false
-                                    navController.navigateUp()
-                                }
+                                val support = Support(
+                                    apadrinhamento_id = initialSupport?.apadrinhamento_id ?: 0,
+                                    animal_id = selectedPetId!!,
+                                    nome_apadrinhador = padrinhoNome.text,
+                                    valor = valor.text,
+                                    regularidade = "Mensalmente",
+                                    data_cadastro = LocalDate.now().toString()
+                                )
+
+                                onSave(support)
                             },
-                            enabled = !isLoading,
+                            enabled = selectedPetId != null,
                             modifier = Modifier.weight(1f)
                         ) {
                             Text("Salvar")

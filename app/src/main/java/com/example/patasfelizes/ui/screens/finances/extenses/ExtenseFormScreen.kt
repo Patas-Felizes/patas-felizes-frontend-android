@@ -15,10 +15,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.patasfelizes.models.Extense
-import com.example.patasfelizes.models.AnimalList
 import com.example.patasfelizes.ui.components.CustomDropdown
 import com.example.patasfelizes.ui.components.DatePickerField
 import com.example.patasfelizes.ui.components.FormField
+import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -27,14 +28,17 @@ fun ExtenseFormScreen(
     navController: NavHostController,
     initialExtense: Extense? = null,
     onSave: (Extense) -> Unit,
-    isEditMode: Boolean = false
+    isEditMode: Boolean = false,
+    animalViewModel: AnimalListViewModel = viewModel()
 ) {
     val tipoOptions = listOf("Veterinário", "Medicamentos", "Cirurgia", "Ração", "Outros")
 
     var valor by remember { mutableStateOf(TextFieldValue(initialExtense?.valor ?: "")) }
     var tipo by remember { mutableStateOf(initialExtense?.tipo ?: "") }
-    var dataDespesa by remember { mutableStateOf(TextFieldValue(initialExtense?.dataDespesa ?: "")) }
-    var animalSelecionado by remember { mutableStateOf(initialExtense?.idAnimal) }
+    var dataDespesa by remember { mutableStateOf(TextFieldValue(initialExtense?.data_despesa ?: "")) }
+    var selectedAnimalId by remember { mutableStateOf(initialExtense?.animal_id) }
+
+    val animals by animalViewModel.animals.collectAsState()
 
     @Composable
     fun EditIcon() {
@@ -96,11 +100,11 @@ fun ExtenseFormScreen(
                 )
 
                 CustomDropdown(
-                    selectedOption = animalSelecionado?.nome ?: "",
+                    selectedOption = animals.find { it.animal_id == selectedAnimalId }?.nome ?: "",
                     placeholder = "Selecione o animal (opcional)...",
-                    options = AnimalList.map { it.nome },
+                    options = animals.map { it.nome },
                     onOptionSelected = { nome ->
-                        animalSelecionado = AnimalList.find { it.nome == nome }
+                        selectedAnimalId = animals.find { it.nome == nome }?.animal_id
                     },
                     label = "Animal",
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -137,25 +141,16 @@ fun ExtenseFormScreen(
                                 return@Button
                             }
 
-                            val extense = if (isEditMode) {
-                                initialExtense!!.copy(
-                                    valor = valor.text.trim(),
-                                    tipo = tipo,
-                                    dataDespesa = dataDespesa.text.trim(),
-                                    idAnimal = animalSelecionado
-                                )
-                            } else {
-                                Extense(
-                                    id = 0,
-                                    valor = valor.text.trim(),
-                                    tipo = tipo,
-                                    dataDespesa = dataDespesa.text.trim(),
-                                    dataCadastro = LocalDate.now(),
-                                    idAnimal = animalSelecionado
-                                )
-                            }
+                            val extense = Extense(
+                                despesa_id = initialExtense?.despesa_id ?: 0,
+                                valor = valor.text.trim(),
+                                tipo = tipo,
+                                data_despesa = dataDespesa.text.trim(),
+                                animal_id = selectedAnimalId,
+                                data_cadastro = LocalDate.now().toString()
+                            )
+
                             onSave(extense)
-                            navController.navigateUp()
                         },
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(

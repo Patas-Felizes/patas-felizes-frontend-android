@@ -11,19 +11,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.example.patasfelizes.models.GuardianTemp
-import com.example.patasfelizes.models.GuardianTempList
+import com.example.patasfelizes.models.TempHome
 import com.example.patasfelizes.ui.components.CustomFloatingActionButton
 import com.example.patasfelizes.ui.components.CustomSearchBar
 import com.example.patasfelizes.ui.components.FilterComponent
 import com.example.patasfelizes.ui.components.FilterOption
-import java.time.format.DateTimeFormatter
+import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
+import com.example.patasfelizes.ui.viewmodels.hosts.HostListViewModel
+import com.example.patasfelizes.ui.viewmodels.temphomes.TempHomeListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TemporaryHomesScreen(navController: NavHostController) {
+fun TemporaryHomesScreen(
+    navController: NavHostController,
+    viewModel: TempHomeListViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+) {
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
+    val tempHomes by viewModel.tempHomes.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.reloadTempHomes()
+    }
 
     val filterOptions = remember {
         listOf(
@@ -34,6 +44,11 @@ fun TemporaryHomesScreen(navController: NavHostController) {
     }
 
     var currentFilters by remember { mutableStateOf(filterOptions) }
+
+    val filteredTempHomes = tempHomes.filter { tempHome ->
+        // Implement search logic based on available fields
+        searchQuery.text.isEmpty() || tempHome.periodo.contains(searchQuery.text, ignoreCase = true)
+    }
 
     Scaffold(
         floatingActionButton = {
@@ -68,12 +83,9 @@ fun TemporaryHomesScreen(navController: NavHostController) {
                 Spacer(modifier = Modifier.height(8.dp))
 
                 TemporaryHomeList(
-                    guardians = GuardianTempList.filter {
-                        it.petNome.contains(searchQuery.text, ignoreCase = true) ||
-                                it.nome.contains(searchQuery.text, ignoreCase = true)
-                    },
-                    onGuardianClick = { guardian ->
-                        navController.navigate("temporaryHomeDetails/${guardian.id}")
+                    tempHomes = filteredTempHomes,
+                    onTempHomeClick = { tempHome ->
+                        navController.navigate("temporaryHomeDetails/${tempHome.lar_temporario_id}")
                     }
                 )
             }
@@ -83,23 +95,34 @@ fun TemporaryHomesScreen(navController: NavHostController) {
 
 @Composable
 fun TemporaryHomeList(
-    guardians: List<GuardianTemp>,
-    onGuardianClick: (GuardianTemp) -> Unit
+    tempHomes: List<TempHome>,
+    onTempHomeClick: (TempHome) -> Unit,
+    animalViewModel: AnimalListViewModel = viewModel(),
+    hostViewModel: HostListViewModel = viewModel()
 ) {
+    val animals by animalViewModel.animals.collectAsState()
+    val hosts by hostViewModel.hosts.collectAsState()
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
     ) {
-        itemsIndexed(guardians) { index, guardian ->
+        itemsIndexed(tempHomes) { index, tempHome ->
             val backgroundColor = if (index % 2 == 0) {
-                MaterialTheme.colorScheme.secondary // Cor 1
+                MaterialTheme.colorScheme.secondary
             } else {
-                MaterialTheme.colorScheme.background // Cor 2
+                MaterialTheme.colorScheme.background
             }
+
+            val animalName = animals.find { it.animal_id == tempHome.animal_id }?.nome ?: "Animal não encontrado"
+            val hostName = hosts.find { it.hospedeiro_id == tempHome.hospedeiro_id }?.nome ?: "Hospedeiro não encontrado"
+
             TemporaryHomeListItem(
-                guardian = guardian,
+                tempHome = tempHome,
+                animalName = animalName,
+                hostName = hostName,
                 backgroundColor = backgroundColor,
-                onClick = { onGuardianClick(guardian) }
+                onClick = { onTempHomeClick(tempHome) }
             )
         }
     }
@@ -107,7 +130,9 @@ fun TemporaryHomeList(
 
 @Composable
 fun TemporaryHomeListItem(
-    guardian: GuardianTemp,
+    tempHome: TempHome,
+    animalName: String,
+    hostName: String,
     backgroundColor: Color,
     onClick: () -> Unit
 ) {
@@ -123,21 +148,19 @@ fun TemporaryHomeListItem(
                 .padding(16.dp)
         ) {
             Text(
-                text = guardian.petNome,
+                text = animalName,
                 style = MaterialTheme.typography.titleSmall
             )
             Text(
-                text = "Responsável: ${guardian.nome}",
+                text = "Responsável: $hostName",
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
-                text = "Período: ${guardian.periodo}",
+                text = "Período: ${tempHome.periodo}",
                 style = MaterialTheme.typography.bodySmall
             )
             Text(
-                text = "Data: ${
-                    guardian.dataCadastro.format(DateTimeFormatter.ofPattern("dd/MM/uuuu"))
-                }",
+                text = "Data de Hospedagem: ${tempHome.data_hospedagem}",
                 style = MaterialTheme.typography.bodySmall
             )
         }

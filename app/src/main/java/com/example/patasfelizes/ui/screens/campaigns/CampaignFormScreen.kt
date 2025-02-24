@@ -26,8 +26,9 @@ fun CampaignFormScreen(
     var nome by remember { mutableStateOf(TextFieldValue(initialCampaign?.nome ?: "")) }
     var tipo by remember { mutableStateOf(TextFieldValue(initialCampaign?.tipo ?: "")) }
     var descricao by remember { mutableStateOf(TextFieldValue(initialCampaign?.descricao ?: "")) }
-    var dataInicio by remember { mutableStateOf(TextFieldValue(initialCampaign?.dataInicio ?: "")) }
-    var dataTermino by remember { mutableStateOf(TextFieldValue(initialCampaign?.dataTermino ?: "")) }
+    var dataInicio by remember { mutableStateOf(TextFieldValue(initialCampaign?.data_inicio ?: "")) }
+    var dataTermino by remember { mutableStateOf(TextFieldValue(initialCampaign?.data_termino ?: "")) }
+    var local by remember { mutableStateOf(TextFieldValue(initialCampaign?.local ?: "")) }
 
     Scaffold { innerPadding ->
         Column(
@@ -69,6 +70,14 @@ fun CampaignFormScreen(
                     placeholder = "Descreva a campanha...",
                     value = descricao,
                     onValueChange = { descricao = it },
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                FormField(
+                    label = "Local",
+                    placeholder = "Informe o local da campanha...",
+                    value = local,
+                    onValueChange = { local = it },
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
@@ -117,23 +126,23 @@ fun CampaignFormScreen(
                     Button(
                         onClick = {
                             if (nome.text.isBlank() || tipo.text.isBlank() || descricao.text.isBlank() ||
-                                dataInicio.text.isBlank() || dataTermino.text.isBlank()
+                                dataInicio.text.isBlank() || dataTermino.text.isBlank() || local.text.isBlank()
                             ) {
                                 return@Button
                             }
 
-                            val newCampaign = Campaign(
-                                id = initialCampaign?.id ?: 0,
+                            val campaign = Campaign(
+                                campanha_id = initialCampaign?.campanha_id ?: 0,
                                 nome = nome.text.trim(),
                                 tipo = tipo.text.trim(),
                                 descricao = descricao.text.trim(),
-                                dataInicio = dataInicio.text.trim(),
-                                dataTermino = dataTermino.text.trim(),
-                                dataCadastro = LocalDate.now()
+                                data_inicio = dataInicio.text.trim(),
+                                data_termino = dataTermino.text.trim(),
+                                local = local.text.trim(),
+                                data_cadastro = initialCampaign?.data_cadastro ?: LocalDate.now().toString()
                             )
 
-                            onSave(newCampaign)
-                            navController.navigateUp()
+                            onSave(campaign)
                         },
                         modifier = Modifier.weight(1f)
                     ) {

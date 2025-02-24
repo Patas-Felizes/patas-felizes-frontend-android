@@ -3,45 +3,36 @@ package com.example.patasfelizes.models
 import java.time.LocalDate
 
 data class Extense(
-    val id: Int,
+    val despesa_id: Int = 0,  // Inicializa com 0, mas o backend vai sobrescrever com o ID real
     val valor: String,
+    val data_despesa: String,
     val tipo: String,
-    val dataDespesa: String,
-    val dataCadastro: LocalDate,
-    val idAnimal: Animal? // Chave estrangeira opcional
+    val animal_id: Int? = null,
+    val procedimento_id: Int? = null,
+    val comprovante: String = "",
+    val data_cadastro: String = LocalDate.now().toString() // Mantém consistência com o formato do backend
 )
 
-val ExtenseList = mutableListOf(
-    Extense(
-        id = 1,
-        valor = "300.00",
-        tipo = "Veterinário",
-        dataDespesa = "2023-06-01",
-        dataCadastro = LocalDate.of(2023, 6, 2),
-        idAnimal = AnimalList.find { it.id == 1 }
-    ),
-    Extense(
-        id = 2,
-        valor = "150.00",
-        tipo = "Medicamentos",
-        dataDespesa = "2024-01-05",
-        dataCadastro = LocalDate.of(2024, 1, 6),
-        idAnimal = AnimalList.find { it.id == 2 }
-    ),
-    Extense(
-        id = 3,
-        valor = "500.00",
-        tipo = "Cirurgia",
-        dataDespesa = "2024-01-15",
-        dataCadastro = LocalDate.of(2024, 1, 16),
-        idAnimal = AnimalList.find { it.id == 1 }
-    ),
-    Extense(
-        id = 4,
-        valor = "200.00",
-        tipo = "Ração",
-        dataDespesa = "2023-12-20",
-        dataCadastro = LocalDate.of(2023, 12, 21),
-        idAnimal = null
-    )
+// ExtenseResponse.kt - Para deserialização da resposta da API
+data class ExtenseResponse(
+    val status: Int,
+    val data: Extense? = null,
+    val message: String? = null
+)
+
+data class ExtenseListResponse(
+    val status: Int,
+    val data: List<Extense>? = null,
+    val message: String? = null
+)
+
+// Extension function para converter Extense do frontend para o formato do backend
+fun Extense.toBackendFormat(): Map<String, Any> = mapOf(
+    "valor" to valor,
+    "data_despesa" to data_despesa,
+    "tipo" to tipo,
+    "animal_id" to (animal_id ?: 0),
+    "procedimento_id" to (procedimento_id ?: 0),
+    "comprovante" to comprovante,
+    "data_cadastro" to data_cadastro
 )

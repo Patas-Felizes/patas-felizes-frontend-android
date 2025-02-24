@@ -11,19 +11,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.patasfelizes.models.Stock
-import com.example.patasfelizes.models.StockList
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.patasfelizes.ui.components.CustomFloatingActionButton
 import com.example.patasfelizes.ui.components.CustomSearchBar
 import com.example.patasfelizes.ui.components.FilterComponent
 import com.example.patasfelizes.ui.components.FilterOption
+import com.example.patasfelizes.ui.viewmodels.stock.StockListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StockScreen(navController: NavHostController) {
+fun StockScreen(
+    navController: NavHostController,
+    viewModel: StockListViewModel = viewModel()
+) {
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
+    val stocks by viewModel.stocks.collectAsState()
 
-    // Filtros existentes
     val filterOptions = remember {
         listOf(
             FilterOption("Alimentação"),
@@ -33,6 +36,11 @@ fun StockScreen(navController: NavHostController) {
     }
 
     var currentFilters by remember { mutableStateOf(filterOptions) }
+
+    val filteredStocks = stocks.filter {
+        it.tipo_item.contains(searchQuery.text, ignoreCase = true) ||
+                it.especie_animal.contains(searchQuery.text, ignoreCase = true)
+    }
 
     Scaffold(
         floatingActionButton = {
@@ -67,12 +75,9 @@ fun StockScreen(navController: NavHostController) {
                 Spacer(modifier = Modifier.height(8.dp))
 
                 StockListContent(
-                    stockItems = StockList.filter {
-                        it.tipoItem.contains(searchQuery.text, ignoreCase = true) ||
-                                it.animalEspecie.contains(searchQuery.text, ignoreCase = true)
-                    },
+                    stockItems = filteredStocks,
                     onStockClick = { stock ->
-                        navController.navigate("stockDetails/${stock.id}")
+                        navController.navigate("stockDetails/${stock.estoque_id}")
                     }
                 )
             }
@@ -82,8 +87,8 @@ fun StockScreen(navController: NavHostController) {
 
 @Composable
 fun StockListContent(
-    stockItems: List<Stock>,
-    onStockClick: (Stock) -> Unit
+    stockItems: List<com.example.patasfelizes.models.Stock>,
+    onStockClick: (com.example.patasfelizes.models.Stock) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -91,9 +96,9 @@ fun StockListContent(
     ) {
         itemsIndexed(stockItems) { index, stock ->
             val backgroundColor = if (index % 2 == 0) {
-                MaterialTheme.colorScheme.secondary // Cor 1
+                MaterialTheme.colorScheme.secondary
             } else {
-                MaterialTheme.colorScheme.background // Cor 2
+                MaterialTheme.colorScheme.background
             }
             StockListItem(
                 stock = stock,
@@ -106,7 +111,7 @@ fun StockListContent(
 
 @Composable
 fun StockListItem(
-    stock: Stock,
+    stock: com.example.patasfelizes.models.Stock,
     backgroundColor: Color,
     onClick: () -> Unit
 ) {
@@ -122,15 +127,15 @@ fun StockListItem(
                 .padding(16.dp)
         ) {
             Text(
-                text = stock.tipoItem,
+                text = stock.tipo_item,
                 style = MaterialTheme.typography.titleSmall
             )
             Text(
-                text = "Espécie: ${stock.animalEspecie}",
+                text = "Espécie: ${stock.especie_animal}",
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
-                text = "Quantidade: ${stock.quantidade}",
+                text = "Quantidade: ${stock.quantidade}/${stock.quantidade_total}",
                 style = MaterialTheme.typography.bodySmall
             )
         }

@@ -10,124 +10,148 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.patasfelizes.models.Sponsor
-import com.example.patasfelizes.models.SponsorList
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.patasfelizes.ui.components.BoxWithProgressBar
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import com.example.patasfelizes.ui.viewmodels.support.SupportDetailsViewModel
+import com.example.patasfelizes.ui.viewmodels.support.SupportDetailsState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SupportDetailsScreen(
     navController: NavHostController,
-    sponsorId: Int,
-    onDelete: (Int) -> Unit
+    supportId: Int,
+    viewModel: SupportDetailsViewModel = viewModel()
 ) {
-    val sponsor = SponsorList.find { it.id == sponsorId } ?: return
-
-    var isLoading by remember { mutableStateOf(false) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
+    val uiState by viewModel.uiState.collectAsState()
 
-    BoxWithProgressBar(isLoading = isLoading) {
-        Scaffold { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .verticalScroll(rememberScrollState()),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Spacer(modifier = Modifier.height(16.dp))
+    LaunchedEffect(supportId) {
+        viewModel.loadSupport(supportId)
+    }
 
-                Card(
+    BoxWithProgressBar(isLoading = uiState is SupportDetailsState.Loading) {
+        when (val state = uiState) {
+            is SupportDetailsState.Loading -> {
+                // Loading já é mostrado pelo BoxWithProgressBar
+            }
+            is SupportDetailsState.Error -> {
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth(0.95f)
-                        .padding(horizontal = 16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary)
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalAlignment = Alignment.Start
-                    ) {
-                        sponsor.idAnimal?.let { DetailRow("Pet", it.nome) }
-                        DetailRow("Padrinho", sponsor.padrinhoNome)
-                        DetailRow("Valor", "R$ ${sponsor.valor}")
-                        DetailRow("Data de Cadastro", sponsor.dataCadastro.toString())
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(0.9f)
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Button(
-                        onClick = { navController.navigateUp() },
-                        modifier = Modifier.weight(1f)
-                    ) {
+                    Text(
+                        text = state.message,
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(onClick = { navController.navigateUp() }) {
                         Text("Voltar")
                     }
-
-                    Spacer(modifier = Modifier.width(16.dp))
-
-                    Button(
-                        onClick = { navController.navigate("editSupport/$sponsorId") },
-                        modifier = Modifier.weight(1f)
+                }
+            }
+            is SupportDetailsState.Success -> {
+                val support = state.support
+                Scaffold { innerPadding ->
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
+                            .verticalScroll(rememberScrollState()),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text("Editar")
-                    }
-                }
+                        Spacer(modifier = Modifier.height(16.dp))
 
-                Spacer(modifier = Modifier.height(11.dp))
-
-                Button(
-                    onClick = { showDeleteConfirmation = true },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error,
-                        contentColor = MaterialTheme.colorScheme.onError
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth(0.9f)
-                        .padding(horizontal = 16.dp)
-                ) {
-                    Text("Remover apadrinhamento")
-                }
-
-                if (showDeleteConfirmation) {
-                    AlertDialog(
-                        onDismissRequest = { showDeleteConfirmation = false },
-                        title = { Text("Confirmar Exclusão") },
-                        text = { Text("Tem certeza que deseja remover este apadrinhamento permanentemente?") },
-                        confirmButton = {
-                            TextButton(
-                                onClick = {
-                                    onDelete(sponsor.id)
-                                    isLoading = true
-                                    CoroutineScope(Dispatchers.Main).launch {
-                                        delay(1000) // Simular operação
-                                        isLoading = false
-                                        navController.navigateUp()
-                                    }
-                                },
-                                enabled = !isLoading
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth(0.95f)
+                                .padding(horizontal = 16.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalAlignment = Alignment.Start
                             ) {
-                                Text("Confirmar")
-                            }
-                        },
-                        dismissButton = {
-                            TextButton(
-                                onClick = { showDeleteConfirmation = false },
-                                enabled = !isLoading
-                            ) {
-                                Text("Cancelar")
+                                DetailRow("ID do Animal", support.animal_id.toString())
+                                DetailRow("Padrinho", support.nome_apadrinhador)
+                                DetailRow("Valor", "R$ ${support.valor}")
+                                DetailRow("Regularidade", support.regularidade)
+                                DetailRow("Data de Cadastro", support.data_cadastro)
                             }
                         }
-                    )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth(0.9f)
+                                .padding(horizontal = 16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Button(
+                                onClick = { navController.navigateUp() },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text("Voltar")
+                            }
+
+                            Spacer(modifier = Modifier.width(16.dp))
+
+                            Button(
+                                onClick = { navController.navigate("editSupport/${support.apadrinhamento_id}") },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text("Editar")
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(11.dp))
+
+                        Button(
+                            onClick = { showDeleteConfirmation = true },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.error,
+                                contentColor = MaterialTheme.colorScheme.onError
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth(0.9f)
+                                .padding(horizontal = 16.dp)
+                        ) {
+                            Text("Remover apadrinhamento")
+                        }
+
+                        if (showDeleteConfirmation) {
+                            AlertDialog(
+                                onDismissRequest = { showDeleteConfirmation = false },
+                                title = { Text("Confirmar Exclusão") },
+                                text = { Text("Tem certeza que deseja remover este apadrinhamento permanentemente?") },
+                                confirmButton = {
+                                    TextButton(
+                                        onClick = {
+                                            showDeleteConfirmation = false
+                                            viewModel.deleteSupport(support.apadrinhamento_id) {
+                                                navController.navigateUp()
+                                            }
+                                        },
+                                        enabled = !state.isDeleting
+                                    ) {
+                                        Text("Confirmar")
+                                    }
+                                },
+                                dismissButton = {
+                                    TextButton(
+                                        onClick = { showDeleteConfirmation = false },
+                                        enabled = !state.isDeleting
+                                    ) {
+                                        Text("Cancelar")
+                                    }
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }

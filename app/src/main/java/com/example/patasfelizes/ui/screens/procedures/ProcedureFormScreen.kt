@@ -15,6 +15,9 @@ import com.example.patasfelizes.models.*
 import com.example.patasfelizes.ui.components.CustomDropdown
 import com.example.patasfelizes.ui.components.DatePickerField
 import com.example.patasfelizes.ui.components.FormField
+import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.patasfelizes.ui.viewmodels.team.TeamListViewModel
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -23,18 +26,21 @@ fun ProcedureFormScreen(
     navController: NavHostController,
     initialProcedure: Procedure? = null,
     onSave: (Procedure) -> Unit,
-    isEditMode: Boolean = false
+    isEditMode: Boolean = false,
+    animalViewModel: AnimalListViewModel = viewModel(),
+    voluntaryViewModel: TeamListViewModel = viewModel()
 ) {
     var tipo by remember { mutableStateOf(TextFieldValue(initialProcedure?.tipo ?: "")) }
     var descricao by remember { mutableStateOf(TextFieldValue(initialProcedure?.descricao ?: "")) }
     var valor by remember { mutableStateOf(TextFieldValue(initialProcedure?.valor ?: "")) }
-    var dataProcedimento by remember { mutableStateOf(TextFieldValue(initialProcedure?.dataProcedimento ?: "")) }
+    var dataProcedimento by remember { mutableStateOf(TextFieldValue(initialProcedure?.data_procedimento ?: "")) }
 
-    // Dropdowns para Animal e Voluntário
-    var selectedAnimalId by remember { mutableStateOf(initialProcedure?.idAnimal?.id) }
-    var selectedVoluntaryId by remember { mutableStateOf(initialProcedure?.idVoluntary?.id) }
-    var expandedAnimal by remember { mutableStateOf(false) }
-    var expandedVoluntary by remember { mutableStateOf(false) }
+    // Dropdowns for Animal and Voluntary
+    var selectedAnimalId by remember { mutableStateOf(initialProcedure?.animal_id) }
+    var selectedVoluntaryId by remember { mutableStateOf(initialProcedure?.voluntario_id) }
+
+    val animals by animalViewModel.animals.collectAsState()
+    val voluntaries by voluntaryViewModel.voluntarios.collectAsState()
 
     Scaffold { innerPadding ->
         Column(
@@ -89,15 +95,14 @@ fun ProcedureFormScreen(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-
                 CustomDropdown(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 16.dp),
-                    selectedOption = AnimalList.find { it.id == selectedAnimalId }?.nome ?: "Selecione um animal",
-                    options = AnimalList.map { it.nome },
+                    selectedOption = animals.find { it.animal_id == selectedAnimalId }?.nome ?: "Selecione um animal",
+                    options = animals.map { it.nome },
                     onOptionSelected = { selectedOption ->
-                        selectedAnimalId = AnimalList.find { it.nome == selectedOption }?.id
+                        selectedAnimalId = animals.find { it.nome == selectedOption }?.animal_id
                     },
                     label = "Animal",
                     placeholder = "Selecione um animal"
@@ -107,16 +112,14 @@ fun ProcedureFormScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 16.dp),
-                    selectedOption = VoluntaryList.find { it.id == selectedVoluntaryId }?.nome ?: "Selecione um voluntário",
-                    options = VoluntaryList.map { it.nome },
+                    selectedOption = voluntaries.find { it.voluntario_id == selectedVoluntaryId }?.nome ?: "Selecione um voluntário",
+                    options = voluntaries.map { it.nome },
                     onOptionSelected = { selectedOption ->
-                        selectedVoluntaryId = VoluntaryList.find { it.nome == selectedOption }?.id
+                        selectedVoluntaryId = voluntaries.find { it.nome == selectedOption }?.voluntario_id
                     },
                     label = "Voluntário",
                     placeholder = "Selecione um voluntário"
                 )
-
-
 
                 Row(
                     modifier = Modifier
@@ -148,19 +151,18 @@ fun ProcedureFormScreen(
                             }
 
                             val newProcedure = Procedure(
-                                id = initialProcedure?.id ?: 0,
+                                procedimento_id = initialProcedure?.procedimento_id ?: 0,
                                 tipo = tipo.text.trim(),
                                 descricao = descricao.text.trim(),
                                 valor = valor.text.trim(),
-                                dataProcedimento = dataProcedimento.text.trim(),
-                                dataCadastro = LocalDate.now(),
-                                idAnimal = AnimalList.find { it.id == selectedAnimalId },
-                                idVoluntary = VoluntaryList.find { it.id == selectedVoluntaryId },
-                                idExtense = null
+                                data_procedimento = dataProcedimento.text.trim(),
+                                data_cadastro = LocalDate.now().toString(),
+                                animal_id = selectedAnimalId,
+                                voluntario_id = selectedVoluntaryId,
+                                despesa_id = null
                             )
 
                             onSave(newProcedure)
-                            navController.navigateUp()
                         },
                         modifier = Modifier.weight(1f)
                     ) {

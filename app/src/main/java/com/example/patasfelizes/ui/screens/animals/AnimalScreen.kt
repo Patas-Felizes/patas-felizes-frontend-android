@@ -1,27 +1,19 @@
 package com.example.patasfelizes.ui.screens.animals
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.patasfelizes.models.Animal
-import com.example.patasfelizes.models.AnimalList
 import com.example.patasfelizes.ui.components.*
 import coil.compose.AsyncImage
 import androidx.compose.animation.AnimatedVisibility
@@ -29,11 +21,22 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.remember
+import com.example.patasfelizes.R
+import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
+import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AnimalScreen(navController: NavHostController) {
+fun AnimalScreen(
+    navController: NavHostController,
+    viewModel: AnimalListViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+) {
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
+    val animals by viewModel.animals.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.reloadAnimals()
+    }
 
     val filterOptions = remember {
         listOf(
@@ -46,7 +49,7 @@ fun AnimalScreen(navController: NavHostController) {
 
     var currentFilters by remember { mutableStateOf(filterOptions) }
 
-    val filteredAnimals = AnimalList.filter { animal ->
+    val filteredAnimals = animals.filter { animal ->
         val matchesSearch = searchQuery.text.isEmpty() ||
                 animal.nome.contains(searchQuery.text, ignoreCase = true) ||
                 animal.especie.contains(searchQuery.text, ignoreCase = true)
@@ -55,7 +58,13 @@ fun AnimalScreen(navController: NavHostController) {
         val matchesFilter = activeFilters.isEmpty() || activeFilters.any { it.name == animal.status }
 
         matchesSearch && matchesFilter
-    }.sortedByDescending { it.dataCadastro }
+    }.sortedByDescending { animal ->
+        try {
+            LocalDate.parse(animal.data_cadastro)
+        } catch (e: Exception) {
+            LocalDate.MIN
+        }
+    }
 
     Scaffold(
         floatingActionButton = {
@@ -94,7 +103,7 @@ fun AnimalScreen(navController: NavHostController) {
                     val isVisible = remember { mutableStateOf(false) }
 
                     LaunchedEffect(Unit) {
-                        isVisible.value = true // Ativa o fade-in ao carregar a tela
+                        isVisible.value = true
                     }
 
                     Column(
@@ -104,7 +113,7 @@ fun AnimalScreen(navController: NavHostController) {
                         AnimatedVisibility(
                             visible = isVisible.value,
                             enter = fadeIn(animationSpec = tween(durationMillis = 600)),
-                            exit = fadeOut()  // Opcional: Efeito de fade-out
+                            exit = fadeOut()
                         ) {
                             if (filteredAnimals.isEmpty()) {
                                 Text(
@@ -119,15 +128,14 @@ fun AnimalScreen(navController: NavHostController) {
                                 ) {
                                     items(filteredAnimals) { animal ->
                                         Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth(),
+                                            modifier = Modifier.fillMaxWidth(),
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Card(
                                                 modifier = Modifier
                                                     .padding(vertical = 6.dp)
                                                     .clickable {
-                                                        navController.navigate("animalDetails/${animal.id}")
+                                                        navController.navigate("animalDetails/${animal.animal_id}")
                                                     }
                                                     .fillMaxWidth(0.9f),
                                                 elevation = CardDefaults.cardElevation(3.dp),
@@ -136,37 +144,20 @@ fun AnimalScreen(navController: NavHostController) {
                                                 Row(
                                                     modifier = Modifier.fillMaxWidth()
                                                 ) {
-                                                    if (!animal.imageUris.isNullOrEmpty()) {
-                                                        AsyncImage(
-                                                            model = animal.imageUris[0], // URI da primeira imagem
-                                                            contentDescription = animal.nome,
-                                                            modifier = Modifier
-                                                                .size(130.dp)
-                                                                .clip(
-                                                                    RoundedCornerShape(
-                                                                        topEnd = 0.dp,
-                                                                        bottomEnd = 0.dp
-                                                                    )
+                                                    AsyncImage(
+                                                        model = if (animal.foto.isNotEmpty()) animal.foto else R.drawable.default_image,
+                                                        contentDescription = animal.nome,
+                                                        modifier = Modifier
+                                                            .size(130.dp)
+                                                            .clip(
+                                                                RoundedCornerShape(
+                                                                    topEnd = 0.dp,
+                                                                    bottomEnd = 0.dp
                                                                 )
-                                                                .aspectRatio(1f),
-                                                            contentScale = ContentScale.Crop
-                                                        )
-                                                    } else {
-                                                        AsyncImage(
-                                                            model = animal.imageRes,
-                                                            contentDescription = animal.nome,
-                                                            modifier = Modifier
-                                                                .size(130.dp)
-                                                                .clip(
-                                                                    RoundedCornerShape(
-                                                                        topEnd = 0.dp,
-                                                                        bottomEnd = 0.dp
-                                                                    )
-                                                                )
-                                                                .aspectRatio(1f),
-                                                            contentScale = ContentScale.Crop
-                                                        )
-                                                    }
+                                                            )
+                                                            .aspectRatio(1f),
+                                                        contentScale = ContentScale.Crop
+                                                    )
 
                                                     Spacer(modifier = Modifier.width(16.dp))
 
@@ -184,22 +175,22 @@ fun AnimalScreen(navController: NavHostController) {
                                                         )
 
                                                         Text(
-                                                            text = "${animal.especie}",
+                                                            text = animal.especie,
                                                             style = MaterialTheme.typography.bodySmall,
                                                             color = MaterialTheme.colorScheme.onTertiary
                                                         )
                                                         Text(
-                                                            text = "${animal.idade}",
+                                                            text = animal.idade,
                                                             style = MaterialTheme.typography.bodySmall,
                                                             color = MaterialTheme.colorScheme.onTertiary
                                                         )
                                                         Text(
-                                                            text = "${animal.sexo}",
+                                                            text = animal.sexo,
                                                             style = MaterialTheme.typography.bodySmall,
                                                             color = MaterialTheme.colorScheme.onTertiary
                                                         )
                                                         Text(
-                                                            text = "${animal.status}",
+                                                            text = animal.status,
                                                             style = MaterialTheme.typography.bodySmall,
                                                             color = MaterialTheme.colorScheme.onTertiary
                                                         )

@@ -11,15 +11,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.patasfelizes.ui.components.*
 import com.example.patasfelizes.models.Task
-import com.example.patasfelizes.models.TaskList
-import java.time.format.DateTimeFormatter
+import com.example.patasfelizes.ui.viewmodels.task.TaskListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TasksScreen(navController: NavHostController) {
+fun TasksScreen(
+    navController: NavHostController,
+    viewModel: TaskListViewModel = viewModel()
+) {
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
+    val tasks by viewModel.tasks.collectAsState()
 
     val filterOptions = remember {
         listOf(
@@ -32,6 +36,10 @@ fun TasksScreen(navController: NavHostController) {
     }
 
     var currentFilters by remember { mutableStateOf(filterOptions) }
+
+    LaunchedEffect(Unit) {
+        viewModel.reloadTasks()
+    }
 
     Scaffold(
         floatingActionButton = {
@@ -66,12 +74,15 @@ fun TasksScreen(navController: NavHostController) {
                 Spacer(modifier = Modifier.height(8.dp))
 
                 TaskList(
-                    tasks = TaskList.filter {
-                        it.descricao.contains(searchQuery.text, ignoreCase = true) ||
-                                it.tipo.contains(searchQuery.text, ignoreCase = true)
+                    tasks = tasks.filter {
+                        (it.descricao.contains(searchQuery.text, ignoreCase = true) ||
+                                it.tipo.contains(searchQuery.text, ignoreCase = true)) &&
+                                currentFilters.any { filter ->
+                                    filter.isSelected && filter.name == it.tipo
+                                }
                     },
                     onTaskClick = { task ->
-                        navController.navigate("taskDetails/${task.id}")
+                        navController.navigate("taskDetails/${task.tarefa_id}")
                     }
                 )
             }
@@ -99,6 +110,7 @@ fun TaskList(
                 backgroundColor = backgroundColor,
                 onClick = { onTaskClick(task) }
             )
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
@@ -112,7 +124,6 @@ fun TaskListItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp)
             .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(containerColor = backgroundColor)
     ) {
@@ -130,9 +141,21 @@ fun TaskListItem(
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
-                text = "Data: ${task.dataTarefa}",
+                text = "Data: ${task.data_tarefa}",
                 style = MaterialTheme.typography.bodySmall
             )
+            task.animal_id?.let {
+                Text(
+                    text = "ID do Animal: $it",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+            task.voluntario_id?.let {
+                Text(
+                    text = "ID do Voluntário: $it",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
         }
     }
 }

@@ -11,15 +11,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.patasfelizes.ui.components.*
-import com.example.patasfelizes.models.Sponsor
-import com.example.patasfelizes.models.SponsorList
-import java.time.format.DateTimeFormatter
+import com.example.patasfelizes.models.Support
+import com.example.patasfelizes.ui.viewmodels.support.SupportListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SupportScreen(navController: NavHostController) {
+fun SupportScreen(
+    navController: NavHostController,
+    viewModel: SupportListViewModel = viewModel()
+) {
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
+    val supports by viewModel.supports.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.reloadSupports()
+    }
 
     Scaffold(
         floatingActionButton = {
@@ -47,12 +55,11 @@ fun SupportScreen(navController: NavHostController) {
                 Spacer(modifier = Modifier.height(8.dp))
 
                 SupportList(
-                    sponsors = SponsorList.filter {
-                        it.idAnimal?.nome?.contains(searchQuery.text, ignoreCase = true) == true ||
-                                it.padrinhoNome.contains(searchQuery.text, ignoreCase = true)
+                    supports = supports.filter {
+                        it.nome_apadrinhador.contains(searchQuery.text, ignoreCase = true)
                     },
-                    onSponsorClick = { sponsor ->
-                        navController.navigate("supportDetails/${sponsor.id}")
+                    onSupportClick = { support ->
+                        navController.navigate("supportDetails/${support.apadrinhamento_id}")
                     }
                 )
             }
@@ -62,23 +69,23 @@ fun SupportScreen(navController: NavHostController) {
 
 @Composable
 fun SupportList(
-    sponsors: List<Sponsor>,
-    onSponsorClick: (Sponsor) -> Unit
+    supports: List<Support>,
+    onSupportClick: (Support) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
     ) {
-        itemsIndexed(sponsors) { index, sponsor ->
+        itemsIndexed(supports) { index, support ->
             val backgroundColor = if (index % 2 == 0) {
                 MaterialTheme.colorScheme.secondary
             } else {
                 MaterialTheme.colorScheme.background
             }
             SupportListItem(
-                sponsor = sponsor,
+                support = support,
                 backgroundColor = backgroundColor,
-                onClick = { onSponsorClick(sponsor) }
+                onClick = { onSupportClick(support) }
             )
             Spacer(modifier = Modifier.height(8.dp))
         }
@@ -87,7 +94,7 @@ fun SupportList(
 
 @Composable
 fun SupportListItem(
-    sponsor: Sponsor,
+    support: Support,
     backgroundColor: Color,
     onClick: () -> Unit
 ) {
@@ -103,21 +110,19 @@ fun SupportListItem(
                 .padding(16.dp)
         ) {
             Text(
-                text = sponsor.idAnimal?.nome ?: "Pet não identificado",
+                text = "ID do Animal: ${support.animal_id}",
                 style = MaterialTheme.typography.titleSmall
             )
             Text(
-                text = "Padrinho: ${sponsor.padrinhoNome}",
+                text = "Padrinho: ${support.nome_apadrinhador}",
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
-                text = "Valor: R$ ${sponsor.valor}",
+                text = "Valor: R$ ${support.valor}",
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
-                text = "Data: ${
-                    sponsor.dataCadastro.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                }",
+                text = "Data: ${support.data_cadastro}",
                 style = MaterialTheme.typography.bodySmall
             )
         }

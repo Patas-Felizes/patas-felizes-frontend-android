@@ -11,7 +11,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.patasfelizes.models.Extense
 
-
 @Composable
 fun ExtensesContent(
     expenses: List<Extense>,
@@ -62,12 +61,18 @@ fun ExtenseListItem(
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
-                text = "Data: ${extense.dataDespesa}",
+                text = "Data: ${extense.data_despesa}",
                 style = MaterialTheme.typography.bodyMedium
             )
-            extense.idAnimal?.let { animal ->
+            if (extense.animal_id != null) {
                 Text(
-                    text = "Animal associado: ${animal.nome}",
+                    text = "ID do Animal: ${extense.animal_id}",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+            if (extense.procedimento_id != null) {
+                Text(
+                    text = "ID do Procedimento: ${extense.procedimento_id}",
                     style = MaterialTheme.typography.bodySmall
                 )
             }

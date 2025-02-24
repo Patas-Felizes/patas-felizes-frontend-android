@@ -12,106 +12,182 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavHostController
-import com.example.patasfelizes.models.GuardianTemp
-import com.example.patasfelizes.models.GuardianTempList
-import java.time.format.DateTimeFormatter
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.patasfelizes.ui.components.BoxWithProgressBar
+import com.example.patasfelizes.ui.viewmodels.temphomes.TempHomeDetailsViewModel
+import com.example.patasfelizes.ui.viewmodels.temphomes.TempHomeDetailsState
+import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
+import com.example.patasfelizes.ui.viewmodels.hosts.HostListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TempHomesDetailsScreen(
     navController: NavHostController,
-    guardianId: Int
+    tempHomeId: Int,
+    viewModel: TempHomeDetailsViewModel = viewModel(),
+    animalViewModel: AnimalListViewModel = viewModel(),
+    hostViewModel: HostListViewModel = viewModel()
 ) {
-    val guardian = GuardianTempList.find { it.id == guardianId }
-        ?: return
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+    val uiState by viewModel.uiState.collectAsState()
+    val animals by animalViewModel.animals.collectAsState()
+    val hosts by hostViewModel.hosts.collectAsState()
 
-    Scaffold { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(16.dp))
+    LaunchedEffect(tempHomeId) {
+        viewModel.loadTempHome(tempHomeId)
+    }
 
-            Text(
-                text = guardian.petNome,
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onBackground,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth(0.95f)
-                    .padding(horizontal = 16.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary)
+    when (val state = uiState) {
+        is TempHomeDetailsState.Loading -> {
+            BoxWithProgressBar(isLoading = true) {}
+        }
+        is TempHomeDetailsState.Error -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                Column(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    DetailRow(label = "Responsável", value = guardian.nome)
-                    DetailRow(label = "Telefone", value = guardian.telefone)
-                    DetailRow(label = "Período", value = guardian.periodo)
-                    DetailRow(
-                        label = "Data de Cadastro",
-                        value = guardian.dataCadastro.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(text = "Informações de Moradia", style = MaterialTheme.typography.titleSmall)
-                    DetailRow(label = "Estado", value = guardian.estado)
-                    DetailRow(label = "Cidade", value = guardian.cidade)
-                    DetailRow(label = "Endereço", value = guardian.endereco)
-                    DetailRow(label = "Bairro", value = guardian.bairro)
-                    DetailRow(label = "Número", value = guardian.numero)
-                    DetailRow(label = "CEP", value = guardian.cep)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
+                Text(
+                    text = "Erro ao carregar detalhes do lar temporário: ${state.message}",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.error
+                )
                 Button(
                     onClick = { navController.navigateUp() },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        containerColor = MaterialTheme.colorScheme.secondary,
-                    ),
+                    modifier = Modifier.padding(top = 16.dp)
                 ) {
-                    Text(
-                        text = "Voltar",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onTertiary,
-                        textAlign = TextAlign.Center
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(16.dp))
-
-                Button(
-                    onClick = { navController.navigate("editTemporaryHome/${guardian.id}") },
-                    modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(vertical = 8.dp, horizontal = 16.dp)
-                ) {
-                    Text(
-                        text = "Editar",
-                        style = MaterialTheme.typography.labelSmall,
-                        textAlign = TextAlign.Center
-                    )
+                    Text("Voltar")
                 }
             }
+        }
+        is TempHomeDetailsState.Success -> {
+            val tempHome = state.tempHome
+            val animalName = animals.find { it.animal_id == tempHome.animal_id }?.nome ?: "Animal não encontrado"
+            val hostName = hosts.find { it.hospedeiro_id == tempHome.hospedeiro_id }?.nome ?: "Hospedeiro não encontrado"
 
-            Spacer(modifier = Modifier.height(32.dp))
+            BoxWithProgressBar(isLoading = state.isDeleting) {
+                Scaffold { innerPadding ->
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
+                            .verticalScroll(rememberScrollState()),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text(
+                            text = animalName,
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            textAlign = TextAlign.Center
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth(0.95f)
+                                .padding(horizontal = 16.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
+                                horizontalAlignment = Alignment.Start
+                            ) {
+                                DetailRow(label = "Responsável", value = hostName)
+                                DetailRow(label = "Período", value = tempHome.periodo)
+                                DetailRow(label = "Data de Hospedagem", value = tempHome.data_hospedagem)
+                                DetailRow(label = "Data de Cadastro", value = tempHome.data_cadastro)
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth(0.9f)
+                                .padding(horizontal = 16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Button(
+                                onClick = { navController.navigateUp() },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    containerColor = MaterialTheme.colorScheme.secondary,
+                                ),
+                            ) {
+                                Text(
+                                    text = "Voltar",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onTertiary,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.width(16.dp))
+
+                            Button(
+                                onClick = { navController.navigate("editTemporaryHome/${tempHome.lar_temporario_id}") },
+                                modifier = Modifier.weight(1f),
+                                contentPadding = PaddingValues(vertical = 8.dp, horizontal = 16.dp)
+                            ) {
+                                Text(
+                                    text = "Editar",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+
+                        Button(
+                            onClick = { showDeleteConfirmation = true },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.error
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth(0.9f)
+                                .padding(top = 16.dp)
+                        ) {
+                            Text(
+                                text = "Remover lar temporário",
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        }
+
+                        if (showDeleteConfirmation) {
+                            AlertDialog(
+                                onDismissRequest = { showDeleteConfirmation = false },
+                                title = { Text("Confirmar Exclusão") },
+                                text = { Text("Tem certeza que deseja remover este lar temporário?") },
+                                confirmButton = {
+                                    TextButton(
+                                        onClick = {
+                                            viewModel.deleteTempHome(tempHome.lar_temporario_id) {
+                                                navController.navigateUp()
+                                            }
+                                        },
+                                        enabled = !state.isDeleting
+                                    ) {
+                                        Text("Confirmar")
+                                    }
+                                },
+                                dismissButton = {
+                                    TextButton(
+                                        onClick = { showDeleteConfirmation = false },
+                                        enabled = !state.isDeleting
+                                    ) {
+                                        Text("Cancelar")
+                                    }
+                                }
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(32.dp))
+                    }
+                }
+            }
         }
     }
 }

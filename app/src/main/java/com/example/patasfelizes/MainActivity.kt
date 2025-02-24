@@ -22,21 +22,12 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.example.patasfelizes.models.Animal
-import com.example.patasfelizes.models.AnimalList
 import com.example.patasfelizes.models.Campaign
-import com.example.patasfelizes.models.CampaignList
 import com.example.patasfelizes.models.Donation
-import com.example.patasfelizes.models.DonationList
 import com.example.patasfelizes.models.Extense
-import com.example.patasfelizes.models.ExtenseList
 import com.example.patasfelizes.models.Procedure
-import com.example.patasfelizes.models.ProcedureList
-import com.example.patasfelizes.models.Sponsor
-import com.example.patasfelizes.models.SponsorList
 import com.example.patasfelizes.models.Task
-import com.example.patasfelizes.models.TaskList
 import com.example.patasfelizes.models.Voluntary
-import com.example.patasfelizes.models.VoluntaryList
 import com.example.patasfelizes.navigation.setupNavHost
 import com.example.patasfelizes.ui.components.DrawerContent
 import com.example.patasfelizes.ui.components.TopBar
@@ -54,16 +45,39 @@ import com.example.patasfelizes.utils.scheduleTaskNotification
 import com.example.patasfelizes.utils.showInstantNotification
 import com.example.patasfelizes.api.RetrofitInitializer
 import com.example.patasfelizes.models.Adopter
-import com.example.patasfelizes.models.AdopterList
-import com.example.patasfelizes.models.GuardianTemp
-import com.example.patasfelizes.models.GuardianTempList
 import com.example.patasfelizes.models.Stock
-import com.example.patasfelizes.models.StockList
 import com.example.patasfelizes.repository.AnimalsRepository
+import androidx.compose.runtime.mutableStateListOf
+import com.example.patasfelizes.models.Adoption
+import com.example.patasfelizes.models.Support
+import com.example.patasfelizes.models.TempHome
+import com.example.patasfelizes.repository.AdoptionsRepository
+import com.example.patasfelizes.repository.CampaignsRepository
+import com.example.patasfelizes.repository.DonationRepository
+import com.example.patasfelizes.repository.ExtenseRepository
+import com.example.patasfelizes.repository.ProcedureRepository
+import com.example.patasfelizes.repository.StockRepository
+import com.example.patasfelizes.repository.SupportRepository
+import com.example.patasfelizes.repository.TaskRepository
+import com.example.patasfelizes.repository.TempHomeRepository
+import com.example.patasfelizes.repository.VoluntaryRepository
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
+    private val adoptionsRepository = AdoptionsRepository()
+    private val animalsRepository = AnimalsRepository()
+    private val campaignRepository = CampaignsRepository()
+    private val extenseRepository = ExtenseRepository()
+    private val donationRepository = DonationRepository()
+    private val procedureRepository = ProcedureRepository()
+    private val stockRepository = StockRepository()
+    private val supportRepository = SupportRepository()
+    private val taskRepository = TaskRepository()
+    private val voluntaryRepository = VoluntaryRepository()
+    private val tempHomeRepository = TempHomeRepository()
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         println("Join onCreate")
         installSplashScreen()
@@ -72,20 +86,7 @@ class MainActivity : ComponentActivity() {
 
         requestNotificationPermission(this)
 
-        val animalsRepository = AnimalsRepository()
-        animalsRepository.listAnimals(
-            onSuccess = { animals ->
-                println("AnimalsRepository: Response: onSuccess: $animals")
-                AnimalList.addAll(animals)
-                Log.d("AnimalsRepository", "Animais carregados: ${animals.size}")
-            },
-            onError = { errorMessage ->
-                Log.e("AnimalsRepository", errorMessage)
-            }
-        )
-
         setContent {
-            // Variável para controlar o tema atual
             var isDarkTheme by remember { mutableStateOf(false) }
 
             PatasFelizesTheme(isDarkTheme = isDarkTheme) {
@@ -99,7 +100,7 @@ class MainActivity : ComponentActivity() {
 
     fun testNotification() {
         val calendar = Calendar.getInstance().apply {
-            add(Calendar.SECOND, 30) // Agenda para 30 segundos no futuro
+            add(Calendar.SECOND, 30)
         }
 
         scheduleTaskNotification(
@@ -122,122 +123,153 @@ class MainActivity : ComponentActivity() {
         val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
         val coroutineScope = rememberCoroutineScope()
 
-        // Função para salvar animal
+
         val onSaveAnimal: (Animal) -> Unit = { animal ->
-            val newId = if (AnimalList.isNotEmpty()) {
-                AnimalList.maxByOrNull { it.id }?.id?.plus(1) ?: 1
-            } else {
-                1
-            }
-            // Adicionar à lista de animais com novo ID
-            AnimalList.add(animal.copy(id = newId))
+            animalsRepository.createAnimal(
+                animal,
+                onSuccess = {
+                    navController.navigateUp()
+                },
+                onError = { error ->
+                    Log.e("MainActivity", "Erro ao salvar animal: $error")
+                }
+            )
         }
 
-        val onSaveAdoption: (Adopter) -> Unit = { adopter ->
-            val newId = if (AdopterList.isNotEmpty()) {
-                AdopterList.maxByOrNull { it.id }?.id?.plus(1) ?: 1
-            } else {
-                1
-            }
-            AdopterList.add(adopter.copy(id = newId))
+        val onSaveAdoption: (Adoption) -> Unit = { adoption ->
+            adoptionsRepository.createAdoption(
+                adoption,
+                onSuccess = {
+                    navController.navigateUp()
+                },
+                onError = { error ->
+                    Log.e("MainActivity", "Erro ao salvar adoção: $error")
+                }
+            )
         }
 
-        val onSaveVoluntary: (Voluntary) -> Unit = { voluntary ->
-            val newId = if (VoluntaryList.isNotEmpty()) {
-                VoluntaryList.maxByOrNull { it.id }?.id?.plus(1) ?: 1
-            } else {
-                1
-            }
-            VoluntaryList.add(voluntary.copy(id = newId))
-        }
-
-        val onSaveExtense: (Extense) -> Unit = { extense ->
-            val newId = if (ExtenseList.isNotEmpty()) {
-                ExtenseList.maxByOrNull { it.id }?.id?.plus(1) ?: 1
-            } else {
-                1
-            }
-            ExtenseList.add(extense.copy(id = newId))
-        }
-
-        val onSaveDonation: (Donation) -> Unit = { donation ->
-            val newId = if (DonationList.isNotEmpty()) {
-                DonationList.maxByOrNull { it.id }?.id?.plus(1) ?: 1
-            } else {
-                1
-            }
-            DonationList.add(donation.copy(id = newId))
+        val onSaveStock: (Stock) -> Unit = { stock ->
+            stockRepository.createStock(
+                stock,
+                onSuccess = {
+                    navController.navigateUp()
+                },
+                onError = { error ->
+                    Log.e("MainActivity", "Erro ao salvar item do estoque: $error")
+                }
+            )
         }
 
         val onSaveTask: (Task) -> Unit = { task ->
-            val newId = if (TaskList.isNotEmpty()) {
-                TaskList.maxByOrNull { it.id }?.id?.plus(1) ?: 1
-            } else {
-                1
-            }
-            val newTask = task.copy(id = newId)
-            TaskList.add(newTask)
-
-            // Agendar notificação para a tarefa
-
-            showInstantNotification(
-                context = this@MainActivity,
-                taskId = newTask.id,
-                taskType = newTask.tipo,
-                taskDescription = newTask.descricao
-            )
-
-            // Agendar notificação para a tarefa
-            scheduleTaskNotification(
-                context = this@MainActivity,
-                taskId = newTask.id,
-                taskType = newTask.tipo,
-                taskDescription = newTask.descricao,
-                taskDate = newTask.dataTarefa
+            taskRepository.createTask(
+                task,
+                onSuccess = {
+                    // Mantendo a funcionalidade de notificação que já existia
+                    showInstantNotification(
+                        context = this@MainActivity,
+                        taskId = task.tarefa_id,
+                        taskType = task.tipo,
+                        taskDescription = task.descricao
+                    )
+                    scheduleTaskNotification(
+                        context = this@MainActivity,
+                        taskId = task.tarefa_id,
+                        taskType = task.tipo,
+                        taskDescription = task.descricao,
+                        taskDate = task.data_tarefa
+                    )
+                    navController.navigateUp()
+                },
+                onError = { error ->
+                    Log.e("MainActivity", "Erro ao salvar tarefa: $error")
+                }
             )
         }
-
 
         val onSaveProcedure: (Procedure) -> Unit = { procedure ->
-            val newId = if (ProcedureList.isNotEmpty()) {
-                ProcedureList.maxByOrNull { it.id }?.id?.plus(1) ?: 1
-            } else {
-                1
-            }
-            ProcedureList.add(procedure.copy(id = newId))
+            procedureRepository.createProcedure(
+                procedure,
+                onSuccess = {
+                    navController.navigateUp()
+                },
+                onError = { error ->
+                    Log.e("MainActivity", "Erro ao salvar procedimento: $error")
+                }
+            )
         }
+
         val onSaveCampaign: (Campaign) -> Unit = { campaign ->
-            val newId = if (CampaignList.isNotEmpty()) {
-                CampaignList.maxByOrNull { it.id }?.id?.plus(1) ?: 1
-            } else {
-                1
-            }
-            CampaignList.add(campaign.copy(id = newId))
+            campaignRepository.createCampaign(
+                campaign,
+                onSuccess = {
+                    navController.navigateUp()
+                },
+                onError = { error ->
+                    Log.e("MainActivity", "Erro ao salvar campanha: $error")
+                }
+            )
         }
-        val onSaveTemporaryHome: (GuardianTemp) -> Unit = { guardian ->
-            val newId = if (GuardianTempList.isNotEmpty()) {
-                GuardianTempList.maxByOrNull { it.id }?.id?.plus(1) ?: 1
-            } else {
-                1
-            }
-            GuardianTempList.add(guardian.copy(id = newId))
+
+        val onSaveExtense: (Extense) -> Unit = { extense ->
+            extenseRepository.createExtense(
+                extense,
+                onSuccess = {
+                    navController.navigateUp()
+                },
+                onError = { error ->
+                    Log.e("MainActivity", "Erro ao salvar despesa: $error")
+                }
+            )
         }
-        val onSaveSupport: (Sponsor) -> Unit = { sponsor ->
-            val newId = if (SponsorList.isNotEmpty()) {
-                SponsorList.maxByOrNull { it.id }?.id?.plus(1) ?: 1
-            } else {
-                1
-            }
-            SponsorList.add(sponsor.copy(id = newId))
+
+        val onSaveDonation: (Donation) -> Unit = { donation ->
+            donationRepository.createDonation(
+                donation,
+                onSuccess = {
+                    navController.navigateUp()
+                },
+                onError = { error ->
+                    Log.e("MainActivity", "Erro ao salvar doação: $error")
+                }
+            )
         }
-        val onSaveStock: (Stock) -> Unit = { stock ->
-            val newId = if (StockList.isNotEmpty()) {
-                StockList.maxByOrNull { it.id }?.id?.plus(1) ?: 1
-            } else {
-                1
-            }
-            StockList.add(stock.copy(id = newId))
+
+        val onSaveSupport: (Support) -> Unit = { support ->
+            supportRepository.createSupport(
+                support,
+                onSuccess = {
+                    navController.navigateUp()
+                },
+                onError = { error ->
+                    Log.e("MainActivity", "Erro ao salvar apadrinhamento: $error")
+                }
+            )
         }
+
+        val onSaveTeam: (Voluntary) -> Unit = { voluntary ->
+            voluntaryRepository.createVoluntario(
+                voluntary,
+                onSuccess = {
+                    navController.navigateUp()
+                },
+                onError = { error ->
+                    Log.e("MainActivity", "Erro ao salvar voluntário: $error")
+                }
+            )
+        }
+
+        val onSaveTempHome: (TempHome) -> Unit = { tempHome ->
+            tempHomeRepository.createTempHome(
+                tempHome,
+                onSuccess = {
+                    navController.navigateUp()
+                },
+                onError = { error ->
+                    Log.e("MainActivity", "Erro ao salvar lar temporário: $error")
+                }
+            )
+        }
+
 
 
         ModalNavigationDrawer(
@@ -281,14 +313,14 @@ class MainActivity : ComponentActivity() {
                             onSaveAnimal,
                             onSaveAdoption,
                             onSaveStock,
-                            onSaveVoluntary,
+                            onSaveTeam,
                             onSaveExtense,
                             onSaveDonation,
                             onSaveTask,
                             onSaveProcedure,
                             onSaveCampaign,
                             onSaveSupport,
-                            onSaveTemporaryHome)
+                            onSaveTempHome)
                     }
                 }
             }

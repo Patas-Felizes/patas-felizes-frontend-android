@@ -15,10 +15,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.patasfelizes.models.Donation
-import com.example.patasfelizes.models.AnimalList
 import com.example.patasfelizes.ui.components.CustomDropdown
 import com.example.patasfelizes.ui.components.DatePickerField
 import com.example.patasfelizes.ui.components.FormField
+import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -27,12 +28,15 @@ fun DonationFormScreen(
     navController: NavHostController,
     initialDonation: Donation? = null,
     onSave: (Donation) -> Unit,
-    isEditMode: Boolean = false
+    isEditMode: Boolean = false,
+    animalViewModel: AnimalListViewModel = viewModel()
 ) {
     var doador by remember { mutableStateOf(TextFieldValue(initialDonation?.doador ?: "")) }
     var valor by remember { mutableStateOf(TextFieldValue(initialDonation?.valor ?: "")) }
-    var dataDoacao by remember { mutableStateOf(TextFieldValue(initialDonation?.dataDoacao ?: "")) }
-    var animalSelecionado by remember { mutableStateOf(initialDonation?.idAnimal) }
+    var dataDoacao by remember { mutableStateOf(TextFieldValue(initialDonation?.data_doacao ?: "")) }
+    var selectedAnimalId by remember { mutableStateOf(initialDonation?.animal_id) }
+
+    val animals by animalViewModel.animals.collectAsState()
 
     @Composable
     fun EditIcon() {
@@ -94,11 +98,11 @@ fun DonationFormScreen(
                 )
 
                 CustomDropdown(
-                    selectedOption = animalSelecionado?.nome ?: "",
+                    selectedOption = animals.find { it.animal_id == selectedAnimalId }?.nome ?: "",
                     placeholder = "Selecione o animal (opcional)...",
-                    options = AnimalList.map { it.nome },
+                    options = animals.map { it.nome },
                     onOptionSelected = { nome ->
-                        animalSelecionado = AnimalList.find { it.nome == nome }
+                        selectedAnimalId = animals.find { it.nome == nome }?.animal_id
                     },
                     label = "Animal",
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -135,25 +139,16 @@ fun DonationFormScreen(
                                 return@Button
                             }
 
-                            val donation = if (isEditMode) {
-                                initialDonation!!.copy(
-                                    doador = doador.text.trim(),
-                                    valor = valor.text.trim(),
-                                    dataDoacao = dataDoacao.text.trim(),
-                                    idAnimal = animalSelecionado
-                                )
-                            } else {
-                                Donation(
-                                    id = 0,
-                                    doador = doador.text.trim(),
-                                    valor = valor.text.trim(),
-                                    dataDoacao = dataDoacao.text.trim(),
-                                    dataCadastro = LocalDate.now(),
-                                    idAnimal = animalSelecionado
-                                )
-                            }
+                            val donation = Donation(
+                                doacao_id = initialDonation?.doacao_id ?: 0,
+                                doador = doador.text.trim(),
+                                valor = valor.text.trim(),
+                                data_doacao = dataDoacao.text.trim(),
+                                animal_id = selectedAnimalId,
+                                data_cadastro = LocalDate.now().toString()
+                            )
+
                             onSave(donation)
-                            navController.navigateUp()
                         },
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(
