@@ -9,11 +9,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.patasfelizes.models.Animal
 import com.example.patasfelizes.models.Extense
+import com.example.patasfelizes.models.Procedure
 
 @Composable
 fun ExtensesContent(
     expenses: List<Extense>,
+    animals: List<Animal>,
+    procedures: List<Procedure>,
     onExtenseClick: (Extense) -> Unit
 ) {
     LazyColumn(
@@ -26,8 +30,16 @@ fun ExtensesContent(
             } else {
                 MaterialTheme.colorScheme.background
             }
+            val animal = expense.animal_id?.let { animalId ->
+                animals.find { it.animal_id == animalId }
+            }
+            val procedure = expense.procedimento_id?.let { procedimentoId ->
+                procedures.find { it.procedimento_id == procedimentoId }
+            }
             ExtenseListItem(
                 extense = expense,
+                animalName = animal?.nome,
+                procedureName = procedure?.tipo,
                 backgroundColor = backgroundColor,
                 onClick = { onExtenseClick(expense) }
             )
@@ -38,6 +50,8 @@ fun ExtensesContent(
 @Composable
 fun ExtenseListItem(
     extense: Extense,
+    animalName: String?,
+    procedureName: String?,
     backgroundColor: Color,
     onClick: () -> Unit
 ) {
@@ -64,15 +78,15 @@ fun ExtenseListItem(
                 text = "Data: ${extense.data_despesa}",
                 style = MaterialTheme.typography.bodyMedium
             )
-            if (extense.animal_id != null) {
+            if (animalName != null) {
                 Text(
-                    text = "ID do Animal: ${extense.animal_id}",
+                    text = "Animal: $animalName",
                     style = MaterialTheme.typography.bodySmall
                 )
             }
-            if (extense.procedimento_id != null) {
+            if (procedureName != null) {
                 Text(
-                    text = "ID do Procedimento: ${extense.procedimento_id}",
+                    text = "Procedimento: $procedureName",
                     style = MaterialTheme.typography.bodySmall
                 )
             }

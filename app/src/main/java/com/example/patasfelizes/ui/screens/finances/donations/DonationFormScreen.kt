@@ -19,6 +19,7 @@ import com.example.patasfelizes.ui.components.CustomDropdown
 import com.example.patasfelizes.ui.components.DatePickerField
 import com.example.patasfelizes.ui.components.FormField
 import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
+import com.example.patasfelizes.ui.viewmodels.campaigns.CampaignListViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import java.time.LocalDate
 
@@ -29,14 +30,23 @@ fun DonationFormScreen(
     initialDonation: Donation? = null,
     onSave: (Donation) -> Unit,
     isEditMode: Boolean = false,
-    animalViewModel: AnimalListViewModel = viewModel()
+    animalViewModel: AnimalListViewModel = viewModel(),
+    campaignViewModel: CampaignListViewModel = viewModel()
 ) {
     var doador by remember { mutableStateOf(TextFieldValue(initialDonation?.doador ?: "")) }
     var valor by remember { mutableStateOf(TextFieldValue(initialDonation?.valor ?: "")) }
     var dataDoacao by remember { mutableStateOf(TextFieldValue(initialDonation?.data_doacao ?: "")) }
     var selectedAnimalId by remember { mutableStateOf(initialDonation?.animal_id) }
+    var selectedCampaignId by remember { mutableStateOf(initialDonation?.companha_id) }
 
     val animals by animalViewModel.animals.collectAsState()
+    val campaigns by campaignViewModel.campaigns.collectAsState()
+
+    // Carregar dados ao iniciar a tela
+    LaunchedEffect(Unit) {
+        animalViewModel.reloadAnimals()
+        campaignViewModel.reloadCampaigns()
+    }
 
     @Composable
     fun EditIcon() {
@@ -108,6 +118,17 @@ fun DonationFormScreen(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
+                CustomDropdown(
+                    selectedOption = campaigns.find { it.campanha_id == selectedCampaignId }?.nome ?: "",
+                    placeholder = "Selecione a campanha (opcional)...",
+                    options = campaigns.map { it.nome },
+                    onOptionSelected = { nome ->
+                        selectedCampaignId = campaigns.find { it.nome == nome }?.campanha_id
+                    },
+                    label = "Campanha",
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -145,6 +166,7 @@ fun DonationFormScreen(
                                 valor = valor.text.trim(),
                                 data_doacao = dataDoacao.text.trim(),
                                 animal_id = selectedAnimalId,
+                                companha_id = selectedCampaignId,
                                 data_cadastro = LocalDate.now().toString()
                             )
 

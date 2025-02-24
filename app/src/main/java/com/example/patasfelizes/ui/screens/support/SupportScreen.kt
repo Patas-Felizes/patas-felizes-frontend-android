@@ -15,18 +15,22 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.patasfelizes.ui.components.*
 import com.example.patasfelizes.models.Support
 import com.example.patasfelizes.ui.viewmodels.support.SupportListViewModel
+import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SupportScreen(
     navController: NavHostController,
-    viewModel: SupportListViewModel = viewModel()
+    viewModel: SupportListViewModel = viewModel(),
+    animalViewModel: AnimalListViewModel = viewModel()
 ) {
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     val supports by viewModel.supports.collectAsState()
+    val animals by animalViewModel.animals.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.reloadSupports()
+        animalViewModel.reloadAnimals()
     }
 
     Scaffold(
@@ -58,6 +62,7 @@ fun SupportScreen(
                     supports = supports.filter {
                         it.nome_apadrinhador.contains(searchQuery.text, ignoreCase = true)
                     },
+                    animals = animals,
                     onSupportClick = { support ->
                         navController.navigate("supportDetails/${support.apadrinhamento_id}")
                     }
@@ -70,6 +75,7 @@ fun SupportScreen(
 @Composable
 fun SupportList(
     supports: List<Support>,
+    animals: List<com.example.patasfelizes.models.Animal>,
     onSupportClick: (Support) -> Unit
 ) {
     LazyColumn(
@@ -82,8 +88,10 @@ fun SupportList(
             } else {
                 MaterialTheme.colorScheme.background
             }
+            val animal = animals.find { it.animal_id == support.animal_id }
             SupportListItem(
                 support = support,
+                animalName = animal?.nome ?: "Animal não encontrado",
                 backgroundColor = backgroundColor,
                 onClick = { onSupportClick(support) }
             )
@@ -95,6 +103,7 @@ fun SupportList(
 @Composable
 fun SupportListItem(
     support: Support,
+    animalName: String,
     backgroundColor: Color,
     onClick: () -> Unit
 ) {
@@ -110,7 +119,7 @@ fun SupportListItem(
                 .padding(16.dp)
         ) {
             Text(
-                text = "ID do Animal: ${support.animal_id}",
+                text = "Animal: $animalName",
                 style = MaterialTheme.typography.titleSmall
             )
             Text(

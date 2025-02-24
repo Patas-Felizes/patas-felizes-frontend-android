@@ -15,21 +15,30 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.patasfelizes.ui.components.BoxWithProgressBar
 import com.example.patasfelizes.ui.screens.adoptions.DetailRow
+import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
 import com.example.patasfelizes.ui.viewmodels.extense.ExtenseDetailsState
 import com.example.patasfelizes.ui.viewmodels.extense.ExtenseDetailsViewModel
+import com.example.patasfelizes.ui.viewmodels.procedure.ProcedureListViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailsExtenseScreen(
     navController: NavHostController,
     extenseId: Int,
-    viewModel: ExtenseDetailsViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    viewModel: ExtenseDetailsViewModel = viewModel(),
+    animalViewModel: AnimalListViewModel = viewModel(),
+    procedureViewModel: ProcedureListViewModel = viewModel()
 ) {
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsState()
+    val animals by animalViewModel.animals.collectAsState()
+    val procedures by procedureViewModel.procedures.collectAsState()
 
     LaunchedEffect(extenseId) {
         viewModel.loadExtense(extenseId)
+        animalViewModel.reloadAnimals()
+        procedureViewModel.reloadProcedures()
     }
 
     BoxWithProgressBar(isLoading = uiState is ExtenseDetailsState.Loading) {
@@ -58,6 +67,13 @@ fun DetailsExtenseScreen(
             }
             is ExtenseDetailsState.Success -> {
                 val extense = state.extense
+                val animal = extense.animal_id?.let { animalId ->
+                    animals.find { it.animal_id == animalId }
+                }
+                val procedure = extense.procedimento_id?.let { procedimentoId ->
+                    procedures.find { it.procedimento_id == procedimentoId }
+                }
+
                 Scaffold { innerPadding ->
                     Column(
                         modifier = Modifier
@@ -99,11 +115,11 @@ fun DetailsExtenseScreen(
                                 DetailRow(label = "Data de Cadastro", value = extense.data_cadastro)
                                 DetailRow(
                                     label = "Animal Relacionado",
-                                    value = if (extense.animal_id != null && extense.animal_id != 0)
-                                        extense.animal_id.toString()
-                                    else
-                                        "Despesa Geral"
+                                    value = if (animal != null) animal.nome else "Despesa Geral"
                                 )
+                                procedure?.let {
+                                    DetailRow(label = "Procedimento Relacionado", value = it.tipo)
+                                }
                             }
                         }
 

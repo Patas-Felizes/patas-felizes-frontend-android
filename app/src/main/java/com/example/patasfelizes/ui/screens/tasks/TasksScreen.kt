@@ -15,15 +15,21 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.patasfelizes.ui.components.*
 import com.example.patasfelizes.models.Task
 import com.example.patasfelizes.ui.viewmodels.task.TaskListViewModel
+import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
+import com.example.patasfelizes.ui.viewmodels.team.TeamListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TasksScreen(
     navController: NavHostController,
-    viewModel: TaskListViewModel = viewModel()
+    viewModel: TaskListViewModel = viewModel(),
+    animalViewModel: AnimalListViewModel = viewModel(),
+    teamViewModel: TeamListViewModel = viewModel()
 ) {
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     val tasks by viewModel.tasks.collectAsState()
+    val animals by animalViewModel.animals.collectAsState()
+    val volunteers by teamViewModel.voluntarios.collectAsState()
 
     val filterOptions = remember {
         listOf(
@@ -39,6 +45,8 @@ fun TasksScreen(
 
     LaunchedEffect(Unit) {
         viewModel.reloadTasks()
+        animalViewModel.reloadAnimals()
+        teamViewModel.reloadVoluntarios()
     }
 
     Scaffold(
@@ -81,6 +89,8 @@ fun TasksScreen(
                                     filter.isSelected && filter.name == it.tipo
                                 }
                     },
+                    animals = animals,
+                    volunteers = volunteers,
                     onTaskClick = { task ->
                         navController.navigate("taskDetails/${task.tarefa_id}")
                     }
@@ -93,6 +103,8 @@ fun TasksScreen(
 @Composable
 fun TaskList(
     tasks: List<Task>,
+    animals: List<com.example.patasfelizes.models.Animal>,
+    volunteers: List<com.example.patasfelizes.models.Voluntary>,
     onTaskClick: (Task) -> Unit
 ) {
     LazyColumn(
@@ -105,8 +117,16 @@ fun TaskList(
             } else {
                 MaterialTheme.colorScheme.background
             }
+            val animal = task.animal_id?.let { animalId ->
+                animals.find { it.animal_id == animalId }
+            }
+            val volunteer = task.voluntario_id?.let { voluntarioId ->
+                volunteers.find { it.voluntario_id == voluntarioId }
+            }
             TaskListItem(
                 task = task,
+                animalName = animal?.nome,
+                volunteerName = volunteer?.nome,
                 backgroundColor = backgroundColor,
                 onClick = { onTaskClick(task) }
             )
@@ -118,6 +138,8 @@ fun TaskList(
 @Composable
 fun TaskListItem(
     task: Task,
+    animalName: String?,
+    volunteerName: String?,
     backgroundColor: Color,
     onClick: () -> Unit
 ) {
@@ -144,15 +166,15 @@ fun TaskListItem(
                 text = "Data: ${task.data_tarefa}",
                 style = MaterialTheme.typography.bodySmall
             )
-            task.animal_id?.let {
+            animalName?.let {
                 Text(
-                    text = "ID do Animal: $it",
+                    text = "Animal: $it",
                     style = MaterialTheme.typography.bodySmall
                 )
             }
-            task.voluntario_id?.let {
+            volunteerName?.let {
                 Text(
-                    text = "ID do Voluntário: $it",
+                    text = "Voluntário: $it",
                     style = MaterialTheme.typography.bodySmall
                 )
             }

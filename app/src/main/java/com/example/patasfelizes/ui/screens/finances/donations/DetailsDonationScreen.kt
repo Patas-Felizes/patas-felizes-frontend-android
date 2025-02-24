@@ -13,21 +13,30 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.patasfelizes.ui.components.BoxWithProgressBar
 import com.example.patasfelizes.ui.screens.adoptions.DetailRow
+import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
+import com.example.patasfelizes.ui.viewmodels.campaigns.CampaignListViewModel
 import com.example.patasfelizes.ui.viewmodels.donation.DonationDetailsState
 import com.example.patasfelizes.ui.viewmodels.donation.DonationDetailsViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailsDonationScreen(
     navController: NavHostController,
     donationId: Int,
-    viewModel: DonationDetailsViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    viewModel: DonationDetailsViewModel = viewModel(),
+    animalViewModel: AnimalListViewModel = viewModel(),
+    campaignViewModel: CampaignListViewModel = viewModel()
 ) {
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsState()
+    val animals by animalViewModel.animals.collectAsState()
+    val campaigns by campaignViewModel.campaigns.collectAsState()
 
     LaunchedEffect(donationId) {
         viewModel.loadDonation(donationId)
+        animalViewModel.reloadAnimals()
+        campaignViewModel.reloadCampaigns()
     }
 
     BoxWithProgressBar(isLoading = uiState is DonationDetailsState.Loading) {
@@ -56,6 +65,13 @@ fun DetailsDonationScreen(
             }
             is DonationDetailsState.Success -> {
                 val donation = state.donation
+                val animal = donation.animal_id?.let { animalId ->
+                    animals.find { it.animal_id == animalId }
+                }
+                val campaign = donation.companha_id?.let { campanhaId ->
+                    campaigns.find { it.campanha_id == campanhaId }
+                }
+
                 Scaffold { innerPadding ->
                     Column(
                         modifier = Modifier
@@ -97,11 +113,11 @@ fun DetailsDonationScreen(
                                 DetailRow(label = "Data de Cadastro", value = donation.data_cadastro)
                                 DetailRow(
                                     label = "Animal Relacionado",
-                                    value = if (donation.animal_id != null && donation.animal_id != 0)
-                                        donation.animal_id.toString()
-                                    else
-                                        "Doação Geral"
+                                    value = if (animal != null) animal.nome else "Doação Geral"
                                 )
+                                if (campaign != null) {
+                                    DetailRow(label = "Campanha", value = campaign.nome)
+                                }
                             }
                         }
 
@@ -201,4 +217,3 @@ fun DetailsDonationScreen(
         }
     }
 }
-

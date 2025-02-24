@@ -16,19 +16,27 @@ import androidx.navigation.NavHostController
 import com.example.patasfelizes.ui.components.BoxWithProgressBar
 import com.example.patasfelizes.ui.viewmodels.procedure.ProcedureDetailsViewModel
 import com.example.patasfelizes.ui.viewmodels.procedure.ProcedureDetailsState
+import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
+import com.example.patasfelizes.ui.viewmodels.team.TeamListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailsProcedureScreen(
     navController: NavHostController,
     procedureId: Int,
-    viewModel: ProcedureDetailsViewModel = viewModel()
+    viewModel: ProcedureDetailsViewModel = viewModel(),
+    animalViewModel: AnimalListViewModel = viewModel(),
+    voluntaryViewModel: TeamListViewModel = viewModel()
 ) {
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsState()
+    val animals by animalViewModel.animals.collectAsState()
+    val voluntaries by voluntaryViewModel.voluntarios.collectAsState()
 
     LaunchedEffect(procedureId) {
         viewModel.loadProcedure(procedureId)
+        animalViewModel.reloadAnimals()
+        voluntaryViewModel.reloadVoluntarios()
     }
 
     BoxWithProgressBar(isLoading = uiState is ProcedureDetailsState.Loading) {
@@ -57,6 +65,13 @@ fun DetailsProcedureScreen(
             }
             is ProcedureDetailsState.Success -> {
                 val procedure = state.procedure
+                val animal = procedure.animal_id?.let { animalId ->
+                    animals.find { it.animal_id == animalId }
+                }
+                val voluntary = procedure.voluntario_id?.let { voluntarioId ->
+                    voluntaries.find { it.voluntario_id == voluntarioId }
+                }
+
                 Scaffold { innerPadding ->
                     Column(
                         modifier = Modifier
@@ -88,12 +103,12 @@ fun DetailsProcedureScreen(
                                 DetailRow("Valor", "R$ ${procedure.valor}")
                                 DetailRow("Data do Procedimento", procedure.data_procedimento)
 
-                                procedure.animal_id?.let { animalId ->
-                                    DetailRow("Animal", animalId.toString())
+                                procedure.animal_id?.let {
+                                    DetailRow("Animal", animal?.nome ?: "Animal não encontrado")
                                 }
 
-                                procedure.voluntario_id?.let { voluntarioId ->
-                                    DetailRow("Voluntário", voluntarioId.toString())
+                                procedure.voluntario_id?.let {
+                                    DetailRow("Voluntário", voluntary?.nome ?: "Voluntário não encontrado")
                                 }
                             }
                         }

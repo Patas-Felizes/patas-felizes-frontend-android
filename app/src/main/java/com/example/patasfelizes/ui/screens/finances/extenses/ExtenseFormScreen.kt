@@ -19,6 +19,7 @@ import com.example.patasfelizes.ui.components.CustomDropdown
 import com.example.patasfelizes.ui.components.DatePickerField
 import com.example.patasfelizes.ui.components.FormField
 import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
+import com.example.patasfelizes.ui.viewmodels.procedure.ProcedureListViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import java.time.LocalDate
 
@@ -29,7 +30,8 @@ fun ExtenseFormScreen(
     initialExtense: Extense? = null,
     onSave: (Extense) -> Unit,
     isEditMode: Boolean = false,
-    animalViewModel: AnimalListViewModel = viewModel()
+    animalViewModel: AnimalListViewModel = viewModel(),
+    procedureViewModel: ProcedureListViewModel = viewModel()
 ) {
     val tipoOptions = listOf("Veterinário", "Medicamentos", "Cirurgia", "Ração", "Outros")
 
@@ -37,8 +39,16 @@ fun ExtenseFormScreen(
     var tipo by remember { mutableStateOf(initialExtense?.tipo ?: "") }
     var dataDespesa by remember { mutableStateOf(TextFieldValue(initialExtense?.data_despesa ?: "")) }
     var selectedAnimalId by remember { mutableStateOf(initialExtense?.animal_id) }
+    var selectedProcedureId by remember { mutableStateOf(initialExtense?.procedimento_id) }
 
     val animals by animalViewModel.animals.collectAsState()
+    val procedures by procedureViewModel.procedures.collectAsState()
+
+    // Carregar dados ao iniciar a tela
+    LaunchedEffect(Unit) {
+        animalViewModel.reloadAnimals()
+        procedureViewModel.reloadProcedures()
+    }
 
     @Composable
     fun EditIcon() {
@@ -110,6 +120,17 @@ fun ExtenseFormScreen(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
+                CustomDropdown(
+                    selectedOption = procedures.find { it.procedimento_id == selectedProcedureId }?.tipo ?: "",
+                    placeholder = "Selecione o procedimento (opcional)...",
+                    options = procedures.map { it.tipo },
+                    onOptionSelected = { procedureTipo ->
+                        selectedProcedureId = procedures.find { it.tipo == procedureTipo }?.procedimento_id
+                    },
+                    label = "Procedimento",
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -147,6 +168,7 @@ fun ExtenseFormScreen(
                                 tipo = tipo,
                                 data_despesa = dataDespesa.text.trim(),
                                 animal_id = selectedAnimalId,
+                                procedimento_id = selectedProcedureId,
                                 data_cadastro = LocalDate.now().toString()
                             )
 

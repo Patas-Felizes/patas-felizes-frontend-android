@@ -15,19 +15,27 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.patasfelizes.ui.components.BoxWithProgressBar
 import com.example.patasfelizes.ui.viewmodels.task.TaskDetailsViewModel
 import com.example.patasfelizes.ui.viewmodels.task.TaskDetailsState
+import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
+import com.example.patasfelizes.ui.viewmodels.team.TeamListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailsTaskScreen(
     navController: NavHostController,
     taskId: Int,
-    viewModel: TaskDetailsViewModel = viewModel()
+    viewModel: TaskDetailsViewModel = viewModel(),
+    animalViewModel: AnimalListViewModel = viewModel(),
+    teamViewModel: TeamListViewModel = viewModel()
 ) {
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsState()
+    val animals by animalViewModel.animals.collectAsState()
+    val volunteers by teamViewModel.voluntarios.collectAsState()
 
     LaunchedEffect(taskId) {
         viewModel.loadTask(taskId)
+        animalViewModel.reloadAnimals()
+        teamViewModel.reloadVoluntarios()
     }
 
     BoxWithProgressBar(isLoading = uiState is TaskDetailsState.Loading) {
@@ -56,6 +64,13 @@ fun DetailsTaskScreen(
             }
             is TaskDetailsState.Success -> {
                 val task = state.task
+                val animal = task.animal_id?.let { animalId ->
+                    animals.find { it.animal_id == animalId }
+                }
+                val volunteer = task.voluntario_id?.let { voluntarioId ->
+                    volunteers.find { it.voluntario_id == voluntarioId }
+                }
+
                 Scaffold { innerPadding ->
                     Column(
                         modifier = Modifier
@@ -84,11 +99,11 @@ fun DetailsTaskScreen(
                                 DetailRow(label = "Data da Tarefa", value = task.data_tarefa)
                                 DetailRow(
                                     label = "Animal Relacionado",
-                                    value = task.animal_id?.toString() ?: "Não associado"
+                                    value = animal?.nome ?: "Não associado"
                                 )
                                 DetailRow(
                                     label = "Voluntário Relacionado",
-                                    value = task.voluntario_id?.toString() ?: "Não associado"
+                                    value = volunteer?.nome ?: "Não associado"
                                 )
                                 DetailRow(label = "Data de Cadastro", value = task.data_cadastro)
                             }

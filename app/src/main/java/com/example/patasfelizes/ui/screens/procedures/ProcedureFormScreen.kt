@@ -42,6 +42,12 @@ fun ProcedureFormScreen(
     val animals by animalViewModel.animals.collectAsState()
     val voluntaries by voluntaryViewModel.voluntarios.collectAsState()
 
+    // Carregar os dados ao iniciar a tela
+    LaunchedEffect(Unit) {
+        animalViewModel.reloadAnimals()
+        voluntaryViewModel.reloadVoluntarios()
+    }
+
     Scaffold { innerPadding ->
         Column(
             modifier = Modifier

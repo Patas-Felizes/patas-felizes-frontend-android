@@ -40,6 +40,12 @@ fun TaskFormScreen(
     val animals by animalViewModel.animals.collectAsState()
     val volunteers by teamViewModel.voluntarios.collectAsState()
 
+    // Carregar dados ao iniciar a tela
+    LaunchedEffect(Unit) {
+        animalViewModel.reloadAnimals()
+        teamViewModel.reloadVoluntarios()
+    }
+
     BoxWithProgressBar(isLoading = false) {
         Scaffold { innerPadding ->
             Column(

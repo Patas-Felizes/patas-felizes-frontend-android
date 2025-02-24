@@ -33,6 +33,11 @@ fun SupportFormScreen(
 
     val animals by animalViewModel.animals.collectAsState()
 
+    // Carregar os animais ao iniciar a tela
+    LaunchedEffect(Unit) {
+        animalViewModel.reloadAnimals()
+    }
+
     BoxWithProgressBar(isLoading = false) {
         Scaffold { innerPadding ->
             Column(

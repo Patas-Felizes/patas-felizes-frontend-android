@@ -15,15 +15,21 @@ import androidx.navigation.NavHostController
 import com.example.patasfelizes.ui.components.*
 import com.example.patasfelizes.models.Procedure
 import com.example.patasfelizes.ui.viewmodels.procedure.ProcedureListViewModel
+import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
+import com.example.patasfelizes.ui.viewmodels.team.TeamListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProceduresScreen(
     navController: NavHostController,
-    viewModel: ProcedureListViewModel = viewModel()
+    viewModel: ProcedureListViewModel = viewModel(),
+    animalViewModel: AnimalListViewModel = viewModel(),
+    voluntaryViewModel: TeamListViewModel = viewModel()
 ) {
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     val procedures by viewModel.procedures.collectAsState()
+    val animals by animalViewModel.animals.collectAsState()
+    val voluntaries by voluntaryViewModel.voluntarios.collectAsState()
 
     val filterOptions = remember {
         listOf(
@@ -40,6 +46,8 @@ fun ProceduresScreen(
 
     LaunchedEffect(Unit) {
         viewModel.reloadProcedures()
+        animalViewModel.reloadAnimals()
+        voluntaryViewModel.reloadVoluntarios()
     }
 
     Scaffold(
@@ -81,6 +89,8 @@ fun ProceduresScreen(
                                 (currentFilters.find { filter -> filter.isSelected && filter.name == it.tipo } != null ||
                                         currentFilters.none { filter -> filter.isSelected })
                     },
+                    animals = animals,
+                    voluntaries = voluntaries,
                     onProcedureClick = { procedure ->
                         navController.navigate("procedureDetails/${procedure.procedimento_id}")
                     }
@@ -93,6 +103,8 @@ fun ProceduresScreen(
 @Composable
 fun ProcedureList(
     procedures: List<Procedure>,
+    animals: List<com.example.patasfelizes.models.Animal>,
+    voluntaries: List<com.example.patasfelizes.models.Voluntary>,
     onProcedureClick: (Procedure) -> Unit
 ) {
     LazyColumn(
@@ -105,8 +117,16 @@ fun ProcedureList(
             } else {
                 MaterialTheme.colorScheme.background
             }
+            val animal = procedure.animal_id?.let { animalId ->
+                animals.find { it.animal_id == animalId }
+            }
+            val voluntary = procedure.voluntario_id?.let { voluntarioId ->
+                voluntaries.find { it.voluntario_id == voluntarioId }
+            }
             ProcedureListItem(
                 procedure = procedure,
+                animalName = animal?.nome,
+                voluntaryName = voluntary?.nome,
                 backgroundColor = backgroundColor,
                 onClick = { onProcedureClick(procedure) }
             )
@@ -118,6 +138,8 @@ fun ProcedureList(
 @Composable
 fun ProcedureListItem(
     procedure: Procedure,
+    animalName: String?,
+    voluntaryName: String?,
     backgroundColor: Color,
     onClick: () -> Unit
 ) {
@@ -153,15 +175,15 @@ fun ProcedureListItem(
                     style = MaterialTheme.typography.bodySmall
                 )
             }
-            procedure.animal_id?.let {
+            if (animalName != null) {
                 Text(
-                    text = "ID do Animal: $it",
+                    text = "Animal: $animalName",
                     style = MaterialTheme.typography.bodySmall
                 )
             }
-            procedure.voluntario_id?.let {
+            if (voluntaryName != null) {
                 Text(
-                    text = "ID do Voluntário: $it",
+                    text = "Voluntário: $voluntaryName",
                     style = MaterialTheme.typography.bodySmall
                 )
             }

@@ -14,19 +14,23 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.patasfelizes.ui.components.BoxWithProgressBar
 import com.example.patasfelizes.ui.viewmodels.support.SupportDetailsViewModel
 import com.example.patasfelizes.ui.viewmodels.support.SupportDetailsState
+import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SupportDetailsScreen(
     navController: NavHostController,
     supportId: Int,
-    viewModel: SupportDetailsViewModel = viewModel()
+    viewModel: SupportDetailsViewModel = viewModel(),
+    animalViewModel: AnimalListViewModel = viewModel()
 ) {
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsState()
+    val animals by animalViewModel.animals.collectAsState()
 
     LaunchedEffect(supportId) {
         viewModel.loadSupport(supportId)
+        animalViewModel.reloadAnimals()
     }
 
     BoxWithProgressBar(isLoading = uiState is SupportDetailsState.Loading) {
@@ -55,6 +59,8 @@ fun SupportDetailsScreen(
             }
             is SupportDetailsState.Success -> {
                 val support = state.support
+                val animal = animals.find { it.animal_id == support.animal_id }
+
                 Scaffold { innerPadding ->
                     Column(
                         modifier = Modifier
@@ -75,7 +81,7 @@ fun SupportDetailsScreen(
                                 modifier = Modifier.padding(16.dp),
                                 horizontalAlignment = Alignment.Start
                             ) {
-                                DetailRow("ID do Animal", support.animal_id.toString())
+                                DetailRow("Animal", animal?.nome ?: "Animal não encontrado")
                                 DetailRow("Padrinho", support.nome_apadrinhador)
                                 DetailRow("Valor", "R$ ${support.valor}")
                                 DetailRow("Regularidade", support.regularidade)

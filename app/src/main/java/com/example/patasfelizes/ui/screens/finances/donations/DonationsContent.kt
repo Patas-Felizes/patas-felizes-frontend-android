@@ -9,12 +9,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.patasfelizes.models.Animal
+import com.example.patasfelizes.models.Campaign
 import com.example.patasfelizes.models.Donation
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DonationsContent(
     donations: List<Donation>,
+    animals: List<Animal>,
+    campaigns: List<Campaign>,
     onDonationClick: (Donation) -> Unit
 ) {
     LazyColumn(
@@ -27,8 +31,16 @@ fun DonationsContent(
             } else {
                 MaterialTheme.colorScheme.background
             }
+            val animal = donation.animal_id?.let { animalId ->
+                animals.find { it.animal_id == animalId }
+            }
+            val campaign = donation.companha_id?.let { campanhaId ->
+                campaigns.find { it.campanha_id == campanhaId }
+            }
             DonationListItem(
                 donation = donation,
+                animalName = animal?.nome,
+                campaignName = campaign?.nome,
                 backgroundColor = backgroundColor,
                 onClick = { onDonationClick(donation) }
             )
@@ -39,6 +51,8 @@ fun DonationsContent(
 @Composable
 fun DonationListItem(
     donation: Donation,
+    animalName: String?,
+    campaignName: String?,
     backgroundColor: Color,
     onClick: () -> Unit
 ) {
@@ -65,15 +79,15 @@ fun DonationListItem(
                 text = "Data: ${donation.data_doacao}",
                 style = MaterialTheme.typography.bodySmall
             )
-            if (donation.animal_id != null) {
+            if (animalName != null) {
                 Text(
-                    text = "ID do Animal: ${donation.animal_id}",
+                    text = "Animal: $animalName",
                     style = MaterialTheme.typography.bodySmall
                 )
             }
-            if (donation.companha_id != null) {
+            if (campaignName != null) {
                 Text(
-                    text = "ID da Campanha: ${donation.companha_id}",
+                    text = "Campanha: $campaignName",
                     style = MaterialTheme.typography.bodySmall
                 )
             }
