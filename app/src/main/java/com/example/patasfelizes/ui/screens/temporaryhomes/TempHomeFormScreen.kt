@@ -1,23 +1,32 @@
 package com.example.patasfelizes.ui.screens.temporaryhomes
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.patasfelizes.models.TempHome
 import com.example.patasfelizes.ui.components.BoxWithProgressBar
 import com.example.patasfelizes.ui.components.CustomDropdown
+import com.example.patasfelizes.ui.components.DatePickerField
 import com.example.patasfelizes.ui.components.FormField
 import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
 import com.example.patasfelizes.ui.viewmodels.hosts.HostListViewModel
 import java.time.LocalDate
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.patasfelizes.models.Adopter
+import com.example.patasfelizes.models.Host
+import com.example.patasfelizes.repository.HostRepository
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,6 +43,15 @@ fun TempHomeFormScreen(
     var periodo by remember { mutableStateOf(TextFieldValue(initialTempHome?.periodo ?: "")) }
     var dataHospedagem by remember { mutableStateOf(TextFieldValue(initialTempHome?.data_hospedagem ?: LocalDate.now().toString())) }
 
+    // Estados para o diálogo de adicionar novo hospedeiro
+    var showAddHostDialog by remember { mutableStateOf(false) }
+    var newHostName by remember { mutableStateOf("") }
+    var newHostEmail by remember { mutableStateOf("") }
+    var newHostPhone by remember { mutableStateOf("") }
+
+    // Repositório para criação do hospedeiro (similar ao AdoptersRepository)
+    val hostRepository = remember { HostRepository() }
+
     val animals by animalViewModel.animals.collectAsState()
     val hosts by hostViewModel.hosts.collectAsState()
 
@@ -49,7 +67,8 @@ fun TempHomeFormScreen(
                 Column(modifier = Modifier.padding(16.dp)) {
                     CustomDropdown(
                         label = "Animal",
-                        selectedOption = animals.find { it.animal_id == selectedAnimalId }?.nome ?: "Selecione o animal",
+                        selectedOption = animals.find { it.animal_id == selectedAnimalId }?.nome
+                            ?: "Selecione o animal",
                         options = animals.map { it.nome },
                         onOptionSelected = { selectedOption ->
                             selectedAnimalId = animals.find { it.nome == selectedOption }?.animal_id
@@ -58,14 +77,36 @@ fun TempHomeFormScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    CustomDropdown(
-                        label = "Hospedeiro",
-                        selectedOption = hosts.find { it.hospedeiro_id == selectedHostId }?.nome ?: "Selecione o hospedeiro",
-                        options = hosts.map { it.nome },
-                        onOptionSelected = { selectedOption ->
-                            selectedHostId = hosts.find { it.nome == selectedOption }?.hospedeiro_id
+                    // Row com dropdown de Hospedeiro e botão para adicionar novo hospedeiro
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CustomDropdown(
+                            label = "Hospedeiro",
+                            selectedOption = hosts.find { it.hospedeiro_id == selectedHostId }?.nome
+                                ?: "Selecione o hospedeiro",
+                            options = hosts.map { it.nome },
+                            onOptionSelected = { selectedOption ->
+                                selectedHostId = hosts.find { it.nome == selectedOption }?.hospedeiro_id
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        IconButton(
+                            onClick = { showAddHostDialog = true },
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Adicionar hospedeiro",
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
                         }
-                    )
+                    }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -78,11 +119,14 @@ fun TempHomeFormScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    FormField(
+                    DatePickerField(
                         label = "Data de Hospedagem",
-                        placeholder = "Data de início da hospedagem",
-                        value = dataHospedagem,
-                        onValueChange = { dataHospedagem = it }
+                        placeholder = "YYYY-MM-DD",
+                        value = dataHospedagem.text,
+                        onDateSelected = { newDate ->
+                            dataHospedagem = TextFieldValue(newDate)
+                        },
+                        modifier = Modifier.padding(bottom = 16.dp)
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
@@ -103,7 +147,8 @@ fun TempHomeFormScreen(
                         Button(
                             onClick = {
                                 if (selectedAnimalId == null || selectedHostId == null ||
-                                    periodo.text.isBlank() || dataHospedagem.text.isBlank()) {
+                                    periodo.text.isBlank() || dataHospedagem.text.isBlank()
+                                ) {
                                     return@Button
                                 }
 
@@ -127,5 +172,68 @@ fun TempHomeFormScreen(
                 }
             }
         }
+    }
+
+    if (showAddHostDialog) {
+        AlertDialog(
+            onDismissRequest = { showAddHostDialog = false },
+            title = { Text("Adicionar Hospedeiro") },
+            text = {
+                Column {
+                    OutlinedTextField(
+                        value = newHostName,
+                        onValueChange = { newHostName = it },
+                        label = { Text("Nome") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = newHostEmail,
+                        onValueChange = { newHostEmail = it },
+                        label = { Text("Email") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = newHostPhone,
+                        onValueChange = { newHostPhone = it },
+                        label = { Text("Telefone") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val newHost = Host(
+                            nome = newHostName,
+                            email = newHostEmail,
+                            telefone = newHostPhone,
+                            moradia = "" // You might want to add a moradia field to the dialog
+                        )
+                        // Cria o novo hospedeiro utilizando o repositório
+                        hostRepository.createHost(newHost,
+                            onSuccess = { createdHost ->
+                                hostViewModel.reloadHosts()
+                                showAddHostDialog = false
+                                newHostName = ""
+                                newHostEmail = ""
+                                newHostPhone = ""
+                            },
+                            onError = { errorMessage ->
+                                // Trate o erro (ex.: exibir uma mensagem)
+                            }
+                        )
+                    }
+                ) {
+                    Text("Adicionar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAddHostDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 }

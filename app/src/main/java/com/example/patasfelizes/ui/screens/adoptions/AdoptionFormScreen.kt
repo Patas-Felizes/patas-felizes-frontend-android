@@ -1,6 +1,8 @@
 package com.example.patasfelizes.ui.screens.adoptions
 
 
+import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -21,6 +23,16 @@ import com.example.patasfelizes.ui.viewmodels.adopters.AdopterListViewModel
 import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
 import com.example.patasfelizes.ui.viewmodels.campaigns.CampaignListViewModel
 import java.time.LocalDate
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.platform.LocalContext
+import com.example.patasfelizes.models.Adopter
+import com.example.patasfelizes.repository.AdoptersRepository
+import com.example.patasfelizes.ui.components.DatePickerField
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,15 +50,22 @@ fun AdoptionFormScreen(
 ) {
     var isLoading by remember { mutableStateOf(false) }
     var selectedAdopterId by remember { mutableStateOf(initialAdoption?.adotante_id) }
-    var selectedCampaignId by remember { mutableStateOf(initialCampaing?.campanha_id) }
-    var selectedAnimalId by remember { mutableStateOf(initialAnimal?.animal_id) }
+    var selectedAnimalId by remember {
+        mutableStateOf(initialAnimal?.animal_id ?: initialAdoption?.animal_id)
+    }
+
     var dataAdocao by remember { mutableStateOf(TextFieldValue(initialAdoption?.data_adocao ?: "")) }
-    var dataDevolucao by remember { mutableStateOf(TextFieldValue(initialAdoption?.data_devolucao ?: "")) }
-    var motivoDevolucao by remember { mutableStateOf(TextFieldValue(initialAdoption?.motivo_devolucao ?: "")) }
+
+    var showAddAdopterDialog by remember { mutableStateOf(false) }
+    var newAdopterName by remember { mutableStateOf("") }
+    var newAdopterEmail by remember { mutableStateOf("") }
+    var newAdopterPhone by remember { mutableStateOf("") }
 
     val adopters by adopterViewModel.adopters.collectAsState()
     val campaigns by campaignViewModel.campaigns.collectAsState()
     val animals by animalViewModel.animals.collectAsState()
+    val context = LocalContext.current
+    val adopterRepository = remember { AdoptersRepository() }
 
     BoxWithProgressBar(isLoading = isLoading) {
         Column(
@@ -67,51 +86,47 @@ fun AdoptionFormScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            CustomDropdown(
-                label = "Adotante",
-                selectedOption = adopters.find { it.adotante_id == selectedAdopterId }?.nome ?: "Selecione o adotante",
-                options = adopters.map { it.nome },
-                onOptionSelected = { selectedOption ->
-                    selectedAdopterId = adopters.find { it.nome == selectedOption }?.adotante_id
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                CustomDropdown(
+                    label = "Adotante",
+                    selectedOption = adopters.find { it.adotante_id == selectedAdopterId }?.nome ?: "Selecione o adotante",
+                    options = adopters.map { it.nome },
+                    onOptionSelected = { selectedOption ->
+                        selectedAdopterId = adopters.find { it.nome == selectedOption }?.adotante_id
+                    },
+                    modifier = Modifier.weight(1f)
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                IconButton(
+                    onClick = { showAddAdopterDialog = true },
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Adicionar adotante",
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
                 }
-            )
+            }
+
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            CustomDropdown(
-                label = "Campanha",
-                selectedOption = campaigns.find { it.campanha_id == selectedCampaignId }?.nome ?: "Selecione a campanha",
-                options = campaigns.map { it.nome },
-                onOptionSelected = { selectedOption ->
-                    selectedCampaignId = campaigns.find { it.nome == selectedOption }?.campanha_id
-                }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            FormField(
+            DatePickerField(
                 label = "Data da Adoção",
-                value = dataAdocao,
-                onValueChange = { dataAdocao = it },
-                placeholder = "Digite a data da adoção..."
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            FormField(
-                label = "Data da Devolução",
-                value = dataDevolucao,
-                onValueChange = { dataDevolucao = it },
-                placeholder = "Digite a data da devolução (se houver)..."
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            FormField(
-                label = "Motivo da Devolução",
-                value = motivoDevolucao,
-                onValueChange = { motivoDevolucao = it },
-                placeholder = "Digite o motivo da devolução (se houver)..."
+                placeholder = "YYYY-MM-DD",
+                value = dataAdocao.text,
+                onDateSelected = { newDate ->
+                    dataAdocao = TextFieldValue(newDate)
+                },
+                modifier = Modifier.padding(bottom = 16.dp)
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -138,10 +153,7 @@ fun AdoptionFormScreen(
                             adocao_id = initialAdoption?.adocao_id ?: 0,
                             animal_id = selectedAnimalId ?: 0,
                             adotante_id = selectedAdopterId ?: 0,
-                            companha_id = selectedCampaignId ?: 0,
                             data_adocao = dataAdocao.text,
-                            data_devolucao = dataDevolucao.text,
-                            motivo_devolucao = motivoDevolucao.text,
                             data_cadastro = LocalDate.now().toString()
                         )
                         onSave(adoption)
@@ -150,12 +162,76 @@ fun AdoptionFormScreen(
                     enabled = !isLoading &&
                             selectedAnimalId != null &&
                             selectedAdopterId != null &&
-                            selectedCampaignId != null &&
                             dataAdocao.text.isNotBlank()
                 ) {
                     Text("Salvar")
                 }
             }
+        }
+
+        if (showAddAdopterDialog) {
+            AlertDialog(
+                onDismissRequest = { showAddAdopterDialog = false },
+                title = { Text("Adicionar Adotante") },
+                text = {
+                    Column {
+                        OutlinedTextField(
+                            value = newAdopterName,
+                            onValueChange = { newAdopterName = it },
+                            label = { Text("Nome") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = newAdopterEmail,
+                            onValueChange = { newAdopterEmail = it },
+                            label = { Text("Email") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = newAdopterPhone,
+                            onValueChange = { newAdopterPhone = it },
+                            label = { Text("Telefone") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            val newAdopter = Adopter(
+                                nome = newAdopterName,
+                                email = newAdopterEmail,
+                                telefone = newAdopterPhone,
+                                moradia = "" // You might want to add a moradia field to the dialog
+                            )
+
+                            adopterRepository.createAdopter(newAdopter,
+                                onSuccess = { createdAdopter ->
+                                    // Reload adopters to update the list
+                                    adopterViewModel.reloadAdopters()
+                                    showAddAdopterDialog = false
+                                    newAdopterName = ""
+                                    newAdopterEmail = ""
+                                    newAdopterPhone = ""
+                                },
+                                onError = { errorMessage ->
+                                    // Handle error (e.g., show a Toast)
+                                    Toast.makeText(context, "Erro ao criar adotante: $errorMessage", Toast.LENGTH_SHORT).show()
+                                }
+                            )
+                        }
+                    ) {
+                        Text("Adicionar")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showAddAdopterDialog = false }) {
+                        Text("Cancelar")
+                    }
+                }
+            )
         }
     }
 }

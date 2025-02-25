@@ -94,7 +94,6 @@ fun AdoptionsScreen(
                         items(adoptions) { adoption ->
                             val animal = animals.find { it.animal_id == adoption.animal_id }
                             val adopter = adopters.find { it.adotante_id == adoption.adotante_id }
-                            val campaign = campaigns.find { it.campanha_id == adoption.companha_id }
 
                             Box(
                                 modifier = Modifier.fillMaxWidth(),
@@ -126,22 +125,10 @@ fun AdoptionsScreen(
                                             color = MaterialTheme.colorScheme.onTertiary
                                         )
                                         Text(
-                                            text = "Campanha: ${campaign?.nome ?: "Não encontrada"}",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onTertiary
-                                        )
-                                        Text(
                                             text = "Data da Adoção: ${adoption.data_adocao}",
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onTertiary
                                         )
-                                        if (adoption.data_devolucao.isNotEmpty()) {
-                                            Text(
-                                                text = "Devolvido em: ${adoption.data_devolucao}",
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.error
-                                            )
-                                        }
                                     }
                                 }
                             }

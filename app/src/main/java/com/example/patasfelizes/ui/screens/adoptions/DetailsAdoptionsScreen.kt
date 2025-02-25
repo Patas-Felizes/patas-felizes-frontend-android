@@ -74,7 +74,6 @@ fun DetailsAdoptionsScreen(
             val adoption = state.adoption
             val animal = animals.find { it.animal_id == adoption.animal_id }
             val adopter = adopters.find { it.adotante_id == adoption.adotante_id }
-            val campaign = campaigns.find { it.campanha_id == adoption.companha_id }
 
             BoxWithProgressBar(isLoading = state.isDeleting) {
                 Scaffold { innerPadding ->
@@ -105,12 +104,7 @@ fun DetailsAdoptionsScreen(
                             ) {
                                 DetailRow(label = "Animal", value = animal?.nome ?: "Animal não encontrado")
                                 DetailRow(label = "Adotante", value = adopter?.nome ?: "Adotante não encontrado")
-                                DetailRow(label = "Campanha", value = campaign?.nome ?: "Campanha não encontrada")
                                 DetailRow(label = "Data da Adoção", value = adoption.data_adocao)
-                                if (adoption.data_devolucao.isNotEmpty()) {
-                                    DetailRow(label = "Data de Devolução", value = adoption.data_devolucao)
-                                    DetailRow(label = "Motivo da Devolução", value = adoption.motivo_devolucao)
-                                }
                                 DetailRow(label = "Data de Cadastro", value = adoption.data_cadastro)
                             }
                         }
