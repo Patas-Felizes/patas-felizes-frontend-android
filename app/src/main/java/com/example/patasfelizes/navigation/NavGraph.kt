@@ -24,7 +24,6 @@ import com.example.patasfelizes.ui.screens.adoptions.DetailsAdoptionsScreen
 import com.example.patasfelizes.ui.screens.adoptions.AdoptionRegistrationScreen
 import com.example.patasfelizes.ui.screens.adoptions.AdoptionEditScreen
 import com.example.patasfelizes.ui.screens.animals.AnimalEditScreen
-import com.example.patasfelizes.ui.screens.animals.AnimalRegistrationScreen
 import com.example.patasfelizes.ui.screens.animals.AnimalScreen
 import com.example.patasfelizes.ui.screens.animals.DetailsAnimalScreen
 import com.example.patasfelizes.ui.screens.campaigns.CampaignFormScreen
@@ -62,6 +61,18 @@ import com.example.patasfelizes.ui.screens.temporaryhomes.TempHomeRegistrationSc
 import com.example.patasfelizes.ui.screens.temporaryhomes.TempHomesDetailsScreen
 import com.example.patasfelizes.ui.screens.temporaryhomes.TemporaryHomesScreen
 import com.example.patasfelizes.ui.screens.temporaryhomes.TempHomeEditScreen
+import com.example.patasfelizes.ui.viewmodels.temphomes.TempHomeFormViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.patasfelizes.ui.screens.campaigns.CampaignEditScreen
+import com.example.patasfelizes.ui.screens.campaigns.CampaignRegistrationScreen
+import com.example.patasfelizes.ui.screens.finances.donations.DonationEditScreen
+import com.example.patasfelizes.ui.screens.finances.donations.DonationRegistrationScreen
+import com.example.patasfelizes.ui.screens.finances.extenses.ExtenseEditScreen
+import com.example.patasfelizes.ui.screens.procedures.ProcedureEditScreen
+import com.example.patasfelizes.ui.screens.tasks.TaskEditScreen
+import com.example.patasfelizes.ui.screens.tasks.TaskRegistrationScreen
+import com.example.patasfelizes.ui.screens.team.TeamEditScreen
+import com.example.patasfelizes.ui.screens.team.TeamRegistrationScreen
 
 fun NavGraphBuilder.setupNavHost(
     navController: NavHostController,
@@ -94,8 +105,15 @@ fun NavGraphBuilder.setupNavHost(
     }
 
     composable("addAnimal") {
-        AnimalRegistrationScreen(
-            navController = navController
+        AnimalFormScreen(
+            navController = navController,
+            onSave = { newAnimal ->
+                // Após salvar o novo animal, navega de volta e força a recarga na AnimalScreen
+                navController.navigate("pets") {
+                    popUpTo("pets") { inclusive = true }
+                }
+            },
+            isEditMode = false
         )
     }
 
@@ -104,482 +122,401 @@ fun NavGraphBuilder.setupNavHost(
         arguments = listOf(navArgument("animalId") { type = NavType.IntType })
     ) { backStackEntry ->
         val animalId = backStackEntry.arguments?.getInt("animalId") ?: return@composable
-        val animal = AnimalList.find { it.id == animalId } ?: return@composable
         AnimalEditScreen(
             navController = navController,
-            animalId = animalId,
+            animalId = animalId
         )
     }
-//
-//    // ===  DOAÇÕES  ====================================================================
-//
-//    composable("adocoes") {
-//        AdoptionsScreen(navController = navController)
-//    }
-//
-//    composable(
-//        route = "adoptionDetails/{adopterId}",
-//        arguments = listOf(navArgument("adopterId") { type = NavType.IntType })
-//    ) { backStackEntry ->
-//        val adopterId = backStackEntry.arguments?.getInt("adopterId")
-//        adopterId?.let {
-//            DetailsAdoptionsScreen(navController = navController, adopterId = it, animalId = it)
-//        }
-//    }
-//
-//    composable("addAdoption") {
-//        AdoptionRegistrationScreen(
-//            navController = navController,
-//            onSave = onSaveAdoption
-//        )
-//    }
-//
-//    composable(
-//        route = "editAdoption/{adoptionId}",
-//        arguments = listOf(navArgument("adoptionId") { type = NavType.IntType })
-//    ) { backStackEntry ->
-//        val adoptionId = backStackEntry.arguments?.getInt("adoptionId") ?: return@composable
-//        val adopter = AdopterList.find { it.id == adoptionId } ?: return@composable
-//
-//        AdoptionEditScreen(
-//            navController = navController,
-//            adopter = adopter,
-//            onSave = { updatedAdopter ->
-//                val index = AdopterList.indexOfFirst { it.id == adoptionId }
-//                if (index != -1) {
-//                    AdopterList[index] = updatedAdopter
-//                }
-//            }
-//        )
-//    }
-//
-//    // ===  LAR TEMPORARIO ====================================================================
-//
-//    composable("lar_temporario") {
-//        TemporaryHomesScreen(navController = navController)
-//    }
-//    composable(
-//        route = "temporaryHomeDetails/{guardianId}",
-//        arguments = listOf(navArgument("guardianId") { type = NavType.IntType })
-//    ) { backStackEntry ->
-//        val guardianId = backStackEntry.arguments?.getInt("guardianId")
-//        guardianId?.let {
-//            TempHomesDetailsScreen(navController = navController, guardianId = it)
-//        }
-//    }
-//    composable("addTemporaryHome") {
-//        TempHomeRegistrationScreen(
-//            navController = navController,
-//            onSave = onSaveTemporaryHome
-//        )
-//    }
-//    composable(
-//        route = "editTemporaryHome/{guardianId}",
-//        arguments = listOf(navArgument("guardianId") { type = NavType.IntType })
-//    ) { backStackEntry ->
-//        val guardianId = backStackEntry.arguments?.getInt("guardianId") ?: return@composable
-//        val guardian = GuardianTempList.find { it.id == guardianId } ?: return@composable
-//        TempHomeEditScreen(
-//            navController = navController,
-//            guardian = guardian,
-//            onSave = { updateGuardian ->
-//                val index = GuardianTempList.indexOfFirst { it.id == guardianId }
-//                if (index != 1) {
-//                    GuardianTempList[index] = updateGuardian
-//                }
-//            }
-//        )
-//    }
-//
-//    composable(
-//        route = "editSupport/{sponsorId}",
-//        arguments = listOf(navArgument("sponsorId") { type = NavType.IntType })
-//    ) { backStackEntry ->
-//        val sponsorId = backStackEntry.arguments?.getInt("sponsorId") ?: return@composable
-//        val sponsor = SponsorList.find { it.id == sponsorId } ?: return@composable
-//        SupportEditScreen(
-//            navController = navController,
-//            sponsor = sponsor,
-//            onSave = { updatedSponsor ->
-//                val index = SponsorList.indexOfFirst { it.id == sponsorId }
-//                if (index != -1) SponsorList[index] = updatedSponsor
-//            }
-//        )
-//    }
-//
-//
-//    // ===  APADRINHAMENTO ====================================================================
-//
-//    composable("apadrinhamento") {
-//        SupportScreen(navController = navController)
-//    }
-//    composable(
-//        route = "supportDetails/{sponsorId}",
-//        arguments = listOf(navArgument("sponsorId") { type = NavType.IntType })
-//    ) { backStackEntry ->
-//        val sponsorId = backStackEntry.arguments?.getInt("sponsorId") ?: return@composable
-//        SupportDetailsScreen(
-//            navController = navController,
-//            sponsorId = sponsorId,
-//            onDelete = { id -> SponsorList.removeIf { it.id == id } }
-//        )
-//    }
-//
-//    composable("addSupport") {
-//        SupportRegistrationScreen(
-//            navController = navController,
-//            onSave = { SponsorList.add(it.copy(id = SponsorList.size + 1)) }
-//        )
-//    }
-//
-//    composable(
-//        route = "editSupport/{sponsorId}",
-//        arguments = listOf(navArgument("sponsorId") { type = NavType.IntType })
-//    ) { backStackEntry ->
-//        val sponsorId = backStackEntry.arguments?.getInt("sponsorId") ?: return@composable
-//        val sponsor = SponsorList.find { it.id == sponsorId } ?: return@composable
-//        SupportEditScreen(
-//            navController = navController,
-//            sponsor = sponsor,
-//            onSave = { updatedSponsor ->
-//                val index = SponsorList.indexOfFirst { it.id == sponsorId }
-//                if (index != -1) SponsorList[index] = updatedSponsor
-//            }
-//        )
-//    }
-//
-//
-//    // ===  PROCEDIMENTOS ====================================================================
-//
-//    composable("procedimentos") {
-//        ProceduresScreen(navController = navController)
-//    }
-//
-//    composable(
-//        route = "procedureDetails/{procedureId}",
-//        arguments = listOf(navArgument("procedureId") { type = NavType.IntType })
-//    ) { backStackEntry ->
-//        val procedureId = backStackEntry.arguments?.getInt("procedureId")
-//        procedureId?.let {
-//            DetailsProcedureScreen(navController, procedureId = it)
-//        }
-//    }
-//
-//    composable("addProcedure") {
-//        ProcedureFormScreen(
-//            navController = navController,
-//            onSave = onSaveProcedure,
-//            isEditMode = false
-//        )
-//    }
-//
-//    composable(
-//        route = "editProcedure/{procedureId}",
-//        arguments = listOf(navArgument("procedureId") { type = NavType.IntType })
-//    ) { backStackEntry ->
-//        val procedureId = backStackEntry.arguments?.getInt("procedureId") ?: return@composable
-//        val procedure = ProcedureList.find { it.id == procedureId } ?: return@composable
-//
-//        ProcedureFormScreen(
-//            navController = navController,
-//            initialProcedure = procedure,
-//            onSave = { updatedProcedure ->
-//                // Atualizar o animal na lista
-//                val index = ProcedureList.indexOfFirst { it.id == procedureId }
-//                if (index != -1) {
-//                    ProcedureList[index] = updatedProcedure
-//                }
-//            },
-//            isEditMode = true
-//        )
-//    }
-//
-//
-//    // ===  CAMPANHAS ====================================================================
-//
-//    composable("campanhas") {
-//        CampaignsScreen(navController = navController)
-//    }
-//    composable(
-//        route = "campaignDetails/{campaignId}",
-//        arguments = listOf(navArgument("campaignId") { type = NavType.IntType })
-//    ) { backStackEntry ->
-//        val campaignId = backStackEntry.arguments?.getInt("campaignId")
-//        campaignId?.let {
-//            DetailsCampaignScreen(navController, campaignId = it)
-//        }
-//    }
-//
-//    composable("addCampaign") {
-//        CampaignFormScreen(
-//            navController = navController,
-//            onSave = onSaveCampaign,
-//            isEditMode = false
-//        )
-//    }
-//
-//    composable(
-//        route = "editCampaign/{campaignId}",
-//        arguments = listOf(navArgument("campaignId") { type = NavType.IntType })
-//    ) { backStackEntry ->
-//        val campaignId = backStackEntry.arguments?.getInt("campaignId") ?: return@composable
-//        val campaign = CampaignList.find { it.id == campaignId } ?: return@composable
-//
-//        CampaignFormScreen(
-//            navController = navController,
-//            initialCampaign = campaign,
-//            onSave = { updatedCampaign ->
-//                // Atualizar o animal na lista
-//                val index = CampaignList.indexOfFirst { it.id == campaignId }
-//                if (index != -1) {
-//                    CampaignList[index] = updatedCampaign
-//                }
-//            },
-//            isEditMode = true
-//        )
-//    }
-//
-//    // ===  DESPESAS ====================================================================
-//
-//    composable("financas") {
-//        FinancesScreen(navController = navController)
-//    }
-//
-//    composable("addExtense") {
-//        ExtenseFormScreen(
-//            navController = navController,
-//            onSave = onSaveExtense,
-//            isEditMode = false
-//        )
-//    }
-//
-//    composable(
-//        route = "extenseDetails/{extenseId}",
-//        arguments = listOf(navArgument("extenseId") { type = NavType.IntType })
-//    ) { backStackEntry ->
-//        val extenseId = backStackEntry.arguments?.getInt("extenseId")
-//        extenseId?.let {
-//            DetailsExtenseScreen(navController, extenseId = it)
-//        }
-//    }
-//
-//    composable(
-//        route = "editExtense/{extenseId}",
-//        arguments = listOf(navArgument("extenseId") { type = NavType.IntType })
-//    ) { backStackEntry ->
-//        val extenseId = backStackEntry.arguments?.getInt("extenseId") ?: return@composable
-//        val extense = ExtenseList.find { it.id == extenseId } ?: return@composable
-//
-//        ExtenseFormScreen(
-//            navController = navController,
-//            initialExtense = extense,
-//            onSave = { updatedExtense ->
-//                // Atualizar o animal na lista
-//                val index = ExtenseList.indexOfFirst { it.id == extenseId }
-//                if (index != -1) {
-//                    ExtenseList[index] = updatedExtense
-//                }
-//            },
-//            isEditMode = true
-//        )
-//    }
-//
-//    // ===  DOAÇAO ====================================================================
-//
-//    composable("addDonation") {
-//        DonationFormScreen(
-//            navController = navController,
-//            onSave = onSaveDonation,
-//            isEditMode = false
-//        )
-//    }
-//
-//    composable(
-//        route = "donationDetails/{donationId}",
-//        arguments = listOf(navArgument("donationId") { type = NavType.IntType })
-//    ) { backStackEntry ->
-//        val donationId = backStackEntry.arguments?.getInt("donationId")
-//        donationId?.let {
-//            DetailsDonationScreen(navController, donationId = it)
-//        }
-//    }
-//
-//    composable(
-//        route = "editDonation/{donationId}",
-//        arguments = listOf(navArgument("donationId") { type = NavType.IntType })
-//    ) { backStackEntry ->
-//        val donationId = backStackEntry.arguments?.getInt("donationId") ?: return@composable
-//        val donation = DonationList.find { it.id == donationId } ?: return@composable
-//
-//        DonationFormScreen(
-//            navController = navController,
-//            initialDonation = donation,
-//            onSave = { updatedDonation ->
-//                // Atualizar o animal na lista
-//                val index = DonationList.indexOfFirst { it.id == donationId }
-//                if (index != -1) {
-//                    DonationList[index] = updatedDonation
-//                }
-//            },
-//            isEditMode = true
-//        )
-//    }
-//
-//    // ===  ESTOQUE ====================================================================
-//
-//    composable("estoque") {
-//        StockScreen(navController = navController)
-//    }
-//    composable(
-//        route = "stockDetails/{stockId}",
-//        arguments = listOf(navArgument("stockId") { type = NavType.IntType })
-//    ) { backStackEntry ->
-//        val stockId = backStackEntry.arguments?.getInt("stockId")
-//        stockId?.let {
-//            StockDetailsScreen(
-//                navController = navController,
-//                stockId = it,
-//                onDelete = { id ->
-//                    StockList.removeIf { stock -> stock.id == id }
-//                }
-//            )
-//        }
-//    }
-//    composable("addStock") {
-//        StockRegistrationScreen(
-//            navController = navController,
-//            onSave = onSaveStock
-//        )
-//    }
-//
-//    composable(
-//        route = "editStock/{stockId}",
-//        arguments = listOf(navArgument("stockId") { type = NavType.IntType })
-//    ) { backStackEntry ->
-//        val stockId = backStackEntry.arguments?.getInt("stockId") ?: return@composable
-//        val stock = StockList.find { it.id == stockId } ?: return@composable
-//
-//        StockEditScreen(
-//            navController = navController,
-//            stock = stock,
-//            onSave = { updateStock ->
-//                val index = StockList.indexOfFirst { it.id == stockId }
-//                if (index != 1) {
-//                    StockList[index] = updateStock
-//                }
-//            }
-//        )
-//    }
-//
-//    // ===  TAREFAS ====================================================================
-//
-//    composable("tarefas") {
-//        TasksScreen(navController = navController)
-//    }
-//
-//    composable("addTask") {
-//        TaskFormScreen(
-//            navController = navController,
-//            onSave = onSaveTask,
-//            isEditMode = false
-//        )
-//    }
-//
-//    composable(
-//        route = "taskDetails/{taskId}",
-//        arguments = listOf(navArgument("taskId") { type = NavType.IntType })
-//    ) { backStackEntry ->
-//        val taskId = backStackEntry.arguments?.getInt("taskId")
-//        taskId?.let {
-//            DetailsTaskScreen(navController, taskId = it)
-//        }
-//    }
-//
-//    composable(
-//        route = "editTask/{taskId}",
-//        arguments = listOf(navArgument("taskId") { type = NavType.IntType })
-//    ) { backStackEntry ->
-//        val taskId = backStackEntry.arguments?.getInt("taskId") ?: return@composable
-//        val task = TaskList.find { it.id == taskId } ?: return@composable
-//
-//        TaskFormScreen(
-//            navController = navController,
-//            initialTask = task,
-//            onSave = { updatedTask ->
-//                // Atualizar o animal na lista
-//                val index = TaskList.indexOfFirst { it.id == taskId }
-//                if (index != -1) {
-//                    TaskList[index] = updatedTask
-//                }
-//            },
-//            isEditMode = true
-//        )
-//    }
-//
-//    // ===  EQUIPE ====================================================================
-//
-//    composable("equipe") {
-//        TeamScreen(navController = navController)
-//    }
-//
-//    composable("addVoluntary") {
-//        TeamFormScreen(
-//            navController = navController,
-//            onSave = onSaveVoluntary,
-//            isEditMode = false
-//        )
-//    }
-//
-//    composable(
-//        route = "voluntaryDetails/{voluntaryId}",
-//        arguments = listOf(navArgument("voluntaryId") { type = NavType.IntType })
-//    ) { backStackEntry ->
-//        val voluntaryId = backStackEntry.arguments?.getInt("voluntaryId")
-//        voluntaryId?.let {
-//            DetailsTeamScreen(navController, voluntaryId = it)
-//        }
-//    }
-//
-//    composable(
-//        route = "editVoluntary/{voluntaryId}",
-//        arguments = listOf(navArgument("voluntaryId") { type = NavType.IntType })
-//    ) { backStackEntry ->
-//        val voluntaryId = backStackEntry.arguments?.getInt("voluntaryId") ?: return@composable
-//        val voluntary = VoluntaryList.find { it.id == voluntaryId } ?: return@composable
-//
-//        TeamFormScreen(
-//            navController = navController,
-//            initialVoluntary = voluntary,
-//            onSave = { updatedVoluntary ->
-//                // Atualizar o animal na lista
-//                val index = VoluntaryList.indexOfFirst { it.id == voluntaryId }
-//                if (index != -1) {
-//                    VoluntaryList[index] = updatedVoluntary
-//                }
-//            },
-//            isEditMode = true
-//        )
-//    }
-//
-//    // ===  RELATORIOS  ====================================================================
-//
-//    composable("relatorios") {
-//        ReportsScreen(navController = navController)
-//    }
-//
-//
-//    // ===  CONFIGURAÇÕES ====================================================================
-//
-//    composable("configuracoes") {
-//        SettingsScreen(navController = navController)
-//    }
-//    composable("volunteer_management") {
-//        VolunteerManagementScreen()
-//    }
-//    composable("roles_permissions") {
-//        RolesPermissionsScreen()
-//    }
-//    composable("notification_preferences") {
-//        NotificationPreferencesScreen()
-//    }
+
+    // ===  DOAÇÕES  ====================================================================
+
+    composable("adocoes") {
+        AdoptionsScreen(navController = navController)
+    }
+
+    composable(
+        route = "adoptionDetails/{adoptionId}",
+        arguments = listOf(navArgument("adoptionId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val adoptionId = backStackEntry.arguments?.getInt("adoptionId")
+        adoptionId?.let {
+            DetailsAdoptionsScreen(navController = navController, adoptionId = it)
+        }
+    }
+
+    composable("addAdoption") {
+        AdoptionRegistrationScreen(
+            navController = navController
+        )
+    }
+
+    composable(
+        route = "editAdoption/{adoptionId}",
+        arguments = listOf(navArgument("adoptionId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val adoptionId = backStackEntry.arguments?.getInt("adoptionId") ?: return@composable
+        AdoptionEditScreen(
+            navController = navController,
+            adoptionId = adoptionId,
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+        )
+    }
+
+    // ===  LAR TEMPORARIO ====================================================================
+
+    composable("lar_temporario") {
+        TemporaryHomesScreen(navController = navController)
+    }
+
+    composable(
+        route = "temporaryHomeDetails/{tempHomeId}",
+        arguments = listOf(navArgument("tempHomeId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val tempHomeId = backStackEntry.arguments?.getInt("tempHomeId")
+        tempHomeId?.let {
+            TempHomesDetailsScreen(navController = navController, tempHomeId = it)
+        }
+    }
+
+    composable("addTemporaryHome") {
+        TempHomeRegistrationScreen(
+            navController = navController
+        )
+    }
+
+    composable(
+        route = "editTemporaryHome/{tempHomeId}",
+        arguments = listOf(navArgument("tempHomeId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val tempHomeId = backStackEntry.arguments?.getInt("tempHomeId") ?: return@composable
+        TempHomeEditScreen(
+            navController = navController,
+            tempHomeId = tempHomeId,
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+        )
+    }
+
+
+    // ===  APADRINHAMENTO ====================================================================
+
+    composable("apadrinhamento") {
+        SupportScreen(navController = navController)
+    }
+
+    composable(
+        route = "supportDetails/{supportId}",
+        arguments = listOf(navArgument("supportId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val supportId = backStackEntry.arguments?.getInt("supportId") ?: return@composable
+        SupportDetailsScreen(
+            navController = navController,
+            supportId = supportId
+        )
+    }
+
+    composable("addSupport") {
+        SupportRegistrationScreen(
+            navController = navController,
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+        )
+    }
+
+    composable(
+        route = "editSupport/{supportId}",
+        arguments = listOf(navArgument("supportId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val supportId = backStackEntry.arguments?.getInt("supportId") ?: return@composable
+
+        // Use viewModel para buscar o Support pelo ID em vez de tentar encontrar na lista
+        SupportEditScreen(
+            navController = navController,
+            supportId = supportId,
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+        )
+    }
+
+
+    // ===  PROCEDIMENTOS ====================================================================
+
+    composable("procedimentos") {
+        ProceduresScreen(navController = navController)
+    }
+
+    composable(
+        route = "procedureDetails/{procedureId}",
+        arguments = listOf(navArgument("procedureId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val procedureId = backStackEntry.arguments?.getInt("procedureId")
+        procedureId?.let {
+            DetailsProcedureScreen(navController, procedureId = it)
+        }
+    }
+
+    composable("addProcedure") {
+        ProcedureFormScreen(
+            navController = navController,
+            onSave = onSaveProcedure,
+            isEditMode = false
+        )
+    }
+
+    composable(
+        route = "editProcedure/{procedureId}",
+        arguments = listOf(navArgument("procedureId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val procedureId = backStackEntry.arguments?.getInt("procedureId") ?: return@composable
+
+        // Usar ProcedureEditScreen em vez de tentar recuperar de uma lista estática
+        ProcedureEditScreen(
+            navController = navController,
+            procedureId = procedureId,
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+        )
+    }
+
+
+    // ===  CAMPANHAS ====================================================================
+
+    composable("campanhas") {
+        CampaignsScreen(navController = navController)
+    }
+
+    composable(
+        route = "campaignDetails/{campaignId}",
+        arguments = listOf(navArgument("campaignId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val campaignId = backStackEntry.arguments?.getInt("campaignId")
+        campaignId?.let {
+            DetailsCampaignScreen(navController, campaignId = it)
+        }
+    }
+
+    composable("addCampaign") {
+        CampaignRegistrationScreen(
+            navController = navController,
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+        )
+    }
+
+    composable(
+        route = "editCampaign/{campaignId}",
+        arguments = listOf(navArgument("campaignId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val campaignId = backStackEntry.arguments?.getInt("campaignId") ?: return@composable
+
+        // Criar uma versão do CampaignEditScreen que aceita um ID em vez de um objeto Campaign
+        CampaignEditScreen(
+            navController = navController,
+            campaignId = campaignId,
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+        )
+    }
+
+    // ===  DESPESAS ====================================================================
+
+    composable("financas") {
+        FinancesScreen(navController = navController)
+    }
+
+    composable("addExtense") {
+        ExtenseFormScreen(
+            navController = navController,
+            onSave = onSaveExtense,
+            isEditMode = false
+        )
+    }
+
+    composable(
+        route = "extenseDetails/{extenseId}",
+        arguments = listOf(navArgument("extenseId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val extenseId = backStackEntry.arguments?.getInt("extenseId")
+        extenseId?.let {
+            DetailsExtenseScreen(navController, extenseId = it)
+        }
+    }
+
+    composable(
+        route = "editExtense/{extenseId}",
+        arguments = listOf(navArgument("extenseId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val extenseId = backStackEntry.arguments?.getInt("extenseId") ?: return@composable
+
+        // Usar ExtenseEditScreen com ID em vez de objeto Extense
+        ExtenseEditScreen(
+            navController = navController,
+            extenseId = extenseId,
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+        )
+    }
+
+    // ===  DOAÇAO ====================================================================
+
+    composable("addDonation") {
+        DonationRegistrationScreen(
+            navController = navController,
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+        )
+    }
+
+    composable(
+        route = "donationDetails/{donationId}",
+        arguments = listOf(navArgument("donationId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val donationId = backStackEntry.arguments?.getInt("donationId")
+        donationId?.let {
+            DetailsDonationScreen(navController, donationId = it)
+        }
+    }
+
+    composable(
+        route = "editDonation/{donationId}",
+        arguments = listOf(navArgument("donationId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val donationId = backStackEntry.arguments?.getInt("donationId") ?: return@composable
+
+        // Usar DonationEditScreen com ID em vez de objeto Donation
+        DonationEditScreen(
+            navController = navController,
+            donationId = donationId,
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+        )
+    }
+
+    // ===  ESTOQUE ====================================================================
+
+    composable("estoque") {
+        StockScreen(navController = navController)
+    }
+
+    composable(
+        route = "stockDetails/{stockId}",
+        arguments = listOf(navArgument("stockId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val stockId = backStackEntry.arguments?.getInt("stockId")
+        stockId?.let {
+            StockDetailsScreen(
+                navController = navController,
+                stockId = it
+            )
+        }
+    }
+
+    composable("addStock") {
+        StockRegistrationScreen(
+            navController = navController,
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+        )
+    }
+
+    composable(
+        route = "editStock/{stockId}",
+        arguments = listOf(navArgument("stockId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val stockId = backStackEntry.arguments?.getInt("stockId") ?: return@composable
+
+        // Criar uma versão do StockEditScreen que aceita um ID em vez de um objeto Stock
+        StockEditScreen(
+            navController = navController,
+            stockId = stockId,
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+        )
+    }
+
+    // ===  TAREFAS ====================================================================
+
+    composable("tarefas") {
+        TasksScreen(navController = navController)
+    }
+
+    composable("addTask") {
+        TaskRegistrationScreen(
+            navController = navController,
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+        )
+    }
+
+    composable(
+        route = "taskDetails/{taskId}",
+        arguments = listOf(navArgument("taskId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val taskId = backStackEntry.arguments?.getInt("taskId")
+        taskId?.let {
+            DetailsTaskScreen(navController, taskId = it)
+        }
+    }
+
+    composable(
+        route = "editTask/{taskId}",
+        arguments = listOf(navArgument("taskId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val taskId = backStackEntry.arguments?.getInt("taskId") ?: return@composable
+
+        // Usar TaskEditScreen com ID em vez de objeto Task
+
+        TaskEditScreen(
+            navController = navController,
+            taskId = taskId,
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+        )
+    }
+
+    // ===  EQUIPE ====================================================================
+
+    composable("equipe") {
+        TeamScreen(navController = navController)
+    }
+
+    composable("addVoluntary") {
+        TeamRegistrationScreen(
+            navController = navController,
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+        )
+    }
+
+    composable(
+        route = "voluntaryDetails/{voluntarioId}",
+        arguments = listOf(navArgument("voluntarioId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val voluntarioId = backStackEntry.arguments?.getInt("voluntarioId")
+        voluntarioId?.let {
+            DetailsTeamScreen(navController, voluntarioId = it)
+        }
+    }
+
+    composable(
+        route = "editVoluntary/{voluntarioId}",
+        arguments = listOf(navArgument("voluntarioId") { type = NavType.IntType })
+    ) { backStackEntry ->
+        val voluntarioId = backStackEntry.arguments?.getInt("voluntarioId") ?: return@composable
+
+        // Usar TeamEditScreen com ID em vez de objeto Voluntary
+        TeamEditScreen(
+            navController = navController,
+            voluntarioId = voluntarioId,
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+        )
+    }
+
+    // ===  RELATORIOS  ====================================================================
+
+    composable("relatorios") {
+        ReportsScreen(navController = navController)
+    }
+
+
+    // ===  CONFIGURAÇÕES ====================================================================
+
+    composable("configuracoes") {
+        SettingsScreen(navController = navController)
+    }
+    composable("volunteer_management") {
+        VolunteerManagementScreen()
+    }
+    composable("roles_permissions") {
+        RolesPermissionsScreen()
+    }
+    composable("notification_preferences") {
+        NotificationPreferencesScreen()
+    }
 }

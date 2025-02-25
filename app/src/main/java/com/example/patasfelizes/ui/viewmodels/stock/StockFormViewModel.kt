@@ -20,6 +20,20 @@ class StockFormViewModel : ViewModel() {
     private val _state = MutableStateFlow<StockFormState>(StockFormState.Idle)
     val state: StateFlow<StockFormState> = _state.asStateFlow()
 
+    fun loadStock(id: Int, onSuccess: (Stock) -> Unit) {
+        _state.value = StockFormState.Loading
+        repository.getStock(
+            id = id,
+            onSuccess = { stock ->
+                onSuccess(stock)
+                _state.value = StockFormState.Idle
+            },
+            onError = { error ->
+                _state.value = StockFormState.Error(error)
+            }
+        )
+    }
+
     fun createStock(stock: Stock, onComplete: () -> Unit) {
         _state.value = StockFormState.Loading
         repository.createStock(

@@ -13,24 +13,39 @@ import com.example.patasfelizes.ui.screens.finances.extenses.ExtensesContent
 import com.example.patasfelizes.ui.viewmodels.extense.ExtenseListViewModel
 import com.example.patasfelizes.ui.viewmodels.donation.DonationListViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
+import com.example.patasfelizes.ui.viewmodels.campaigns.CampaignListViewModel
+import com.example.patasfelizes.ui.viewmodels.procedure.ProcedureListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FinancesScreen(
     navController: NavHostController,
     extenseViewModel: ExtenseListViewModel = viewModel(),
-    donationViewModel: DonationListViewModel = viewModel()
+    donationViewModel: DonationListViewModel = viewModel(),
+    // Adicionar estes viewModels
+    animalViewModel: AnimalListViewModel = viewModel(),
+    procedureViewModel: ProcedureListViewModel = viewModel(),
+    campaignViewModel: CampaignListViewModel = viewModel()
 ) {
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     var selectedTabIndex by remember { mutableStateOf(0) }
 
     val extenses by extenseViewModel.extenses.collectAsState()
     val donations by donationViewModel.donations.collectAsState()
+    // Coletar dados dos novos viewModels
+    val animals by animalViewModel.animals.collectAsState()
+    val procedures by procedureViewModel.procedures.collectAsState()
+    val campaigns by campaignViewModel.campaigns.collectAsState()
 
     LaunchedEffect(Unit) {
         extenseViewModel.reloadExtenses()
         donationViewModel.reloadDonations()
+        animalViewModel.reloadAnimals()
+        procedureViewModel.reloadProcedures()
+        campaignViewModel.reloadCampaigns()
     }
+
 
     // Filtros específicos para cada aba
     val filterOptions = remember {
@@ -99,21 +114,25 @@ fun FinancesScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Listagem de conteúdo baseado na aba selecionada
-//                if (selectedTabIndex == 0) {
-//                    ExtensesContent(
-//                        expenses = filteredExpenses,
-//                        onExtenseClick = { expense ->
-//                            navController.navigate("extenseDetails/${expense.despesa_id}")
-//                        }
-//                    )
-//                } else {
-//                    DonationsContent(
-//                        donations = filteredDonations,
-//                        onDonationClick = { donation ->
-//                            navController.navigate("donationDetails/${donation.doacao_id}")
-//                        }
-//                    )
-//                }
+                if (selectedTabIndex == 0) {
+                    ExtensesContent(
+                        expenses = filteredExpenses,
+                        animals = animals, // Passar os animais
+                        procedures = procedures, // Passar os procedimentos
+                        onExtenseClick = { expense ->
+                            navController.navigate("extenseDetails/${expense.despesa_id}")
+                        }
+                    )
+                } else {
+                    DonationsContent(
+                        donations = filteredDonations,
+                        animals = animals, // Passar os animais
+                        campaigns = campaigns, // Passar as campanhas
+                        onDonationClick = { donation ->
+                            navController.navigate("donationDetails/${donation.doacao_id}")
+                        }
+                    )
+                }
             }
         }
     }

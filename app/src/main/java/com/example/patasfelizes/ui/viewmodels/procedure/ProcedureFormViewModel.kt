@@ -19,6 +19,20 @@ class ProcedureFormViewModel : ViewModel() {
     private val _state = MutableStateFlow<ProcedureFormState>(ProcedureFormState.Idle)
     val state: StateFlow<ProcedureFormState> = _state.asStateFlow()
 
+    fun loadProcedure(id: Int, onSuccess: (Procedure) -> Unit) {
+        _state.value = ProcedureFormState.Loading
+        repository.getProcedure(
+            id = id,
+            onSuccess = { procedure ->
+                onSuccess(procedure)
+                _state.value = ProcedureFormState.Idle
+            },
+            onError = { error ->
+                _state.value = ProcedureFormState.Error(error)
+            }
+        )
+    }
+
     fun createProcedure(procedure: Procedure, onComplete: () -> Unit) {
         _state.value = ProcedureFormState.Loading
         repository.createProcedure(

@@ -33,6 +33,7 @@ fun DetailsAdoptionsScreen(
     adopterViewModel: AdopterListViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
     campaignViewModel: CampaignListViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
+    // O restante do código permanece igual, apenas mudando de adopterId para adoptionId
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsState()
     val animals by animalViewModel.animals.collectAsState()

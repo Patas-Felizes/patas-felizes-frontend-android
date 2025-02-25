@@ -19,6 +19,20 @@ class ExtenseFormViewModel : ViewModel() {
     private val _state = MutableStateFlow<ExtenseFormState>(ExtenseFormState.Idle)
     val state: StateFlow<ExtenseFormState> = _state.asStateFlow()
 
+    fun loadExtense(id: Int, onSuccess: (Extense) -> Unit) {
+        _state.value = ExtenseFormState.Loading
+        repository.getExtense(
+            id = id,
+            onSuccess = { extense ->
+                onSuccess(extense)
+                _state.value = ExtenseFormState.Idle
+            },
+            onError = { error ->
+                _state.value = ExtenseFormState.Error(error)
+            }
+        )
+    }
+
     fun createExtense(extense: Extense, onComplete: () -> Unit) {
         _state.value = ExtenseFormState.Loading
         repository.createExtense(
