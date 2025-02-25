@@ -5,7 +5,7 @@ import retrofit2.Call
 import retrofit2.http.*
 
 interface StockService {
-    @GET("estoque")
+    @GET("estoque/")
     fun listStock(): Call<List<Stock>>
 
     @GET("estoque/{estoque_id}")

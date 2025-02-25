@@ -5,7 +5,7 @@ import retrofit2.Call
 import retrofit2.http.*
 
 interface TaskService {
-    @GET("tarefas")
+    @GET("tarefas/")
     fun listTasks(): Call<List<Task>>
 
     @GET("tarefas/{tarefa_id}")

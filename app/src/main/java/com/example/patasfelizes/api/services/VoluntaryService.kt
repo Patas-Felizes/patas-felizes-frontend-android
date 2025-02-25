@@ -5,7 +5,7 @@ import retrofit2.Call
 import retrofit2.http.*
 
 interface VoluntaryService {
-    @GET("voluntarios")
+    @GET("voluntarios/")
     fun listVoluntarios(): Call<List<Voluntary>>
 
     @GET("voluntarios/{id}")

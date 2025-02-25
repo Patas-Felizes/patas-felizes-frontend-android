@@ -5,7 +5,7 @@ import retrofit2.Call
 import retrofit2.http.*
 
 interface ExtenseService {
-    @GET("despesas")
+    @GET("despesas/")
     fun listExtenses(): Call<List<Extense>>
 
     @GET("despesas/{despesa_id}")

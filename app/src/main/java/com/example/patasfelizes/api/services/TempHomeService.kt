@@ -5,7 +5,7 @@ import retrofit2.Call
 import retrofit2.http.*
 
 interface TempHomeService {
-    @GET("temporary_shelters")
+    @GET("temporary_shelters/")
     fun listTempHomes(): Call<List<TempHome>>
 
     @GET("temporary_shelters/{id}")

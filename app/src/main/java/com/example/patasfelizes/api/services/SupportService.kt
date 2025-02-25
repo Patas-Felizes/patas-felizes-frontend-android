@@ -5,7 +5,7 @@ import retrofit2.Call
 import retrofit2.http.*
 
 interface SupportService {
-    @GET("apadrinhamentos")
+    @GET("apadrinhamentos/")
     fun listSupports(): Call<List<Support>>
 
     @GET("apadrinhamentos/{apadrinhamento_id}")

@@ -5,7 +5,7 @@ import retrofit2.Call
 import retrofit2.http.*
 
 interface ProcedureService {
-    @GET("procedimentos")
+    @GET("procedimentos/")
     fun listProcedures(): Call<List<Procedure>>
 
     @GET("procedimentos/{procedimento_id}")

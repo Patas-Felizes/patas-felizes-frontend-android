@@ -5,7 +5,7 @@ import retrofit2.Call
 import retrofit2.http.*
 
 interface AnimalsService {
-    @GET("animals")
+    @GET("animals/")
     fun listAnimals(): Call<List<Animal>>
 
     @GET("/animals/{id}")

@@ -5,7 +5,7 @@ import retrofit2.Call
 import retrofit2.http.*
 
 interface AdoptersService {
-    @GET("adotantes")
+    @GET("adotantes/")
     fun listAdopters(): Call<List<Adopter>>
 
     @GET("adotantes/{id}")

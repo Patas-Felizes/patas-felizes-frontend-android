@@ -5,7 +5,7 @@ import retrofit2.Call
 import retrofit2.http.*
 
 interface DonationService {
-    @GET("doacoes")
+    @GET("doacoes/")
     fun listDonations(): Call<List<Donation>>
 
     @GET("doacoes/{doacao_id}")

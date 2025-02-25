@@ -5,7 +5,7 @@ import retrofit2.Call
 import retrofit2.http.*
 
 interface CampaignsService {
-    @GET("campanhas")
+    @GET("campanhas/")
     fun listCampaigns(): Call<List<Campaign>>
 
     @GET("campanhas/{campanha_id}")

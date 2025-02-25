@@ -5,7 +5,7 @@ import retrofit2.Call
 import retrofit2.http.*
 
 interface HostService {
-    @GET("hospedeiros")
+    @GET("hospedeiros/")
     fun listHosts(): Call<List<Host>>
 
     @GET("hospedeiros/{id}")
