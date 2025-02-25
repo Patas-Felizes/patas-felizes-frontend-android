@@ -63,12 +63,15 @@ import com.example.patasfelizes.ui.screens.temporaryhomes.TemporaryHomesScreen
 import com.example.patasfelizes.ui.screens.temporaryhomes.TempHomeEditScreen
 import com.example.patasfelizes.ui.viewmodels.temphomes.TempHomeFormViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.patasfelizes.ui.screens.animals.AnimalRegistrationScreen
 import com.example.patasfelizes.ui.screens.campaigns.CampaignEditScreen
 import com.example.patasfelizes.ui.screens.campaigns.CampaignRegistrationScreen
 import com.example.patasfelizes.ui.screens.finances.donations.DonationEditScreen
 import com.example.patasfelizes.ui.screens.finances.donations.DonationRegistrationScreen
 import com.example.patasfelizes.ui.screens.finances.extenses.ExtenseEditScreen
+import com.example.patasfelizes.ui.screens.finances.extenses.ExtenseRegistrationScreen
 import com.example.patasfelizes.ui.screens.procedures.ProcedureEditScreen
+import com.example.patasfelizes.ui.screens.procedures.ProcedureRegistrationScreen
 import com.example.patasfelizes.ui.screens.tasks.TaskEditScreen
 import com.example.patasfelizes.ui.screens.tasks.TaskRegistrationScreen
 import com.example.patasfelizes.ui.screens.team.TeamEditScreen
@@ -105,15 +108,9 @@ fun NavGraphBuilder.setupNavHost(
     }
 
     composable("addAnimal") {
-        AnimalFormScreen(
+        AnimalRegistrationScreen(
             navController = navController,
-            onSave = { newAnimal ->
-                // Após salvar o novo animal, navega de volta e força a recarga na AnimalScreen
-                navController.navigate("pets") {
-                    popUpTo("pets") { inclusive = true }
-                }
-            },
-            isEditMode = false
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
         )
     }
 
@@ -253,10 +250,9 @@ fun NavGraphBuilder.setupNavHost(
     }
 
     composable("addProcedure") {
-        ProcedureFormScreen(
+        ProcedureRegistrationScreen(
             navController = navController,
-            onSave = onSaveProcedure,
-            isEditMode = false
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
         )
     }
 
@@ -304,7 +300,6 @@ fun NavGraphBuilder.setupNavHost(
     ) { backStackEntry ->
         val campaignId = backStackEntry.arguments?.getInt("campaignId") ?: return@composable
 
-        // Criar uma versão do CampaignEditScreen que aceita um ID em vez de um objeto Campaign
         CampaignEditScreen(
             navController = navController,
             campaignId = campaignId,
@@ -319,10 +314,9 @@ fun NavGraphBuilder.setupNavHost(
     }
 
     composable("addExtense") {
-        ExtenseFormScreen(
+        ExtenseRegistrationScreen(
             navController = navController,
-            onSave = onSaveExtense,
-            isEditMode = false
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
         )
     }
 
@@ -451,8 +445,6 @@ fun NavGraphBuilder.setupNavHost(
         arguments = listOf(navArgument("taskId") { type = NavType.IntType })
     ) { backStackEntry ->
         val taskId = backStackEntry.arguments?.getInt("taskId") ?: return@composable
-
-        // Usar TaskEditScreen com ID em vez de objeto Task
 
         TaskEditScreen(
             navController = navController,
