@@ -70,9 +70,7 @@ fun DetailsExtenseScreen(
                 val animal = extense.animal_id?.let { animalId ->
                     animals.find { it.animal_id == animalId }
                 }
-                val procedure = extense.procedimento_id?.let { procedimentoId ->
-                    procedures.find { it.procedimento_id == procedimentoId }
-                }
+
 
                 Scaffold { innerPadding ->
                     Column(
@@ -112,14 +110,11 @@ fun DetailsExtenseScreen(
                                 DetailRow(label = "Valor", value = "R$ ${extense.valor}")
                                 DetailRow(label = "Tipo", value = extense.tipo)
                                 DetailRow(label = "Data da Despesa", value = extense.data_despesa)
-                                DetailRow(label = "Data de Cadastro", value = extense.data_cadastro)
                                 DetailRow(
                                     label = "Animal Relacionado",
                                     value = if (animal != null) animal.nome else "Despesa Geral"
                                 )
-                                procedure?.let {
-                                    DetailRow(label = "Procedimento Relacionado", value = it.tipo)
-                                }
+
                             }
                         }
 

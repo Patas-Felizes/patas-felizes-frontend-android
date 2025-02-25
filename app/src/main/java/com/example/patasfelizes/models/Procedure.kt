@@ -8,10 +8,8 @@ data class Procedure(
     val descricao: String,
     val valor: String,
     val data_procedimento: String,
-    val data_cadastro: String = LocalDate.now().toString(), // Garante consistência com o formato do backend
     val animal_id: Int?,
     val voluntario_id: Int?,
-    val despesa_id: Int?
 )
 
 // ProcedureResponse.kt - Para deserialização da resposta da API
@@ -36,5 +34,4 @@ fun Procedure.toBackendFormat(): Map<String, Any?> = mapOf(
     "data_procedimento" to data_procedimento,
     "animal_id" to animal_id,
     "voluntario_id" to voluntario_id,
-    "despesa_id" to despesa_id
 )

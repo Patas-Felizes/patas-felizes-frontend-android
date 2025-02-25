@@ -39,7 +39,6 @@ fun ExtenseFormScreen(
     var tipo by remember { mutableStateOf(initialExtense?.tipo ?: "") }
     var dataDespesa by remember { mutableStateOf(TextFieldValue(initialExtense?.data_despesa ?: "")) }
     var selectedAnimalId by remember { mutableStateOf(initialExtense?.animal_id) }
-    var selectedProcedureId by remember { mutableStateOf(initialExtense?.procedimento_id) }
 
     val animals by animalViewModel.animals.collectAsState()
     val procedures by procedureViewModel.procedures.collectAsState()
@@ -116,20 +115,10 @@ fun ExtenseFormScreen(
                     onOptionSelected = { nome ->
                         selectedAnimalId = animals.find { it.nome == nome }?.animal_id
                     },
-                    label = "Animal",
+                    label = "Animal (opcional)",
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                CustomDropdown(
-                    selectedOption = procedures.find { it.procedimento_id == selectedProcedureId }?.tipo ?: "",
-                    placeholder = "Selecione o procedimento (opcional)...",
-                    options = procedures.map { it.tipo },
-                    onOptionSelected = { procedureTipo ->
-                        selectedProcedureId = procedures.find { it.tipo == procedureTipo }?.procedimento_id
-                    },
-                    label = "Procedimento",
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
 
                 Row(
                     modifier = Modifier
@@ -158,7 +147,9 @@ fun ExtenseFormScreen(
 
                     Button(
                         onClick = {
+                            // Validação apenas para os campos obrigatórios
                             if (valor.text.isBlank() || tipo.isBlank() || dataDespesa.text.isBlank()) {
+                                // Você pode adicionar um SnackBar ou Toast para indicar campos em branco
                                 return@Button
                             }
 
@@ -167,8 +158,7 @@ fun ExtenseFormScreen(
                                 valor = valor.text.trim(),
                                 tipo = tipo,
                                 data_despesa = dataDespesa.text.trim(),
-                                animal_id = selectedAnimalId,
-                                procedimento_id = selectedProcedureId,
+                                animal_id = selectedAnimalId,  // Pode ser nulo
                                 data_cadastro = LocalDate.now().toString()
                             )
 

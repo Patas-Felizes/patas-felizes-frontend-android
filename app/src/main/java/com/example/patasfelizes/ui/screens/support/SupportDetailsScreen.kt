@@ -85,7 +85,6 @@ fun SupportDetailsScreen(
                                 DetailRow("Padrinho", support.nome_apadrinhador)
                                 DetailRow("Valor", "R$ ${support.valor}")
                                 DetailRow("Regularidade", support.regularidade)
-                                DetailRow("Data de Cadastro", support.data_cadastro)
                             }
                         }
 

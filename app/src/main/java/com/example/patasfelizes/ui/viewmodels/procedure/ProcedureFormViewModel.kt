@@ -35,8 +35,18 @@ class ProcedureFormViewModel : ViewModel() {
 
     fun createProcedure(procedure: Procedure, onComplete: () -> Unit) {
         _state.value = ProcedureFormState.Loading
+        val procedureForCreation = Procedure(
+            procedimento_id = 0, // Este valor será ignorado pelo backend
+            tipo = procedure.tipo,
+            descricao = procedure.descricao,
+            valor = procedure.valor,
+            data_procedimento = procedure.data_procedimento,
+            animal_id = procedure.animal_id,
+            voluntario_id = procedure.voluntario_id
+        )
+
         repository.createProcedure(
-            procedure = procedure,
+            procedure = procedureForCreation,
             onSuccess = { createdProcedure ->
                 _state.value = ProcedureFormState.Success(createdProcedure)
                 onComplete()

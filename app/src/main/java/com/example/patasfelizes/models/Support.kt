@@ -8,7 +8,6 @@ data class Support(
     val nome_apadrinhador: String,
     val valor: String,
     val regularidade: String,
-    val data_cadastro: String = LocalDate.now().toString() // Mantém consistência com o formato do backend
 )
 
 // SupportResponse.kt - Para deserialização da resposta da API
@@ -30,5 +29,4 @@ fun Support.toBackendFormat(): Map<String, Any> = mapOf(
     "nome_apadrinhador" to nome_apadrinhador,
     "valor" to valor,
     "regularidade" to regularidade,
-    "data_cadastro" to data_cadastro
 )
