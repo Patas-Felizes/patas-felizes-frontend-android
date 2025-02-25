@@ -15,16 +15,20 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.patasfelizes.ui.components.*
-import coil.compose.AsyncImage
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.Image
 import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.asImageBitmap
 import com.example.patasfelizes.R
 import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
 import java.time.LocalDate
+import androidx.compose.foundation.Image
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import android.util.Log
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,6 +38,7 @@ fun AnimalScreen(
 ) {
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     val animals by viewModel.animals.collectAsState()
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         viewModel.reloadAnimals()
@@ -145,21 +150,34 @@ fun AnimalScreen(
                                                 Row(
                                                     modifier = Modifier.fillMaxWidth()
                                                 ) {
-
-                                                    AsyncImage(
-                                                        model = if (animal.foto.isNotEmpty()) animal.foto else R.drawable.default_image,
-                                                        contentDescription = animal.nome,
-                                                        modifier = Modifier
-                                                            .size(130.dp)
-                                                            .clip(
-                                                                RoundedCornerShape(
-                                                                    topEnd = 0.dp,
-                                                                    bottomEnd = 0.dp
-                                                                )
+                                                    // Usando o novo padrão de foto como base64
+                                                    if (animal.foto.isNotEmpty()) {
+                                                        // Se tiver foto, tenta converter de Base64 para Bitmap
+                                                        val bitmap = animal.getFotoAsBitmap()
+                                                        if (bitmap != null) {
+                                                            // Se conseguiu converter, mostra a imagem
+                                                            Image(
+                                                                bitmap = bitmap.asImageBitmap(),
+                                                                contentDescription = animal.nome,
+                                                                modifier = Modifier
+                                                                    .size(130.dp)
+                                                                    .clip(
+                                                                        RoundedCornerShape(
+                                                                            topEnd = 0.dp,
+                                                                            bottomEnd = 0.dp
+                                                                        )
+                                                                    )
+                                                                    .aspectRatio(1f),
+                                                                contentScale = ContentScale.Crop
                                                             )
-                                                            .aspectRatio(1f),
-                                                        contentScale = ContentScale.Crop
-                                                    )
+                                                        } else {
+                                                            // Fallback para imagem padrão se não conseguiu converter
+                                                            DefaultAnimalImage(animal.nome)
+                                                        }
+                                                    } else {
+                                                        // Se não tiver foto, usa imagem padrão
+                                                        DefaultAnimalImage(animal.nome)
+                                                    }
 
                                                     Spacer(modifier = Modifier.width(16.dp))
 
@@ -207,6 +225,33 @@ fun AnimalScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun DefaultAnimalImage(animalName: String) {
+    Surface(
+        modifier = Modifier
+            .size(130.dp)
+            .clip(
+                RoundedCornerShape(
+                    topEnd = 0.dp,
+                    bottomEnd = 0.dp
+                )
+            )
+            .aspectRatio(1f),
+        color = MaterialTheme.colorScheme.primaryContainer
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Text(
+                text = animalName.firstOrNull()?.toString() ?: "?",
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
         }
     }
 }

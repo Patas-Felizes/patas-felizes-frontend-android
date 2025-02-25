@@ -1,8 +1,13 @@
 package com.example.patasfelizes.ui.screens.animals
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -16,20 +21,26 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import coil.compose.AsyncImage
 import com.example.patasfelizes.models.Animal
 import com.example.patasfelizes.ui.components.CustomDropdown
 import com.example.patasfelizes.ui.components.FormField
 import com.example.patasfelizes.ui.components.ToggleSwitch
 import com.example.patasfelizes.ui.components.BoxWithProgressBar
 import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
+import java.io.ByteArrayOutputStream
+
+private const val TAG = "AnimalFormScreen"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,6 +54,7 @@ fun AnimalFormScreen(
     val statusOptions = listOf("Para adoção", "Em tratamento", "Em lar temporário", "Adotado", "Falecido", "Desaparecido")
     val especieOptions = listOf("Gato", "Cachorro", "Outro")
     val idadeOptions = listOf("Dias", "Meses", "Anos")
+    val context = LocalContext.current
 
     var isLoading by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -55,13 +67,61 @@ fun AnimalFormScreen(
     var status by remember { mutableStateOf(initialAnimal?.status ?: "") }
     var especie by remember { mutableStateOf(initialAnimal?.especie ?: "") }
     var descricao by remember { mutableStateOf(TextFieldValue(initialAnimal?.descricao ?: "")) }
-    var fotoUri by remember { mutableStateOf<Uri?>(initialAnimal?.foto?.let { Uri.parse(it) }) }
+
+    // Agora trabalhamos com String para a foto em vez de ByteArray
+    var fotoBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var fotoBase64 by remember { mutableStateOf(initialAnimal?.foto ?: "") }
+
+    // Converte a string Base64 inicial para Bitmap, se existir
+    LaunchedEffect(initialAnimal) {
+        if (initialAnimal?.foto?.isNotEmpty() == true) {
+            try {
+                val byteArray = withContext(Dispatchers.IO) {
+                    Animal.decodeFromBase64(initialAnimal.foto)
+                }
+
+                if (byteArray.isNotEmpty()) {
+                    fotoBitmap = withContext(Dispatchers.IO) {
+                        try {
+                            // Updated conversion: decode byte array directly using BitmapFactory.
+                            BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Erro ao converter para bitmap: ${e.message}")
+                            null
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Erro ao decodificar foto: ${e.message}")
+            }
+        }
+    }
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
-            fotoUri = it
+            scope.launch {
+                try {
+                    val bitmap = withContext(Dispatchers.IO) {
+                        convertUriToBitmap(uri, context)
+                    }
+
+                    if (bitmap != null) {
+                        fotoBitmap = bitmap
+
+                        // Updated conversion: convert Bitmap to ByteArray using ByteArrayOutputStream.
+                        val stream = ByteArrayOutputStream()
+                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+                        val byteArray = stream.toByteArray()
+                        fotoBase64 = Animal.encodeToBase64(byteArray)
+                    } else {
+                        Log.e(TAG, "Falha ao converter URI para bitmap")
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Erro ao processar imagem da galeria: ${e.message}")
+                }
+            }
         }
     }
 
@@ -121,16 +181,19 @@ fun AnimalFormScreen(
                                 modifier = Modifier.fillMaxSize(),
                                 contentAlignment = Alignment.Center
                             ) {
-                                if (fotoUri != null) {
-                                    AsyncImage(
-                                        model = fotoUri,
+                                if (fotoBitmap != null) {
+                                    Image(
+                                        bitmap = fotoBitmap!!.asImageBitmap(),
                                         contentDescription = "Foto do pet",
                                         modifier = Modifier.fillMaxSize(),
                                         contentScale = ContentScale.Crop
                                     )
 
                                     IconButton(
-                                        onClick = { fotoUri = null },
+                                        onClick = {
+                                            fotoBitmap = null
+                                            fotoBase64 = ""  // String vazia agora em vez de ByteArray
+                                        },
                                         modifier = Modifier.align(Alignment.TopEnd)
                                     ) {
                                         Icon(
@@ -273,36 +336,41 @@ fun AnimalFormScreen(
 
                                 isLoading = true
                                 scope.launch {
-                                    val animal = if (isEditMode) {
-                                        initialAnimal!!.copy(
-                                            nome = nome.text.trim(),
-                                            idade = "${idade.text.trim()} $unidadeIdade",
-                                            foto = fotoUri?.toString() ?: "",
-                                            descricao = descricao.text.trim(),
-                                            sexo = if (sexoIndex == 0) "Fêmea" else "Macho",
-                                            castracao = if (castracaoIndex == 1) "Sim" else "Não",
-                                            status = status,
-                                            especie = especie,
-                                            data_cadastro = LocalDate.now().toString()
-                                        )
-                                    } else {
-                                        Animal(
-                                            animal_id = 0,
-                                            nome = nome.text.trim(),
-                                            idade = "${idade.text.trim()} $unidadeIdade",
-                                            foto = fotoUri?.toString() ?: "",
-                                            descricao = descricao.text.trim(),
-                                            sexo = if (sexoIndex == 0) "Fêmea" else "Macho",
-                                            castracao = if (castracaoIndex == 1) "Sim" else "Não",
-                                            status = status,
-                                            especie = especie,
-                                            data_cadastro = LocalDate.now().toString()
-                                        )
-                                    }
+                                    try {
+                                        val animal = if (isEditMode) {
+                                            initialAnimal!!.copy(
+                                                nome = nome.text.trim(),
+                                                idade = "${idade.text.trim()} $unidadeIdade",
+                                                foto = fotoBase64, // Agora usando String Base64
+                                                descricao = descricao.text.trim(),
+                                                sexo = if (sexoIndex == 0) "Fêmea" else "Macho",
+                                                castracao = if (castracaoIndex == 1) "Sim" else "Não",
+                                                status = status,
+                                                especie = especie,
+                                                data_cadastro = LocalDate.now().toString()
+                                            )
+                                        } else {
+                                            Animal(
+                                                animal_id = 0,
+                                                nome = nome.text.trim(),
+                                                idade = "${idade.text.trim()} $unidadeIdade",
+                                                foto = fotoBase64, // Agora usando String Base64
+                                                descricao = descricao.text.trim(),
+                                                sexo = if (sexoIndex == 0) "Fêmea" else "Macho",
+                                                castracao = if (castracaoIndex == 1) "Sim" else "Não",
+                                                status = status,
+                                                especie = especie,
+                                                data_cadastro = LocalDate.now().toString()
+                                            )
+                                        }
 
-                                    onSave(animal)
-                                    isLoading = false
-                                    viewModel.reloadAnimals()
+                                        onSave(animal)
+                                        viewModel.reloadAnimals()
+                                    } catch (e: Exception) {
+                                        Log.e(TAG, "Erro ao salvar animal: ${e.message}")
+                                    } finally {
+                                        isLoading = false
+                                    }
                                 }
                             },
                             enabled = !isLoading,
@@ -319,5 +387,17 @@ fun AnimalFormScreen(
                 }
             }
         }
+    }
+}
+
+// Função auxiliar para converter Uri para Bitmap com tratamento de erros
+suspend fun convertUriToBitmap(uri: Uri, context: Context): Bitmap? = withContext(Dispatchers.IO) {
+    try {
+        context.contentResolver.openInputStream(uri)?.use { inputStream ->
+            BitmapFactory.decodeStream(inputStream)
+        }
+    } catch (e: Exception) {
+        Log.e("AnimalFormScreen", "Erro ao converter URI para bitmap: ${e.message}")
+        null
     }
 }

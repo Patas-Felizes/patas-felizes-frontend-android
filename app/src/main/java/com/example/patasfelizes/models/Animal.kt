@@ -2,45 +2,53 @@
 package com.example.patasfelizes.models
 
 import java.time.LocalDate
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.util.Base64
+import android.util.Log
+import com.google.gson.*
 
 data class Animal(
-    val animal_id: Int = 0,  // Inicializa com 0, mas o backend vai sobrescrever com o ID real
+    val animal_id: Int = 0,
     val nome: String,
     val idade: String,
-    val foto: String = "",   // Alterado de imageRes/imageUris para corresponder ao backend
+    val foto: String = "", // foto em string Base64
     val descricao: String,
     val sexo: String,
     val castracao: String,
     val status: String,
     val especie: String,
-    val data_cadastro: String = LocalDate.now().toString() // Alterado para String para corresponder ao backend
-)
+    val data_cadastro: String = LocalDate.now().toString()
+) {
+    fun getFotoAsByteArray(): ByteArray {
+        return if (foto.isNotEmpty()) {
+            try {
+                decodeFromBase64(foto)
+            } catch (e: Exception) {
+                Log.e(TAG, "Erro ao decodificar foto: ${e.message}")
+                ByteArray(0)
+            }
+        } else {
+            ByteArray(0)
+        }
+    }
 
-// AnimalResponse.kt - Para deserialização da resposta da API
-data class AnimalResponse(
-    val status: Int,
-    val data: Animal? = null,
-    val message: String? = null
-)
+    fun getFotoAsBitmap(): Bitmap? {
+        val bytes = getFotoAsByteArray()
+        return if (bytes.isNotEmpty()) {
+            BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+        } else {
+            null
+        }
+    }
 
-data class AnimalListResponse(
-    val status: Int,
-    val data: List<Animal>? = null,
-    val message: String? = null
-)
-
-// Extension function para converter LocalDate para String no formato do backend
-fun LocalDate.toBackendString(): String = this.toString()
-
-// Extension function para converter Animal do frontend para o formato do backend
-fun Animal.toBackendFormat(): Map<String, Any> = mapOf(
-    "nome" to nome,
-    "idade" to idade,
-    "foto" to foto,
-    "descricao" to descricao,
-    "sexo" to sexo,
-    "castracao" to castracao,
-    "status" to status,
-    "especie" to especie,
-    "data_cadastro" to data_cadastro
-)
+    companion object {
+        private const val TAG = "Animal"
+        fun encodeToBase64(data: ByteArray): String {
+            return Base64.encodeToString(data, Base64.DEFAULT)
+        }
+        fun decodeFromBase64(data: String): ByteArray {
+            return Base64.decode(data, Base64.DEFAULT)
+        }
+    }
+}

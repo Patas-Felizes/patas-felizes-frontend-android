@@ -1,6 +1,7 @@
 package com.example.patasfelizes.ui.screens.animals
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -15,18 +16,23 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
-import coil.compose.AsyncImage
 import com.example.patasfelizes.ui.components.BoxWithProgressBar
 import com.example.patasfelizes.ui.viewmodels.animals.AnimalDetailsViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.patasfelizes.R
+import android.util.Log
+import com.example.patasfelizes.models.Animal
 import com.example.patasfelizes.ui.viewmodels.animals.AnimalDetailsState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import android.graphics.BitmapFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,7 +44,11 @@ fun DetailsAnimalScreen(
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     var showExpandedImage by remember { mutableStateOf(false) }
 
+    val scope = rememberCoroutineScope()
     val uiState by viewModel.uiState.collectAsState()
+
+    // Estado para armazenar o bitmap convertido
+    var fotoBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
 
     LaunchedEffect(animalId) {
         viewModel.loadAnimal(animalId)
@@ -70,6 +80,43 @@ fun DetailsAnimalScreen(
         is AnimalDetailsState.Success -> {
             val animal = state.animal
 
+            // Converter dados da foto para Bitmap quando o animal for carregado
+            // Com tratamento seguro para evitar NullPointerException
+            LaunchedEffect(animal) {
+                try {
+                    // Assumindo que estamos usando a versão atualizada de Animal.kt onde foto é String
+                    // e temos um método seguro para obter ByteArray
+                    val byteArray = withContext(Dispatchers.IO) {
+                        if (animal.foto.isNotEmpty()) {
+                            try {
+                                // Se sua classe Animal já foi modificada para ter foto como String
+                                Animal.decodeFromBase64(animal.foto)
+                            } catch (e: Exception) {
+                                Log.e("DetailsAnimalScreen", "Erro ao decodificar foto: ${e.message}")
+                                ByteArray(0)
+                            }
+                        } else {
+                            ByteArray(0)
+                        }
+                    }
+
+                    // Só tenta converter para bitmap se tivermos dados válidos
+                    if (byteArray.isNotEmpty()) {
+                        fotoBitmap = withContext(Dispatchers.IO) {
+                            try {
+                                // Updated conversion: decode byte array directly using BitmapFactory.
+                                BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+                            } catch (e: Exception) {
+                                Log.e("DetailsAnimalScreen", "Erro ao converter para bitmap: ${e.message}")
+                                null
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("DetailsAnimalScreen", "Erro ao processar imagem: ${e.message}")
+                }
+            }
+
             BoxWithProgressBar(isLoading = state.isDeleting) {
                 Scaffold { innerPadding ->
                     Column(
@@ -86,7 +133,7 @@ fun DetailsAnimalScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Imagem única do animal
+                        // Imagem do animal como bitmap
                         Box(
                             modifier = Modifier
                                 .size(120.dp)
@@ -95,17 +142,40 @@ fun DetailsAnimalScreen(
                                     CircleShape
                                 )
                                 .clip(CircleShape)
-                                .clickable { showExpandedImage = true }
+                                .clickable(enabled = fotoBitmap != null) {
+                                    if (fotoBitmap != null) {
+                                        showExpandedImage = true
+                                    }
+                                }
                         ) {
-                            AsyncImage(
-                                model = animal.foto.ifEmpty { R.drawable.default_image },
-                                contentDescription = animal.nome,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
+                            if (fotoBitmap != null) {
+                                Image(
+                                    bitmap = fotoBitmap!!.asImageBitmap(),
+                                    contentDescription = animal.nome,
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                // Imagem padrão para quando não houver foto
+                                Surface(
+                                    color = MaterialTheme.colorScheme.primaryContainer,
+                                    modifier = Modifier.fillMaxSize()
+                                ) {
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier.fillMaxSize()
+                                    ) {
+                                        Text(
+                                            text = animal.nome.firstOrNull()?.toString() ?: "?",
+                                            style = MaterialTheme.typography.headlineLarge,
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
+                                    }
+                                }
+                            }
                         }
 
-                        if (showExpandedImage) {
+                        if (showExpandedImage && fotoBitmap != null) {
                             Dialog(onDismissRequest = { showExpandedImage = false }) {
                                 Surface(
                                     modifier = Modifier
@@ -118,11 +188,11 @@ fun DetailsAnimalScreen(
                                         contentAlignment = Alignment.Center,
                                         modifier = Modifier.fillMaxSize()
                                     ) {
-                                        AsyncImage(
-                                            model = animal.foto.ifEmpty { R.drawable.default_image },
+                                        Image(
+                                            bitmap = fotoBitmap!!.asImageBitmap(),
                                             contentDescription = "${animal.nome} - Expandida",
                                             modifier = Modifier.padding(16.dp),
-                                            contentScale = ContentScale.Crop
+                                            contentScale = ContentScale.Fit
                                         )
 
                                         IconButton(
@@ -248,6 +318,8 @@ fun DetailsAnimalScreen(
                                 }
                             )
                         }
+
+                        Spacer(modifier = Modifier.height(32.dp))
                     }
                 }
             }
