@@ -19,6 +19,20 @@ class CampaignFormViewModel : ViewModel() {
     private val _state = MutableStateFlow<CampaignFormState>(CampaignFormState.Idle)
     val state: StateFlow<CampaignFormState> = _state.asStateFlow()
 
+    fun loadCampaign(id: Int, onSuccess: (Campaign) -> Unit) {
+        _state.value = CampaignFormState.Loading
+        repository.getCampaign(
+            id = id,
+            onSuccess = { campaign ->
+                onSuccess(campaign)
+                _state.value = CampaignFormState.Idle
+            },
+            onError = { error ->
+                _state.value = CampaignFormState.Error(error)
+            }
+        )
+    }
+
     fun createCampaign(campaign: Campaign, onComplete: () -> Unit) {
         _state.value = CampaignFormState.Loading
         repository.createCampaign(

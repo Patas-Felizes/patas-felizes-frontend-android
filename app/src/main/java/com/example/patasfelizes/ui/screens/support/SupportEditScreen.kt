@@ -9,6 +9,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import com.example.patasfelizes.models.Support
+import com.example.patasfelizes.ui.viewmodels.support.SupportDetailsState
+import com.example.patasfelizes.ui.viewmodels.support.SupportDetailsViewModel
 import com.example.patasfelizes.ui.viewmodels.support.SupportFormState
 import com.example.patasfelizes.ui.viewmodels.support.SupportFormViewModel
 
@@ -16,30 +18,52 @@ import com.example.patasfelizes.ui.viewmodels.support.SupportFormViewModel
 @Composable
 fun SupportEditScreen(
     navController: NavHostController,
-    support: Support,
-    viewModel: SupportFormViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    supportId: Int,
+    viewModel: SupportDetailsViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
+    formViewModel: SupportFormViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
-    val state by viewModel.state.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+    val formState by formViewModel.state.collectAsState()
     val context = LocalContext.current
 
-    LaunchedEffect(state) {
-        when (state) {
+    // Carregar o support pelo ID
+    LaunchedEffect(supportId) {
+        viewModel.loadSupport(supportId)
+    }
+
+    // Monitorar os estados para tratar erros e sucesso
+    LaunchedEffect(formState) {
+        when (formState) {
             is SupportFormState.Error -> {
-                val errorMessage = (state as SupportFormState.Error).message
+                val errorMessage = (formState as SupportFormState.Error).message
                 Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+            }
+            is SupportFormState.Success -> {
+                navController.navigateUp()
             }
             else -> {}
         }
     }
 
-    SupportFormScreen(
-        navController = navController,
-        initialSupport = support,
-        onSave = { updatedSupport ->
-            viewModel.updateSupport(updatedSupport) {
-                navController.navigateUp()
-            }
-        },
-        isEditMode = true
-    )
+    // Mostrar o formulário quando o support for carregado com sucesso
+    when (val state = uiState) {
+        is SupportDetailsState.Success -> {
+            SupportFormScreen(
+                navController = navController,
+                initialSupport = state.support,
+                onSave = { updatedSupport ->
+                    formViewModel.updateSupport(updatedSupport) {
+                        navController.navigateUp()
+                    }
+                },
+                isEditMode = true
+            )
+        }
+        is SupportDetailsState.Error -> {
+            Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
+        }
+        else -> {
+            // Loading state is handled by the SupportFormScreen
+        }
+    }
 }

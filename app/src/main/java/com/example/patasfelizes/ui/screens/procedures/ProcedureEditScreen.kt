@@ -6,6 +6,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import com.example.patasfelizes.models.Procedure
@@ -17,11 +19,19 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 @Composable
 fun ProcedureEditScreen(
     navController: NavHostController,
-    procedure: Procedure,
+    procedureId: Int,
     viewModel: ProcedureFormViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
+    val (procedureLoaded, setProcedureLoaded) = remember { mutableStateOf<Procedure?>(null) }
+
+    // Carregar o procedimento quando a tela for inicializada
+    LaunchedEffect(procedureId) {
+        viewModel.loadProcedure(procedureId) { procedure ->
+            setProcedureLoaded(procedure)
+        }
+    }
 
     LaunchedEffect(state) {
         when (state) {
@@ -33,14 +43,17 @@ fun ProcedureEditScreen(
         }
     }
 
-    ProcedureFormScreen(
-        navController = navController,
-        initialProcedure = procedure,
-        onSave = { updatedProcedure ->
-            viewModel.updateProcedure(updatedProcedure) {
-                navController.navigateUp()
-            }
-        },
-        isEditMode = true
-    )
+    // Aguardar o procedimento ser carregado antes de mostrar o formulário
+    procedureLoaded?.let { procedure ->
+        ProcedureFormScreen(
+            navController = navController,
+            initialProcedure = procedure,
+            onSave = { updatedProcedure ->
+                viewModel.updateProcedure(updatedProcedure) {
+                    navController.navigateUp()
+                }
+            },
+            isEditMode = true
+        )
+    }
 }

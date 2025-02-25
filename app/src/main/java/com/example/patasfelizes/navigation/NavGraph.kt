@@ -61,6 +61,18 @@ import com.example.patasfelizes.ui.screens.temporaryhomes.TempHomeRegistrationSc
 import com.example.patasfelizes.ui.screens.temporaryhomes.TempHomesDetailsScreen
 import com.example.patasfelizes.ui.screens.temporaryhomes.TemporaryHomesScreen
 import com.example.patasfelizes.ui.screens.temporaryhomes.TempHomeEditScreen
+import com.example.patasfelizes.ui.viewmodels.temphomes.TempHomeFormViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.patasfelizes.ui.screens.campaigns.CampaignEditScreen
+import com.example.patasfelizes.ui.screens.campaigns.CampaignRegistrationScreen
+import com.example.patasfelizes.ui.screens.finances.donations.DonationEditScreen
+import com.example.patasfelizes.ui.screens.finances.donations.DonationRegistrationScreen
+import com.example.patasfelizes.ui.screens.finances.extenses.ExtenseEditScreen
+import com.example.patasfelizes.ui.screens.procedures.ProcedureEditScreen
+import com.example.patasfelizes.ui.screens.tasks.TaskEditScreen
+import com.example.patasfelizes.ui.screens.tasks.TaskRegistrationScreen
+import com.example.patasfelizes.ui.screens.team.TeamEditScreen
+import com.example.patasfelizes.ui.screens.team.TeamRegistrationScreen
 
 fun NavGraphBuilder.setupNavHost(
     navController: NavHostController,
@@ -123,19 +135,18 @@ fun NavGraphBuilder.setupNavHost(
     }
 
     composable(
-        route = "adoptionDetails/{adopterId}",
-        arguments = listOf(navArgument("adopterId") { type = NavType.IntType })
+        route = "adoptionDetails/{adoptionId}",
+        arguments = listOf(navArgument("adoptionId") { type = NavType.IntType })
     ) { backStackEntry ->
-        val adopterId = backStackEntry.arguments?.getInt("adopterId")
-        adopterId?.let {
-            DetailsAdoptionsScreen(navController = navController, adopterId = it, animalId = it)
+        val adoptionId = backStackEntry.arguments?.getInt("adoptionId")
+        adoptionId?.let {
+            DetailsAdoptionsScreen(navController = navController, adoptionId = it)
         }
     }
 
     composable("addAdoption") {
         AdoptionRegistrationScreen(
-            navController = navController,
-            onSave = onSaveAdoption
+            navController = navController
         )
     }
 
@@ -144,17 +155,10 @@ fun NavGraphBuilder.setupNavHost(
         arguments = listOf(navArgument("adoptionId") { type = NavType.IntType })
     ) { backStackEntry ->
         val adoptionId = backStackEntry.arguments?.getInt("adoptionId") ?: return@composable
-        val adopter = AdopterList.find { it.id == adoptionId } ?: return@composable
-
         AdoptionEditScreen(
             navController = navController,
-            adopter = adopter,
-            onSave = { updatedAdopter ->
-                val index = AdopterList.indexOfFirst { it.id == adoptionId }
-                if (index != -1) {
-                    AdopterList[index] = updatedAdopter
-                }
-            }
+            adoptionId = adoptionId,
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
         )
     }
 
@@ -163,52 +167,32 @@ fun NavGraphBuilder.setupNavHost(
     composable("lar_temporario") {
         TemporaryHomesScreen(navController = navController)
     }
+
     composable(
-        route = "temporaryHomeDetails/{guardianId}",
-        arguments = listOf(navArgument("guardianId") { type = NavType.IntType })
+        route = "temporaryHomeDetails/{tempHomeId}",
+        arguments = listOf(navArgument("tempHomeId") { type = NavType.IntType })
     ) { backStackEntry ->
-        val guardianId = backStackEntry.arguments?.getInt("guardianId")
-        guardianId?.let {
-            TempHomesDetailsScreen(navController = navController, guardianId = it)
+        val tempHomeId = backStackEntry.arguments?.getInt("tempHomeId")
+        tempHomeId?.let {
+            TempHomesDetailsScreen(navController = navController, tempHomeId = it)
         }
     }
+
     composable("addTemporaryHome") {
         TempHomeRegistrationScreen(
-            navController = navController,
-            onSave = onSaveTemporaryHome
-        )
-    }
-    composable(
-        route = "editTemporaryHome/{guardianId}",
-        arguments = listOf(navArgument("guardianId") { type = NavType.IntType })
-    ) { backStackEntry ->
-        val guardianId = backStackEntry.arguments?.getInt("guardianId") ?: return@composable
-        val guardian = GuardianTempList.find { it.id == guardianId } ?: return@composable
-        TempHomeEditScreen(
-            navController = navController,
-            guardian = guardian,
-            onSave = { updateGuardian ->
-                val index = GuardianTempList.indexOfFirst { it.id == guardianId }
-                if (index != 1) {
-                    GuardianTempList[index] = updateGuardian
-                }
-            }
+            navController = navController
         )
     }
 
     composable(
-        route = "editSupport/{sponsorId}",
-        arguments = listOf(navArgument("sponsorId") { type = NavType.IntType })
+        route = "editTemporaryHome/{tempHomeId}",
+        arguments = listOf(navArgument("tempHomeId") { type = NavType.IntType })
     ) { backStackEntry ->
-        val sponsorId = backStackEntry.arguments?.getInt("sponsorId") ?: return@composable
-        val sponsor = SponsorList.find { it.id == sponsorId } ?: return@composable
-        SupportEditScreen(
+        val tempHomeId = backStackEntry.arguments?.getInt("tempHomeId") ?: return@composable
+        TempHomeEditScreen(
             navController = navController,
-            sponsor = sponsor,
-            onSave = { updatedSponsor ->
-                val index = SponsorList.indexOfFirst { it.id == sponsorId }
-                if (index != -1) SponsorList[index] = updatedSponsor
-            }
+            tempHomeId = tempHomeId,
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
         )
     }
 
@@ -218,38 +202,36 @@ fun NavGraphBuilder.setupNavHost(
     composable("apadrinhamento") {
         SupportScreen(navController = navController)
     }
+
     composable(
-        route = "supportDetails/{sponsorId}",
-        arguments = listOf(navArgument("sponsorId") { type = NavType.IntType })
+        route = "supportDetails/{supportId}",
+        arguments = listOf(navArgument("supportId") { type = NavType.IntType })
     ) { backStackEntry ->
-        val sponsorId = backStackEntry.arguments?.getInt("sponsorId") ?: return@composable
+        val supportId = backStackEntry.arguments?.getInt("supportId") ?: return@composable
         SupportDetailsScreen(
             navController = navController,
-            sponsorId = sponsorId,
-            onDelete = { id -> SponsorList.removeIf { it.id == id } }
+            supportId = supportId
         )
     }
 
     composable("addSupport") {
         SupportRegistrationScreen(
             navController = navController,
-            onSave = { SponsorList.add(it.copy(id = SponsorList.size + 1)) }
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
         )
     }
 
     composable(
-        route = "editSupport/{sponsorId}",
-        arguments = listOf(navArgument("sponsorId") { type = NavType.IntType })
+        route = "editSupport/{supportId}",
+        arguments = listOf(navArgument("supportId") { type = NavType.IntType })
     ) { backStackEntry ->
-        val sponsorId = backStackEntry.arguments?.getInt("sponsorId") ?: return@composable
-        val sponsor = SponsorList.find { it.id == sponsorId } ?: return@composable
+        val supportId = backStackEntry.arguments?.getInt("supportId") ?: return@composable
+
+        // Use viewModel para buscar o Support pelo ID em vez de tentar encontrar na lista
         SupportEditScreen(
             navController = navController,
-            sponsor = sponsor,
-            onSave = { updatedSponsor ->
-                val index = SponsorList.indexOfFirst { it.id == sponsorId }
-                if (index != -1) SponsorList[index] = updatedSponsor
-            }
+            supportId = supportId,
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
         )
     }
 
@@ -283,19 +265,12 @@ fun NavGraphBuilder.setupNavHost(
         arguments = listOf(navArgument("procedureId") { type = NavType.IntType })
     ) { backStackEntry ->
         val procedureId = backStackEntry.arguments?.getInt("procedureId") ?: return@composable
-        val procedure = ProcedureList.find { it.id == procedureId } ?: return@composable
 
-        ProcedureFormScreen(
+        // Usar ProcedureEditScreen em vez de tentar recuperar de uma lista estática
+        ProcedureEditScreen(
             navController = navController,
-            initialProcedure = procedure,
-            onSave = { updatedProcedure ->
-                // Atualizar o animal na lista
-                val index = ProcedureList.indexOfFirst { it.id == procedureId }
-                if (index != -1) {
-                    ProcedureList[index] = updatedProcedure
-                }
-            },
-            isEditMode = true
+            procedureId = procedureId,
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
         )
     }
 
@@ -305,6 +280,7 @@ fun NavGraphBuilder.setupNavHost(
     composable("campanhas") {
         CampaignsScreen(navController = navController)
     }
+
     composable(
         route = "campaignDetails/{campaignId}",
         arguments = listOf(navArgument("campaignId") { type = NavType.IntType })
@@ -316,10 +292,9 @@ fun NavGraphBuilder.setupNavHost(
     }
 
     composable("addCampaign") {
-        CampaignFormScreen(
+        CampaignRegistrationScreen(
             navController = navController,
-            onSave = onSaveCampaign,
-            isEditMode = false
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
         )
     }
 
@@ -328,19 +303,12 @@ fun NavGraphBuilder.setupNavHost(
         arguments = listOf(navArgument("campaignId") { type = NavType.IntType })
     ) { backStackEntry ->
         val campaignId = backStackEntry.arguments?.getInt("campaignId") ?: return@composable
-        val campaign = CampaignList.find { it.id == campaignId } ?: return@composable
 
-        CampaignFormScreen(
+        // Criar uma versão do CampaignEditScreen que aceita um ID em vez de um objeto Campaign
+        CampaignEditScreen(
             navController = navController,
-            initialCampaign = campaign,
-            onSave = { updatedCampaign ->
-                // Atualizar o animal na lista
-                val index = CampaignList.indexOfFirst { it.id == campaignId }
-                if (index != -1) {
-                    CampaignList[index] = updatedCampaign
-                }
-            },
-            isEditMode = true
+            campaignId = campaignId,
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
         )
     }
 
@@ -373,29 +341,21 @@ fun NavGraphBuilder.setupNavHost(
         arguments = listOf(navArgument("extenseId") { type = NavType.IntType })
     ) { backStackEntry ->
         val extenseId = backStackEntry.arguments?.getInt("extenseId") ?: return@composable
-        val extense = ExtenseList.find { it.id == extenseId } ?: return@composable
 
-        ExtenseFormScreen(
+        // Usar ExtenseEditScreen com ID em vez de objeto Extense
+        ExtenseEditScreen(
             navController = navController,
-            initialExtense = extense,
-            onSave = { updatedExtense ->
-                // Atualizar o animal na lista
-                val index = ExtenseList.indexOfFirst { it.id == extenseId }
-                if (index != -1) {
-                    ExtenseList[index] = updatedExtense
-                }
-            },
-            isEditMode = true
+            extenseId = extenseId,
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
         )
     }
 
     // ===  DOAÇAO ====================================================================
 
     composable("addDonation") {
-        DonationFormScreen(
+        DonationRegistrationScreen(
             navController = navController,
-            onSave = onSaveDonation,
-            isEditMode = false
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
         )
     }
 
@@ -414,19 +374,12 @@ fun NavGraphBuilder.setupNavHost(
         arguments = listOf(navArgument("donationId") { type = NavType.IntType })
     ) { backStackEntry ->
         val donationId = backStackEntry.arguments?.getInt("donationId") ?: return@composable
-        val donation = DonationList.find { it.id == donationId } ?: return@composable
 
-        DonationFormScreen(
+        // Usar DonationEditScreen com ID em vez de objeto Donation
+        DonationEditScreen(
             navController = navController,
-            initialDonation = donation,
-            onSave = { updatedDonation ->
-                // Atualizar o animal na lista
-                val index = DonationList.indexOfFirst { it.id == donationId }
-                if (index != -1) {
-                    DonationList[index] = updatedDonation
-                }
-            },
-            isEditMode = true
+            donationId = donationId,
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
         )
     }
 
@@ -435,6 +388,7 @@ fun NavGraphBuilder.setupNavHost(
     composable("estoque") {
         StockScreen(navController = navController)
     }
+
     composable(
         route = "stockDetails/{stockId}",
         arguments = listOf(navArgument("stockId") { type = NavType.IntType })
@@ -443,17 +397,15 @@ fun NavGraphBuilder.setupNavHost(
         stockId?.let {
             StockDetailsScreen(
                 navController = navController,
-                stockId = it,
-                onDelete = { id ->
-                    StockList.removeIf { stock -> stock.id == id }
-                }
+                stockId = it
             )
         }
     }
+
     composable("addStock") {
         StockRegistrationScreen(
             navController = navController,
-            onSave = onSaveStock
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
         )
     }
 
@@ -462,17 +414,12 @@ fun NavGraphBuilder.setupNavHost(
         arguments = listOf(navArgument("stockId") { type = NavType.IntType })
     ) { backStackEntry ->
         val stockId = backStackEntry.arguments?.getInt("stockId") ?: return@composable
-        val stock = StockList.find { it.id == stockId } ?: return@composable
 
+        // Criar uma versão do StockEditScreen que aceita um ID em vez de um objeto Stock
         StockEditScreen(
             navController = navController,
-            stock = stock,
-            onSave = { updateStock ->
-                val index = StockList.indexOfFirst { it.id == stockId }
-                if (index != 1) {
-                    StockList[index] = updateStock
-                }
-            }
+            stockId = stockId,
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
         )
     }
 
@@ -483,10 +430,9 @@ fun NavGraphBuilder.setupNavHost(
     }
 
     composable("addTask") {
-        TaskFormScreen(
+        TaskRegistrationScreen(
             navController = navController,
-            onSave = onSaveTask,
-            isEditMode = false
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
         )
     }
 
@@ -505,19 +451,13 @@ fun NavGraphBuilder.setupNavHost(
         arguments = listOf(navArgument("taskId") { type = NavType.IntType })
     ) { backStackEntry ->
         val taskId = backStackEntry.arguments?.getInt("taskId") ?: return@composable
-        val task = TaskList.find { it.id == taskId } ?: return@composable
 
-        TaskFormScreen(
+        // Usar TaskEditScreen com ID em vez de objeto Task
+
+        TaskEditScreen(
             navController = navController,
-            initialTask = task,
-            onSave = { updatedTask ->
-                // Atualizar o animal na lista
-                val index = TaskList.indexOfFirst { it.id == taskId }
-                if (index != -1) {
-                    TaskList[index] = updatedTask
-                }
-            },
-            isEditMode = true
+            taskId = taskId,
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
         )
     }
 
@@ -528,41 +468,33 @@ fun NavGraphBuilder.setupNavHost(
     }
 
     composable("addVoluntary") {
-        TeamFormScreen(
+        TeamRegistrationScreen(
             navController = navController,
-            onSave = onSaveVoluntary,
-            isEditMode = false
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
         )
     }
 
     composable(
-        route = "voluntaryDetails/{voluntaryId}",
-        arguments = listOf(navArgument("voluntaryId") { type = NavType.IntType })
+        route = "voluntaryDetails/{voluntarioId}",
+        arguments = listOf(navArgument("voluntarioId") { type = NavType.IntType })
     ) { backStackEntry ->
-        val voluntaryId = backStackEntry.arguments?.getInt("voluntaryId")
-        voluntaryId?.let {
-            DetailsTeamScreen(navController, voluntaryId = it)
+        val voluntarioId = backStackEntry.arguments?.getInt("voluntarioId")
+        voluntarioId?.let {
+            DetailsTeamScreen(navController, voluntarioId = it)
         }
     }
 
     composable(
-        route = "editVoluntary/{voluntaryId}",
-        arguments = listOf(navArgument("voluntaryId") { type = NavType.IntType })
+        route = "editVoluntary/{voluntarioId}",
+        arguments = listOf(navArgument("voluntarioId") { type = NavType.IntType })
     ) { backStackEntry ->
-        val voluntaryId = backStackEntry.arguments?.getInt("voluntaryId") ?: return@composable
-        val voluntary = VoluntaryList.find { it.id == voluntaryId } ?: return@composable
+        val voluntarioId = backStackEntry.arguments?.getInt("voluntarioId") ?: return@composable
 
-        TeamFormScreen(
+        // Usar TeamEditScreen com ID em vez de objeto Voluntary
+        TeamEditScreen(
             navController = navController,
-            initialVoluntary = voluntary,
-            onSave = { updatedVoluntary ->
-                // Atualizar o animal na lista
-                val index = VoluntaryList.indexOfFirst { it.id == voluntaryId }
-                if (index != -1) {
-                    VoluntaryList[index] = updatedVoluntary
-                }
-            },
-            isEditMode = true
+            voluntarioId = voluntarioId,
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel()
         )
     }
 

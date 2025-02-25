@@ -8,7 +8,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
-import com.example.patasfelizes.models.Animal
+import com.example.patasfelizes.ui.viewmodels.animals.AnimalDetailsState
+import com.example.patasfelizes.ui.viewmodels.animals.AnimalDetailsViewModel
 import com.example.patasfelizes.ui.viewmodels.animals.AnimalFormState
 import com.example.patasfelizes.ui.viewmodels.animals.AnimalFormViewModel
 
@@ -16,31 +17,52 @@ import com.example.patasfelizes.ui.viewmodels.animals.AnimalFormViewModel
 @Composable
 fun AnimalEditScreen(
     navController: NavHostController,
-    animal: Animal,
-    viewModel: AnimalFormViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    animalId: Int,
+    detailsViewModel: AnimalDetailsViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
+    formViewModel: AnimalFormViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
-
-    val state by viewModel.state.collectAsState()
+    val uiState by detailsViewModel.uiState.collectAsState()
+    val formState by formViewModel.state.collectAsState()
     val context = LocalContext.current
 
-    LaunchedEffect(state) {
-        when (state) {
+    // Carregar o animal pelo ID
+    LaunchedEffect(animalId) {
+        detailsViewModel.loadAnimal(animalId)
+    }
+
+    // Monitorar os estados para tratar erros e sucesso
+    LaunchedEffect(formState) {
+        when (formState) {
             is AnimalFormState.Error -> {
-                val errorMessage = (state as AnimalFormState.Error).message
+                val errorMessage = (formState as AnimalFormState.Error).message
                 Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+            }
+            is AnimalFormState.Success -> {
+                navController.navigateUp()
             }
             else -> {}
         }
     }
 
-    AnimalFormScreen(
-        navController = navController,
-        initialAnimal = animal,
-        onSave = { updatedAnimal ->
-            viewModel.updateAnimal(updatedAnimal) {
-                navController.navigateUp()
-            }
-        },
-        isEditMode = true
-    )
+    // Mostrar o formulário quando o animal for carregado com sucesso
+    when (val state = uiState) {
+        is AnimalDetailsState.Success -> {
+            AnimalFormScreen(
+                navController = navController,
+                initialAnimal = state.animal,
+                onSave = { updatedAnimal ->
+                    formViewModel.updateAnimal(updatedAnimal) {
+                        navController.navigateUp()
+                    }
+                },
+                isEditMode = true
+            )
+        }
+        is AnimalDetailsState.Error -> {
+            Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
+        }
+        else -> {
+            // Loading state is handled by the AnimalFormScreen
+        }
+    }
 }

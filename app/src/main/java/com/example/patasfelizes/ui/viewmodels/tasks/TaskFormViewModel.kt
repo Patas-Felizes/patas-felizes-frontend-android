@@ -19,6 +19,20 @@ class TaskFormViewModel : ViewModel() {
     private val _state = MutableStateFlow<TaskFormState>(TaskFormState.Idle)
     val state: StateFlow<TaskFormState> = _state.asStateFlow()
 
+    fun loadTask(id: Int, onSuccess: (Task) -> Unit) {
+        _state.value = TaskFormState.Loading
+        repository.getTask(
+            id = id,
+            onSuccess = { task ->
+                onSuccess(task)
+                _state.value = TaskFormState.Idle
+            },
+            onError = { error ->
+                _state.value = TaskFormState.Error(error)
+            }
+        )
+    }
+
     fun createTask(task: Task, onComplete: () -> Unit) {
         _state.value = TaskFormState.Loading
         repository.createTask(

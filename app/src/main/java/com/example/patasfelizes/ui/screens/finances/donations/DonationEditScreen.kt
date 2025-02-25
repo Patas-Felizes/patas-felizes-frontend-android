@@ -6,6 +6,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import com.example.patasfelizes.models.Donation
@@ -17,11 +19,19 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 @Composable
 fun DonationEditScreen(
     navController: NavHostController,
-    donation: Donation,
+    donationId: Int,
     viewModel: DonationFormViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
+    val (donationLoaded, setDonationLoaded) = remember { mutableStateOf<Donation?>(null) }
+
+    // Carregar a doação quando a tela for inicializada
+    LaunchedEffect(donationId) {
+        viewModel.loadDonation(donationId) { donation ->
+            setDonationLoaded(donation)
+        }
+    }
 
     LaunchedEffect(state) {
         when (state) {
@@ -33,14 +43,17 @@ fun DonationEditScreen(
         }
     }
 
-    DonationFormScreen(
-        navController = navController,
-        initialDonation = donation,
-        onSave = { updatedDonation ->
-            viewModel.updateDonation(updatedDonation) {
-                navController.navigateUp()
-            }
-        },
-        isEditMode = true
-    )
+    // Aguardar a doação ser carregada antes de mostrar o formulário
+    donationLoaded?.let { donation ->
+        DonationFormScreen(
+            navController = navController,
+            initialDonation = donation,
+            onSave = { updatedDonation ->
+                viewModel.updateDonation(updatedDonation) {
+                    navController.navigateUp()
+                }
+            },
+            isEditMode = true
+        )
+    }
 }

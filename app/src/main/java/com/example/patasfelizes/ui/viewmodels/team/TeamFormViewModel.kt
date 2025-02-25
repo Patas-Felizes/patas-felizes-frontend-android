@@ -19,6 +19,20 @@ class TeamFormViewModel : ViewModel() {
     private val _state = MutableStateFlow<TeamFormState>(TeamFormState.Idle)
     val state: StateFlow<TeamFormState> = _state.asStateFlow()
 
+    fun loadVoluntario(id: Int, onSuccess: (Voluntary) -> Unit) {
+        _state.value = TeamFormState.Loading
+        repository.getVoluntario(
+            id = id,
+            onSuccess = { voluntario ->
+                onSuccess(voluntario)
+                _state.value = TeamFormState.Idle
+            },
+            onError = { error ->
+                _state.value = TeamFormState.Error(error)
+            }
+        )
+    }
+
     fun createVoluntario(voluntario: Voluntary, onComplete: () -> Unit) {
         _state.value = TeamFormState.Loading
         repository.createVoluntario(

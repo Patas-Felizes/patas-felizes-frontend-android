@@ -6,6 +6,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import com.example.patasfelizes.models.Stock
@@ -16,11 +18,19 @@ import com.example.patasfelizes.ui.viewmodels.stock.StockFormViewModel
 @Composable
 fun StockEditScreen(
     navController: NavHostController,
-    stock: Stock,
+    stockId: Int,
     viewModel: StockFormViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
+    val (stockLoaded, setStockLoaded) = remember { mutableStateOf<Stock?>(null) }
+
+    // Carregar o estoque quando a tela for inicializada
+    LaunchedEffect(stockId) {
+        viewModel.loadStock(stockId) { stock ->
+            setStockLoaded(stock)
+        }
+    }
 
     LaunchedEffect(state) {
         when (state) {
@@ -32,14 +42,17 @@ fun StockEditScreen(
         }
     }
 
-    StockFormScreen(
-        navController = navController,
-        initialStock = stock,
-        onSave = { updatedStock ->
-            viewModel.updateStock(updatedStock) {
-                navController.navigateUp()
-            }
-        },
-        isEditMode = true
-    )
+    // Aguardar o estoque ser carregado antes de mostrar o formulário
+    stockLoaded?.let { stock ->
+        StockFormScreen(
+            navController = navController,
+            initialStock = stock,
+            onSave = { updatedStock ->
+                viewModel.updateStock(updatedStock) {
+                    navController.navigateUp()
+                }
+            },
+            isEditMode = true
+        )
+    }
 }

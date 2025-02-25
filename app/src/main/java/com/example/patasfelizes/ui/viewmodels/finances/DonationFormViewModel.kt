@@ -19,6 +19,20 @@ class DonationFormViewModel : ViewModel() {
     private val _state = MutableStateFlow<DonationFormState>(DonationFormState.Idle)
     val state: StateFlow<DonationFormState> = _state.asStateFlow()
 
+    fun loadDonation(id: Int, onSuccess: (Donation) -> Unit) {
+        _state.value = DonationFormState.Loading
+        repository.getDonation(
+            id = id,
+            onSuccess = { donation ->
+                onSuccess(donation)
+                _state.value = DonationFormState.Idle
+            },
+            onError = { error ->
+                _state.value = DonationFormState.Error(error)
+            }
+        )
+    }
+
     fun createDonation(donation: Donation, onComplete: () -> Unit) {
         _state.value = DonationFormState.Loading
         repository.createDonation(
