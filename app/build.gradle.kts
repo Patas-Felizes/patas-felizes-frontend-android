@@ -60,6 +60,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.core.splashscreen)
 
+
     // Compose dependencies
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.tooling)
@@ -87,4 +88,9 @@ dependencies {
 
     implementation ("com.squareup.retrofit2:retrofit:2.3.0")
     implementation ("com.squareup.retrofit2:converter-gson:2.3.0")
+
+    implementation ("com.itextpdf:itext7-core:7.2.4")
+    implementation ("com.itextpdf:kernel:7.2.4")
+    implementation ("com.itextpdf:layout:7.2.4")
+    implementation ("com.itextpdf:io:7.2.4")
 }

@@ -1,58 +1,25 @@
 package com.example.patasfelizes.api
 
-import com.example.patasfelizes.models.Animal
-import com.example.patasfelizes.api.services.*
-import com.google.gson.*
+import com.example.patasfelizes.api.services.AdoptersService
+import com.example.patasfelizes.api.services.AdoptionsService
+import com.example.patasfelizes.api.services.AnimalsService
+import com.example.patasfelizes.api.services.CampaignsService
+import com.example.patasfelizes.api.services.DonationService
+import com.example.patasfelizes.api.services.ExtenseService
+import com.example.patasfelizes.api.services.HostService
+import com.example.patasfelizes.api.services.ProcedureService
+import com.example.patasfelizes.api.services.VoluntaryService
+import com.example.patasfelizes.api.services.StockService
+import com.example.patasfelizes.api.services.SupportService
+import com.example.patasfelizes.api.services.TaskService
+import com.example.patasfelizes.api.services.TempHomeService
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.lang.reflect.Type
-import java.time.LocalDate
 
 class RetrofitInitializer {
-
-    // Custom Gson adapter for Animal ensuring foto is handled as a Base64 string.
-    class AnimalAdapter : JsonSerializer<Animal>, JsonDeserializer<Animal> {
-        override fun serialize(src: Animal, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
-            val jsonObj = JsonObject()
-            jsonObj.addProperty("animal_id", src.animal_id)
-            jsonObj.addProperty("nome", src.nome)
-            jsonObj.addProperty("idade", src.idade)
-            jsonObj.addProperty("foto", src.foto) // foto em Base64
-            jsonObj.addProperty("descricao", src.descricao)
-            jsonObj.addProperty("sexo", src.sexo)
-            jsonObj.addProperty("castracao", src.castracao)
-            jsonObj.addProperty("status", src.status)
-            jsonObj.addProperty("especie", src.especie)
-            jsonObj.addProperty("data_cadastro", src.data_cadastro)
-            return jsonObj
-        }
-
-        override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): Animal {
-            val jsonObj = json.asJsonObject
-            return Animal(
-                animal_id = jsonObj.get("animal_id")?.asInt ?: 0,
-                nome = jsonObj.get("nome").asString,
-                idade = jsonObj.get("idade").asString,
-                foto = jsonObj.get("foto")?.asString ?: "",
-                descricao = jsonObj.get("descricao").asString,
-                sexo = jsonObj.get("sexo").asString,
-                castracao = jsonObj.get("castracao").asString,
-                status = jsonObj.get("status").asString,
-                especie = jsonObj.get("especie").asString,
-                data_cadastro = jsonObj.get("data_cadastro")?.asString ?: LocalDate.now().toString()
-            )
-        }
-    }
-
-    // Build a custom Gson instance registering the AnimalAdapter.
-    private val customGson: Gson = GsonBuilder()
-        .registerTypeAdapter(Animal::class.java, AnimalAdapter())
-        .create()
-
     private val retrofit = Retrofit.Builder()
-            .baseUrl("http://192.168.0.8:5000/")
-            // Use the custom Gson instance for serialization/deserialization
-            .addConverterFactory(GsonConverterFactory.create(customGson))
+            .baseUrl("http://192.168.0.6:5000/")
+            .addConverterFactory(GsonConverterFactory.create())
             .build()
 
     fun animalsService() = retrofit.create(AnimalsService::class.java)
@@ -68,4 +35,6 @@ class RetrofitInitializer {
     fun donationService() = retrofit.create(DonationService::class.java)
     fun extenseService() = retrofit.create(ExtenseService::class.java)
     fun procedureService() = retrofit.create(ProcedureService::class.java)
+
+
 }
