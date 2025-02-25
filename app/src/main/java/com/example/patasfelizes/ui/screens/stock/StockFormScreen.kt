@@ -22,12 +22,11 @@ fun StockFormScreen(
     onSave: (Stock) -> Unit,
     isEditMode: Boolean = false
 ) {
-    var category by remember { mutableStateOf(initialStock?.categoria ?: "") }
-    var type by remember { mutableStateOf(initialStock?.tipo_item ?: "") }
-    var description by remember { mutableStateOf(initialStock?.descricao ?: "") }
-    var animalSpecies by remember { mutableStateOf(initialStock?.especie_animal ?: "") }
-    var quantity by remember { mutableStateOf(TextFieldValue(initialStock?.quantidade ?: "")) }
-    var totalQuantity by remember { mutableStateOf(TextFieldValue(initialStock?.quantidade_total ?: "")) }
+    var category        by remember { mutableStateOf(initialStock?.categoria ?: "") }
+    var type            by remember { mutableStateOf(initialStock?.tipo_item ?: "") }
+    var description     by remember { mutableStateOf(TextFieldValue(initialStock?.descricao ?: "")) }
+    var animalSpecies   by remember { mutableStateOf(initialStock?.especie_animal ?: "") }
+    var quantity        by remember { mutableStateOf(TextFieldValue(initialStock?.quantidade ?: "")) }
 
     Scaffold { innerPadding ->
         Column(
@@ -68,8 +67,8 @@ fun StockFormScreen(
 
                 FormField(
                     label = "Descrição",
-                    value = TextFieldValue(description),
-                    onValueChange = { description = it.text },
+                    value = description,
+                    onValueChange = { description = it },
                     placeholder = "Informe a descrição",
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
@@ -91,13 +90,6 @@ fun StockFormScreen(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                FormField(
-                    label = "Quantidade Total",
-                    value = totalQuantity,
-                    onValueChange = { totalQuantity = it },
-                    placeholder = "Informe a quantidade total",
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
 
                 Row(
                     modifier = Modifier
@@ -123,18 +115,14 @@ fun StockFormScreen(
 
                     Button(
                         onClick = {
-                            if (quantity.text.isBlank() || totalQuantity.text.isBlank()) {
-                                return@Button
-                            }
 
                             val newStock = Stock(
                                 estoque_id = initialStock?.estoque_id ?: 0,
                                 categoria = category,
                                 tipo_item = type,
-                                descricao = description,
+                                descricao = description.text,
                                 especie_animal = animalSpecies,
-                                quantidade = quantity.text,
-                                quantidade_total = totalQuantity.text
+                                quantidade = quantity.text
                             )
 
                             onSave(newStock)

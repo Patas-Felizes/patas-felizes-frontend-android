@@ -20,6 +20,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.Image
 import androidx.compose.runtime.remember
 import com.example.patasfelizes.R
 import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
@@ -144,6 +145,7 @@ fun AnimalScreen(
                                                 Row(
                                                     modifier = Modifier.fillMaxWidth()
                                                 ) {
+
                                                     AsyncImage(
                                                         model = if (animal.foto.isNotEmpty()) animal.foto else R.drawable.default_image,
                                                         contentDescription = animal.nome,

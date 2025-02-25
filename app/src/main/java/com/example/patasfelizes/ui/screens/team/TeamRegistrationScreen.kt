@@ -1,5 +1,6 @@
 package com.example.patasfelizes.ui.screens.team
 
+import android.util.Log
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.navigation.NavHostController
@@ -15,8 +16,12 @@ fun TeamRegistrationScreen(
         navController = navController,
         onSave = { voluntary ->
             viewModel.createVoluntario(voluntary) {
-                navController.navigateUp()
+                // Use a rota correta "equipe" em vez de "team"
+                navController.navigate("equipe") {
+                    popUpTo("equipe") { inclusive = false }
+                }
             }
+
         },
         isEditMode = false
     )

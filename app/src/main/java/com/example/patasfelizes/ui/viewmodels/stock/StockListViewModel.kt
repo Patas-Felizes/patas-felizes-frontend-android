@@ -19,6 +19,7 @@ class StockListViewModel : ViewModel() {
 
     fun reloadStocks() {
         loadStocks()
+
     }
 
     private fun loadStocks() {

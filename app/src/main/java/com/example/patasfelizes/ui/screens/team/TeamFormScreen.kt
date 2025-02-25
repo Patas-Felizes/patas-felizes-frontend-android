@@ -3,23 +3,29 @@ package com.example.patasfelizes.ui.screens.team
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddPhotoAlternate
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
 import com.example.patasfelizes.models.Animal
 import com.example.patasfelizes.models.Voluntary
 import com.example.patasfelizes.ui.components.BoxWithProgressBar
@@ -39,7 +45,15 @@ fun TeamFormScreen(
     var nome by remember { mutableStateOf(TextFieldValue(initialVoluntary?.nome ?: "")) }
     var email by remember { mutableStateOf(TextFieldValue(initialVoluntary?.email ?: "")) }
     var telefone by remember { mutableStateOf(TextFieldValue(initialVoluntary?.telefone ?: "")) }
-    var foto by remember { mutableStateOf(initialVoluntary?.foto ?: "") }
+    var fotoUri by remember { mutableStateOf<Uri?>(initialVoluntary?.foto?.let { Uri.parse(it) }) }
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            fotoUri = it
+        }
+    }
 
     val state by viewModel.state.collectAsState()
     var isLoading by remember { mutableStateOf(false) }
@@ -92,6 +106,61 @@ fun TeamFormScreen(
                         .padding(vertical = 16.dp),
                     horizontalAlignment = Alignment.Start
                 ) {
+
+                    Text(
+                        text = "Foto do pet",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSecondary,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Card(
+                            modifier = Modifier
+                                .size(120.dp)
+                                .clickable { galleryLauncher.launch("image/*") },
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (fotoUri != null) {
+                                    AsyncImage(
+                                        model = fotoUri,
+                                        contentDescription = "Foto do voluntário",
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
+                                    )
+
+                                    IconButton(
+                                        onClick = { fotoUri = null },
+                                        modifier = Modifier.align(Alignment.TopEnd)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Close,
+                                            contentDescription = "Remover foto",
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
+                                    }
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Default.AddPhotoAlternate,
+                                        contentDescription = "Adicionar foto",
+                                        modifier = Modifier.size(32.dp),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                        }
+                    }
+
                     FormField(
                         label = "Nome",
                         placeholder = "Informe o nome do voluntário...",
@@ -157,14 +226,9 @@ fun TeamFormScreen(
                                     nome = nome.text.trim(),
                                     email = email.text.trim(),
                                     telefone = telefone.text.trim(),
-                                    foto = foto
+                                    foto = fotoUri?.toString() ?: ""
                                 )
 
-                                if (isEditMode) {
-                                    viewModel.updateVoluntario(voluntary) {}
-                                } else {
-                                    viewModel.createVoluntario(voluntary) {}
-                                }
                                 onSave(voluntary)
                             },
                             enabled = !isLoading,

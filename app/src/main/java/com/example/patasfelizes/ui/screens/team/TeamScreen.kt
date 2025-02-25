@@ -1,5 +1,6 @@
 package com.example.patasfelizes.ui.screens.team
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -32,14 +33,19 @@ fun TeamScreen(
     val voluntarios by viewModel.voluntarios.collectAsState()
 
     LaunchedEffect(true) {
+        Log.d("TeamScreen", "LaunchedEffect disparado, carregando voluntários")
         viewModel.reloadVoluntarios()
     }
 
-    val filteredVolunteers = voluntarios.filter { voluntary ->
-        searchQuery.text.isEmpty() ||
-                voluntary.nome.contains(searchQuery.text, ignoreCase = true) ||
-                voluntary.email.contains(searchQuery.text, ignoreCase = true)
+
+
+    val filterOptions = remember {
+        listOf(
+            FilterOption("Novos Voluntários")
+        )
     }
+
+    var currentFilters by remember { mutableStateOf(filterOptions) }
 
     Scaffold(
         floatingActionButton = {
@@ -64,6 +70,19 @@ fun TeamScreen(
                     onClearSearch = { searchQuery = TextFieldValue("") }
                 )
 
+                FilterComponent(
+                    filterOptions = currentFilters,
+                    onFilterChanged = { updatedFilters ->
+                        currentFilters = updatedFilters
+                    }
+                )
+
+                val filteredVolunteers = voluntarios.filter { voluntary ->
+                    searchQuery.text.isEmpty() ||
+                            voluntary.nome.contains(searchQuery.text, ignoreCase = true) ||
+                            voluntary.email.contains(searchQuery.text, ignoreCase = true)
+                }
+
                 LazyColumn(
                     modifier = Modifier.padding(horizontal = 5.dp),
                     contentPadding = PaddingValues(bottom = 20.dp)
@@ -73,6 +92,8 @@ fun TeamScreen(
                             modifier = Modifier.fillMaxWidth(),
                             contentAlignment = Alignment.Center
                         ) {
+
+
                             Card(
                                 modifier = Modifier
                                     .padding(vertical = 6.dp)

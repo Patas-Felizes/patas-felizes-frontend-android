@@ -43,6 +43,10 @@ fun TasksScreen(
 
     var currentFilters by remember { mutableStateOf(filterOptions) }
 
+    val filteredTasks = tasks.filter {
+        it.tipo.contains(searchQuery.text, ignoreCase = true)
+    }
+
     LaunchedEffect(Unit) {
         viewModel.reloadTasks()
         animalViewModel.reloadAnimals()
@@ -82,12 +86,12 @@ fun TasksScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 TaskList(
-                    tasks = tasks.filter {
-                        (it.descricao.contains(searchQuery.text, ignoreCase = true) ||
-                                it.tipo.contains(searchQuery.text, ignoreCase = true)) &&
-                                currentFilters.any { filter ->
-                                    filter.isSelected && filter.name == it.tipo
-                                }
+                    tasks = tasks.filter { task ->
+                        (searchQuery.text.isEmpty() ||
+                                task.descricao.contains(searchQuery.text, ignoreCase = true) ||
+                                task.tipo.contains(searchQuery.text, ignoreCase = true)) &&
+                                (currentFilters.none { it.isSelected } ||
+                                        currentFilters.any { filter -> filter.isSelected && filter.name == task.tipo })
                     },
                     animals = animals,
                     volunteers = volunteers,
@@ -115,7 +119,7 @@ fun TaskList(
             val backgroundColor = if (index % 2 == 0) {
                 MaterialTheme.colorScheme.secondary
             } else {
-                MaterialTheme.colorScheme.background
+                MaterialTheme.colorScheme.onPrimary
             }
             val animal = task.animal_id?.let { animalId ->
                 animals.find { it.animal_id == animalId }
@@ -155,15 +159,15 @@ fun TaskListItem(
                 .padding(16.dp)
         ) {
             Text(
-                text = task.tipo,
+                text = task.tipo?: "",
                 style = MaterialTheme.typography.titleSmall
             )
             Text(
-                text = task.descricao,
+                text = task.descricao?: "",
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
-                text = "Data: ${task.data_tarefa}",
+                text = "Data: ${task.data_tarefa?: ""}",
                 style = MaterialTheme.typography.bodySmall
             )
             animalName?.let {

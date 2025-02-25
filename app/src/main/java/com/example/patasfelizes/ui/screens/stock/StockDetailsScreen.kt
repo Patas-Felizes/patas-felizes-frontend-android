@@ -64,7 +64,6 @@ fun StockDetailsScreen(
                             DetailRow(label = "Tipo de Item", value = stock.tipo_item)
                             DetailRow(label = "Descrição", value = stock.descricao)
                             DetailRow(label = "Espécie de Animal", value = stock.especie_animal)
-                            DetailRow(label = "Quantidade", value = "${stock.quantidade}/${stock.quantidade_total}")
                         }
                     }
 

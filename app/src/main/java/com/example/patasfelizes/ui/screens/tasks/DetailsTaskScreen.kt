@@ -94,9 +94,9 @@ fun DetailsTaskScreen(
                                 modifier = Modifier.padding(16.dp),
                                 horizontalAlignment = Alignment.Start
                             ) {
-                                DetailRow(label = "Tipo", value = task.tipo)
-                                DetailRow(label = "Descrição", value = task.descricao)
-                                DetailRow(label = "Data da Tarefa", value = task.data_tarefa)
+                                DetailRow(label = "Tipo", value = task.tipo ?: "")
+                                DetailRow(label = "Descrição", value = task.descricao ?: "")
+                                DetailRow(label = "Data da Tarefa", value = task.data_tarefa ?: "")
                                 DetailRow(
                                     label = "Animal Relacionado",
                                     value = animal?.nome ?: "Não associado"
@@ -105,7 +105,6 @@ fun DetailsTaskScreen(
                                     label = "Voluntário Relacionado",
                                     value = volunteer?.nome ?: "Não associado"
                                 )
-                                DetailRow(label = "Data de Cadastro", value = task.data_cadastro)
                             }
                         }
 

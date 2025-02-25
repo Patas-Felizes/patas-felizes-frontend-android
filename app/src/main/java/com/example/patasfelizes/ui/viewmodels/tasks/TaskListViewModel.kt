@@ -24,6 +24,7 @@ class TaskListViewModel : ViewModel() {
     private fun loadTasks() {
         repository.listTasks(
             onSuccess = { taskList ->
+                Log.d("TaskListViewModel", "Tasks carregadas: $taskList")
                 _tasks.value = taskList
             },
             onError = { error ->

@@ -42,6 +42,10 @@ fun StockScreen(
                 it.especie_animal.contains(searchQuery.text, ignoreCase = true)
     }
 
+    LaunchedEffect(Unit) {
+        viewModel.reloadStocks()
+    }
+
     Scaffold(
         floatingActionButton = {
             CustomFloatingActionButton(
@@ -133,10 +137,6 @@ fun StockListItem(
             Text(
                 text = "Espécie: ${stock.especie_animal}",
                 style = MaterialTheme.typography.bodyMedium
-            )
-            Text(
-                text = "Quantidade: ${stock.quantidade}/${stock.quantidade_total}",
-                style = MaterialTheme.typography.bodySmall
             )
         }
     }

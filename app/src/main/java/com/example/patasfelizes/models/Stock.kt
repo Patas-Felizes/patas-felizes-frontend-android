@@ -7,7 +7,6 @@ data class Stock(
     val descricao: String,    // Adicionado para corresponder ao backend
     val especie_animal: String, // Alterado de 'animalEspecie' para 'especie_animal' para corresponder ao backend
     val quantidade: String,
-    val quantidade_total: String // Adicionado para corresponder ao backend
 )
 
 // StockResponse.kt - Para deserialização da resposta da API, seguindo o padrão do AnimalResponse
@@ -30,5 +29,4 @@ fun Stock.toBackendFormat(): Map<String, Any> = mapOf(
     "descricao" to descricao,
     "especie_animal" to especie_animal,
     "quantidade" to quantidade,
-    "quantidade_total" to quantidade_total
 )
