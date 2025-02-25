@@ -162,10 +162,8 @@ fun ProcedureFormScreen(
                                 descricao = descricao.text.trim(),
                                 valor = valor.text.trim(),
                                 data_procedimento = dataProcedimento.text.trim(),
-                                data_cadastro = LocalDate.now().toString(),
                                 animal_id = selectedAnimalId,
                                 voluntario_id = selectedVoluntaryId,
-                                despesa_id = null
                             )
 
                             onSave(newProcedure)

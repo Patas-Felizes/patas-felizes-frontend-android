@@ -8,7 +8,6 @@ data class Extense(
     val data_despesa: String,
     val tipo: String,
     val animal_id: Int? = null,
-    val procedimento_id: Int? = null,
     val comprovante: String = "",
     val data_cadastro: String = LocalDate.now().toString() // Mantém consistência com o formato do backend
 )
@@ -32,7 +31,6 @@ fun Extense.toBackendFormat(): Map<String, Any> = mapOf(
     "data_despesa" to data_despesa,
     "tipo" to tipo,
     "animal_id" to (animal_id ?: 0),
-    "procedimento_id" to (procedimento_id ?: 0),
     "comprovante" to comprovante,
     "data_cadastro" to data_cadastro
 )

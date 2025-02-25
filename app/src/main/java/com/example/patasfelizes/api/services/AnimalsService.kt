@@ -18,7 +18,7 @@ interface AnimalsService {
     @DELETE("/animals/{id}")
     fun deleteAnimal(@Path("id") id: Int): Call<Void>
     companion object {
-        private const val BASE_URL = "http://192.168.0.8:5000"
+        private const val BASE_URL = "http://192.168.0.5:5000"
         fun create(): AnimalsService {
             // Use the custom adapter from RetrofitInitializer to handle the foto field as Base64.
             val gson = GsonBuilder()

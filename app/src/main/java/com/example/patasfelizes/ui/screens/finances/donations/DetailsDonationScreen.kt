@@ -8,16 +8,38 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.patasfelizes.ui.components.BoxWithProgressBar
-import com.example.patasfelizes.ui.screens.adoptions.DetailRow
 import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
 import com.example.patasfelizes.ui.viewmodels.campaigns.CampaignListViewModel
 import com.example.patasfelizes.ui.viewmodels.donation.DonationDetailsState
 import com.example.patasfelizes.ui.viewmodels.donation.DonationDetailsViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+
+// Componente DetailRow local que aceita valores nulos para evitar o erro
+@Composable
+private fun DonationDetailRow(label: String, value: String?) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+    ) {
+        Text(
+            text = "$label: ",
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.weight(0.4f)
+        )
+        Text(
+            text = value ?: "Não informado",
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.weight(0.6f)
+        )
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,14 +109,6 @@ fun DetailsDonationScreen(
 
                         Spacer(modifier = Modifier.height(24.dp))
 
-                        Text(
-                            text = "Detalhes da Doação",
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.onBackground,
-                            textAlign = TextAlign.Center
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
 
                         Card(
                             modifier = Modifier
@@ -104,20 +118,22 @@ fun DetailsDonationScreen(
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary)
                         ) {
                             Column(
-                                modifier = Modifier.padding(horizontal = 16.dp),
+                                modifier = Modifier.padding(16.dp),
                                 horizontalAlignment = Alignment.Start
                             ) {
-                                DetailRow(label = "Doador", value = donation.doador)
-                                DetailRow(label = "Valor", value = "R$ ${donation.valor}")
-                                DetailRow(label = "Data da Doação", value = donation.data_doacao)
-                                DetailRow(label = "Data de Cadastro", value = donation.data_cadastro)
-                                DetailRow(
+                                // Usando nosso próprio componente DonationDetailRow que trata valores nulos
+                                DonationDetailRow(label = "Doador", value = donation.doador)
+                                DonationDetailRow(label = "Valor", value = "R$ ${donation.valor}")
+                                DonationDetailRow(label = "Data da Doação", value = donation.data_doacao)
+                                DonationDetailRow(label = "Data de Cadastro", value = donation.data_cadastro)
+                                DonationDetailRow(
                                     label = "Animal Relacionado",
-                                    value = if (animal != null) animal.nome else "Doação Geral"
+                                    value = animal?.nome ?: "Doação Geral"
                                 )
-                                if (campaign != null) {
-                                    DetailRow(label = "Campanha", value = campaign.nome)
-                                }
+                                DonationDetailRow(
+                                    label = "Campanha",
+                                    value = campaign?.nome ?: "Sem campanha associada"
+                                )
                             }
                         }
 

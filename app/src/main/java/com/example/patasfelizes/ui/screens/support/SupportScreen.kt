@@ -131,8 +131,8 @@ fun SupportListItem(
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
-                text = "Data: ${support.data_cadastro}",
-                style = MaterialTheme.typography.bodySmall
+                text = "Regularidade: ${support.regularidade}",
+                style = MaterialTheme.typography.bodyMedium
             )
         }
     }

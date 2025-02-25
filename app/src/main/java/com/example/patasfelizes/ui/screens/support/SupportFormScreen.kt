@@ -23,6 +23,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 fun SupportFormScreen(
     navController: NavHostController,
     initialSupport: Support? = null,
+    initialRegularidade: Support? = null,
+
     onSave: (Support) -> Unit,
     isEditMode: Boolean = false,
     animalViewModel: AnimalListViewModel = viewModel()
@@ -30,6 +32,9 @@ fun SupportFormScreen(
     var padrinhoNome by remember { mutableStateOf(TextFieldValue(initialSupport?.nome_apadrinhador ?: "")) }
     var valor by remember { mutableStateOf(TextFieldValue(initialSupport?.valor ?: "")) }
     var selectedPetId by remember { mutableStateOf(initialSupport?.animal_id) }
+
+    val tipoRegularidade = listOf("Semanalmente", "Mensalmente", "Quinzenalmente")
+    var regularidade by remember { mutableStateOf(initialRegularidade?.regularidade ?: "") }
 
     val animals by animalViewModel.animals.collectAsState()
 
@@ -75,6 +80,15 @@ fun SupportFormScreen(
                         onValueChange = { valor = it }
                     )
 
+                    CustomDropdown(
+                        selectedOption = regularidade,
+                        placeholder = "Selecione o tipo de despesa...",
+                        options = tipoRegularidade,
+                        onOptionSelected = { regularidade = it },
+                        label = "Tipo",
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Row(
@@ -102,7 +116,6 @@ fun SupportFormScreen(
                                     nome_apadrinhador = padrinhoNome.text,
                                     valor = valor.text,
                                     regularidade = "Mensalmente",
-                                    data_cadastro = LocalDate.now().toString()
                                 )
 
                                 onSave(support)

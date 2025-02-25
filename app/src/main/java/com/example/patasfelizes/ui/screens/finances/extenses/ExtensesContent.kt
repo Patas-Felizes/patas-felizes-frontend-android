@@ -17,7 +17,6 @@ import com.example.patasfelizes.models.Procedure
 fun ExtensesContent(
     expenses: List<Extense>,
     animals: List<Animal>,
-    procedures: List<Procedure>,
     onExtenseClick: (Extense) -> Unit
 ) {
     LazyColumn(
@@ -33,13 +32,10 @@ fun ExtensesContent(
             val animal = expense.animal_id?.let { animalId ->
                 animals.find { it.animal_id == animalId }
             }
-            val procedure = expense.procedimento_id?.let { procedimentoId ->
-                procedures.find { it.procedimento_id == procedimentoId }
-            }
+
             ExtenseListItem(
                 extense = expense,
                 animalName = animal?.nome,
-                procedureName = procedure?.tipo,
                 backgroundColor = backgroundColor,
                 onClick = { onExtenseClick(expense) }
             )
@@ -51,7 +47,6 @@ fun ExtensesContent(
 fun ExtenseListItem(
     extense: Extense,
     animalName: String?,
-    procedureName: String?,
     backgroundColor: Color,
     onClick: () -> Unit
 ) {
@@ -81,12 +76,6 @@ fun ExtenseListItem(
             if (animalName != null) {
                 Text(
                     text = "Animal: $animalName",
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-            if (procedureName != null) {
-                Text(
-                    text = "Procedimento: $procedureName",
                     style = MaterialTheme.typography.bodySmall
                 )
             }

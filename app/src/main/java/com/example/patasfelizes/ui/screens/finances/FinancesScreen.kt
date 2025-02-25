@@ -35,7 +35,6 @@ fun FinancesScreen(
     val donations by donationViewModel.donations.collectAsState()
     // Coletar dados dos novos viewModels
     val animals by animalViewModel.animals.collectAsState()
-    val procedures by procedureViewModel.procedures.collectAsState()
     val campaigns by campaignViewModel.campaigns.collectAsState()
 
     LaunchedEffect(Unit) {
@@ -118,7 +117,6 @@ fun FinancesScreen(
                     ExtensesContent(
                         expenses = filteredExpenses,
                         animals = animals, // Passar os animais
-                        procedures = procedures, // Passar os procedimentos
                         onExtenseClick = { expense ->
                             navController.navigate("extenseDetails/${expense.despesa_id}")
                         }
