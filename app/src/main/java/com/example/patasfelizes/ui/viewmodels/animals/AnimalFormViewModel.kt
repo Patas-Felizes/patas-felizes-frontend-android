@@ -6,6 +6,7 @@ import com.example.patasfelizes.repository.AnimalsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import android.util.Log
 
 sealed class AnimalFormState {
     object Idle : AnimalFormState()
@@ -20,6 +21,7 @@ class AnimalFormViewModel : ViewModel() {
     val state: StateFlow<AnimalFormState> = _state.asStateFlow()
 
     fun createAnimal(animal: Animal, onComplete: () -> Unit) {
+        Log.i("AnimalFormViewModel","createAnimal called with animal: $animal")
         _state.value = AnimalFormState.Loading
         repository.createAnimal(
             animal = animal,

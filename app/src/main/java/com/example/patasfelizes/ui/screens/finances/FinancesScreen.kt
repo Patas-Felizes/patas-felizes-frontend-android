@@ -99,21 +99,21 @@ fun FinancesScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Listagem de conteúdo baseado na aba selecionada
-                if (selectedTabIndex == 0) {
-                    ExtensesContent(
-                        expenses = filteredExpenses,
-                        onExtenseClick = { expense ->
-                            navController.navigate("extenseDetails/${expense.despesa_id}")
-                        }
-                    )
-                } else {
-                    DonationsContent(
-                        donations = filteredDonations,
-                        onDonationClick = { donation ->
-                            navController.navigate("donationDetails/${donation.doacao_id}")
-                        }
-                    )
-                }
+//                if (selectedTabIndex == 0) {
+//                    ExtensesContent(
+//                        expenses = filteredExpenses,
+//                        onExtenseClick = { expense ->
+//                            navController.navigate("extenseDetails/${expense.despesa_id}")
+//                        }
+//                    )
+//                } else {
+//                    DonationsContent(
+//                        donations = filteredDonations,
+//                        onDonationClick = { donation ->
+//                            navController.navigate("donationDetails/${donation.doacao_id}")
+//                        }
+//                    )
+//                }
             }
         }
     }
