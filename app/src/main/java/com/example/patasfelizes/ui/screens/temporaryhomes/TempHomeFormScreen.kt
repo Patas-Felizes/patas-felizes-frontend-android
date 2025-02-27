@@ -27,6 +27,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.patasfelizes.models.Adopter
 import com.example.patasfelizes.models.Host
 import com.example.patasfelizes.repository.HostRepository
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,124 +53,145 @@ fun TempHomeFormScreen(
     var newHostEmail by remember { mutableStateOf("") }
     var newHostPhone by remember { mutableStateOf("") }
 
+    // Estado para controlar a visibilidade da animação
+    val isVisible = remember { mutableStateOf(false) }
+
     // Repositório para criação do hospedeiro (similar ao AdoptersRepository)
     val hostRepository = remember { HostRepository() }
 
     val animals by animalViewModel.animals.collectAsState()
     val hosts by hostViewModel.hosts.collectAsState()
 
+    // Ativar a visibilidade após carregar
+    LaunchedEffect(Unit) {
+        isVisible.value = true
+    }
+
     BoxWithProgressBar(isLoading = false) {
         Scaffold { innerPadding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .verticalScroll(rememberScrollState()),
-                horizontalAlignment = Alignment.CenterHorizontally
+            // Envolvendo o conteúdo com Box e AnimatedVisibility
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    CustomDropdown(
-                        label = "Animal",
-                        selectedOption = animals.find { it.animal_id == selectedAnimalId }?.nome
-                            ?: "Selecione o animal",
-                        options = animals.map { it.nome },
-                        onOptionSelected = { selectedOption ->
-                            selectedAnimalId = animals.find { it.nome == selectedOption }?.animal_id
-                        }
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Row com dropdown de Hospedeiro e botão para adicionar novo hospedeiro
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+                // Usando qualificação completa para evitar conflitos de escopo
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = isVisible.value,
+                    enter = fadeIn(animationSpec = tween(durationMillis = 600)),
+                    exit = fadeOut()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
+                            .verticalScroll(rememberScrollState()),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        CustomDropdown(
-                            label = "Hospedeiro",
-                            selectedOption = hosts.find { it.hospedeiro_id == selectedHostId }?.nome
-                                ?: "Selecione o hospedeiro",
-                            options = hosts.map { it.nome },
-                            onOptionSelected = { selectedOption ->
-                                selectedHostId = hosts.find { it.nome == selectedOption }?.hospedeiro_id
-                            },
-                            modifier = Modifier.weight(1f)
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        IconButton(
-                            onClick = { showAddHostDialog = true },
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primary)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = "Adicionar hospedeiro",
-                                tint = MaterialTheme.colorScheme.onPrimary
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            CustomDropdown(
+                                label = "Animal",
+                                selectedOption = animals.find { it.animal_id == selectedAnimalId }?.nome
+                                    ?: "Selecione o animal",
+                                options = animals.map { it.nome },
+                                onOptionSelected = { selectedOption ->
+                                    selectedAnimalId = animals.find { it.nome == selectedOption }?.animal_id
+                                }
                             )
-                        }
-                    }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
 
-                    FormField(
-                        label = "Período",
-                        placeholder = "Período da hospedagem",
-                        value = periodo,
-                        onValueChange = { periodo = it }
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    DatePickerField(
-                        label = "Data de Hospedagem",
-                        placeholder = "YYYY-MM-DD",
-                        value = dataHospedagem.text,
-                        onDateSelected = { newDate ->
-                            dataHospedagem = TextFieldValue(newDate)
-                        },
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Button(
-                            onClick = { navController.navigateUp() },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text("Cancelar")
-                        }
-
-                        Spacer(modifier = Modifier.width(16.dp))
-
-                        Button(
-                            onClick = {
-                                if (selectedAnimalId == null || selectedHostId == null ||
-                                    periodo.text.isBlank() || dataHospedagem.text.isBlank()
+                            // Row com dropdown de Hospedeiro e botão para adicionar novo hospedeiro
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                CustomDropdown(
+                                    label = "Hospedeiro",
+                                    selectedOption = hosts.find { it.hospedeiro_id == selectedHostId }?.nome
+                                        ?: "Selecione o hospedeiro",
+                                    options = hosts.map { it.nome },
+                                    onOptionSelected = { selectedOption ->
+                                        selectedHostId = hosts.find { it.nome == selectedOption }?.hospedeiro_id
+                                    },
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Spacer(modifier = Modifier.width(16.dp))
+                                IconButton(
+                                    onClick = { showAddHostDialog = true },
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.primary)
                                 ) {
-                                    return@Button
+                                    Icon(
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = "Adicionar hospedeiro",
+                                        tint = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            FormField(
+                                label = "Período",
+                                placeholder = "Período da hospedagem",
+                                value = periodo,
+                                onValueChange = { periodo = it }
+                            )
+
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            DatePickerField(
+                                label = "Data de Hospedagem",
+                                placeholder = "YYYY-MM-DD",
+                                value = dataHospedagem.text,
+                                onDateSelected = { newDate ->
+                                    dataHospedagem = TextFieldValue(newDate)
+                                },
+                                modifier = Modifier.padding(bottom = 16.dp)
+                            )
+
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Button(
+                                    onClick = { navController.navigateUp() },
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text("Cancelar")
                                 }
 
-                                val tempHome = TempHome(
-                                    lar_temporario_id = initialTempHome?.lar_temporario_id ?: 0,
-                                    animal_id = selectedAnimalId!!,
-                                    hospedeiro_id = selectedHostId!!,
-                                    periodo = periodo.text,
-                                    data_hospedagem = dataHospedagem.text,
-                                    data_cadastro = initialTempHome?.data_cadastro ?: LocalDate.now().toString()
-                                )
+                                Spacer(modifier = Modifier.width(16.dp))
 
-                                onSave(tempHome)
-                            },
-                            enabled = selectedAnimalId != null && selectedHostId != null,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text("Salvar")
+                                Button(
+                                    onClick = {
+                                        if (selectedAnimalId == null || selectedHostId == null ||
+                                            periodo.text.isBlank() || dataHospedagem.text.isBlank()
+                                        ) {
+                                            return@Button
+                                        }
+
+                                        val tempHome = TempHome(
+                                            lar_temporario_id = initialTempHome?.lar_temporario_id ?: 0,
+                                            animal_id = selectedAnimalId!!,
+                                            hospedeiro_id = selectedHostId!!,
+                                            periodo = periodo.text,
+                                            data_hospedagem = dataHospedagem.text,
+                                            data_cadastro = initialTempHome?.data_cadastro ?: LocalDate.now().toString()
+                                        )
+
+                                        onSave(tempHome)
+                                    },
+                                    enabled = selectedAnimalId != null && selectedHostId != null,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text("Salvar")
+                                }
+                            }
                         }
                     }
                 }

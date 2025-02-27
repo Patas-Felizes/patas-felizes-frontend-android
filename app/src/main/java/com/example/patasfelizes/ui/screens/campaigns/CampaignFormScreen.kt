@@ -14,6 +14,10 @@ import com.example.patasfelizes.models.Campaign
 import com.example.patasfelizes.ui.components.DatePickerField
 import com.example.patasfelizes.ui.components.FormField
 import java.time.LocalDate
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,6 +34,14 @@ fun CampaignFormScreen(
     var dataTermino by remember { mutableStateOf(TextFieldValue(initialCampaign?.data_termino ?: "")) }
     var local by remember { mutableStateOf(TextFieldValue(initialCampaign?.local ?: "")) }
 
+    // Estado para controlar a visibilidade da animação
+    val isVisible = remember { mutableStateOf(false) }
+
+    // Lançar efeito para definir a visibilidade como true após a renderização inicial
+    LaunchedEffect(Unit) {
+        isVisible.value = true
+    }
+
     Scaffold { innerPadding ->
         Column(
             modifier = Modifier
@@ -43,113 +55,120 @@ fun CampaignFormScreen(
                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
             )
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth(0.88f)
-                    .padding(vertical = 16.dp),
-                horizontalAlignment = Alignment.Start
+            // Envolvendo o conteúdo do formulário com AnimatedVisibility
+            AnimatedVisibility(
+                visible = isVisible.value,
+                enter = fadeIn(animationSpec = tween(durationMillis = 600)),
+                exit = fadeOut()
             ) {
-                FormField(
-                    label = "Nome",
-                    placeholder = "Digite o nome da campanha...",
-                    value = nome,
-                    onValueChange = { nome = it },
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                FormField(
-                    label = "Tipo",
-                    placeholder = "Informe o tipo da campanha...",
-                    value = tipo,
-                    onValueChange = { tipo = it },
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                FormField(
-                    label = "Descrição",
-                    placeholder = "Descreva a campanha...",
-                    value = descricao,
-                    onValueChange = { descricao = it },
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                FormField(
-                    label = "Local",
-                    placeholder = "Informe o local da campanha...",
-                    value = local,
-                    onValueChange = { local = it },
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                DatePickerField(
-                    label = "Data de Início",
-                    placeholder = "YYYY-MM-DD",
-                    value = dataInicio.text,
-                    onDateSelected = { newDate ->
-                        dataInicio = TextFieldValue(newDate)
-                    },
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                DatePickerField(
-                    label = "Data de Término",
-                    placeholder = "YYYY-MM-DD",
-                    value = dataTermino.text,
-                    onDateSelected = { newDate ->
-                        dataTermino = TextFieldValue(newDate)
-                    },
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                Row(
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                        .fillMaxWidth(0.88f)
+                        .padding(vertical = 16.dp),
+                    horizontalAlignment = Alignment.Start
                 ) {
-                    Button(
-                        onClick = { navController.navigateUp() },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = MaterialTheme.colorScheme.secondary
-                        )
-                    ) {
-                        Text(
-                            text = if (isEditMode) "Cancelar" else "Voltar",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onTertiary
-                        )
-                    }
+                    FormField(
+                        label = "Nome",
+                        placeholder = "Digite o nome da campanha...",
+                        value = nome,
+                        onValueChange = { nome = it },
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
 
-                    Spacer(modifier = Modifier.width(16.dp))
+                    FormField(
+                        label = "Tipo",
+                        placeholder = "Informe o tipo da campanha...",
+                        value = tipo,
+                        onValueChange = { tipo = it },
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
 
-                    Button(
-                        onClick = {
-                            if (nome.text.isBlank() || tipo.text.isBlank() || descricao.text.isBlank() ||
-                                dataInicio.text.isBlank() || dataTermino.text.isBlank() || local.text.isBlank()
-                            ) {
-                                return@Button
-                            }
+                    FormField(
+                        label = "Descrição",
+                        placeholder = "Descreva a campanha...",
+                        value = descricao,
+                        onValueChange = { descricao = it },
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
 
-                            val campaign = Campaign(
-                                campanha_id = initialCampaign?.campanha_id ?: 0,
-                                nome = nome.text.trim(),
-                                tipo = tipo.text.trim(),
-                                descricao = descricao.text.trim(),
-                                data_inicio = dataInicio.text.trim(),
-                                data_termino = dataTermino.text.trim(),
-                                local = local.text.trim(),
-                                data_cadastro = initialCampaign?.data_cadastro ?: LocalDate.now().toString()
-                            )
+                    FormField(
+                        label = "Local",
+                        placeholder = "Informe o local da campanha...",
+                        value = local,
+                        onValueChange = { local = it },
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
 
-                            onSave(campaign)
+                    DatePickerField(
+                        label = "Data de Início",
+                        placeholder = "YYYY-MM-DD",
+                        value = dataInicio.text,
+                        onDateSelected = { newDate ->
+                            dataInicio = TextFieldValue(newDate)
                         },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
+                    DatePickerField(
+                        label = "Data de Término",
+                        placeholder = "YYYY-MM-DD",
+                        value = dataTermino.text,
+                        onDateSelected = { newDate ->
+                            dataTermino = TextFieldValue(newDate)
+                        },
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(
-                            text = "Salvar",
-                            style = MaterialTheme.typography.labelSmall
-                        )
+                        Button(
+                            onClick = { navController.navigateUp() },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = MaterialTheme.colorScheme.secondary
+                            )
+                        ) {
+                            Text(
+                                text = if (isEditMode) "Cancelar" else "Voltar",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onTertiary
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        Button(
+                            onClick = {
+                                if (nome.text.isBlank() || tipo.text.isBlank() || descricao.text.isBlank() ||
+                                    dataInicio.text.isBlank() || dataTermino.text.isBlank() || local.text.isBlank()
+                                ) {
+                                    return@Button
+                                }
+
+                                val campaign = Campaign(
+                                    campanha_id = initialCampaign?.campanha_id ?: 0,
+                                    nome = nome.text.trim(),
+                                    tipo = tipo.text.trim(),
+                                    descricao = descricao.text.trim(),
+                                    data_inicio = dataInicio.text.trim(),
+                                    data_termino = dataTermino.text.trim(),
+                                    local = local.text.trim(),
+                                    data_cadastro = initialCampaign?.data_cadastro ?: LocalDate.now().toString()
+                                )
+
+                                onSave(campaign)
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "Salvar",
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        }
                     }
                 }
             }

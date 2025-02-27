@@ -15,6 +15,10 @@ import com.example.patasfelizes.ui.components.BoxWithProgressBar
 import com.example.patasfelizes.ui.viewmodels.support.SupportDetailsViewModel
 import com.example.patasfelizes.ui.viewmodels.support.SupportDetailsState
 import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,9 +32,15 @@ fun SupportDetailsScreen(
     val uiState by viewModel.uiState.collectAsState()
     val animals by animalViewModel.animals.collectAsState()
 
+    // Estado para controlar a visibilidade da animação
+    val isVisible = remember { mutableStateOf(false) }
+
     LaunchedEffect(supportId) {
         viewModel.loadSupport(supportId)
         animalViewModel.reloadAnimals()
+
+        // Ativar a visibilidade após carregar os dados
+        isVisible.value = true
     }
 
     BoxWithProgressBar(isLoading = uiState is SupportDetailsState.Loading) {
@@ -69,65 +79,78 @@ fun SupportDetailsScreen(
                             .verticalScroll(rememberScrollState()),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth(0.95f)
-                                .padding(horizontal = 16.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary)
+                        // Aplicando AnimatedVisibility ao conteúdo principal
+                        AnimatedVisibility(
+                            visible = isVisible.value,
+                            enter = fadeIn(animationSpec = tween(durationMillis = 600)),
+                            exit = fadeOut()
                         ) {
                             Column(
-                                modifier = Modifier.padding(16.dp),
-                                horizontalAlignment = Alignment.Start
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                DetailRow("Animal", animal?.nome ?: "Animal não encontrado")
-                                DetailRow("Padrinho", support.nome_apadrinhador)
-                                DetailRow("Valor", "R$ ${support.valor}")
-                                DetailRow("Regularidade", support.regularidade)
+                                Spacer(modifier = Modifier.height(16.dp))
+
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.95f)
+                                        .padding(horizontal = 16.dp),
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary)
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(16.dp),
+                                        horizontalAlignment = Alignment.Start
+                                    ) {
+                                        DetailRow("Animal", animal?.nome ?: "Animal não encontrado")
+                                        DetailRow("Padrinho", support.nome_apadrinhador)
+                                        DetailRow("Valor", "R$ ${support.valor}")
+                                        DetailRow("Regularidade", support.regularidade)
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(24.dp))
+
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.9f)
+                                        .padding(horizontal = 16.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Button(
+                                        onClick = { navController.navigateUp() },
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text("Voltar")
+                                    }
+
+                                    Spacer(modifier = Modifier.width(16.dp))
+
+                                    Button(
+                                        onClick = { navController.navigate("editSupport/${support.apadrinhamento_id}") },
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text("Editar")
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(11.dp))
+
+                                Button(
+                                    onClick = { showDeleteConfirmation = true },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.error,
+                                        contentColor = MaterialTheme.colorScheme.onError
+                                    ),
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.9f)
+                                        .padding(horizontal = 16.dp)
+                                ) {
+                                    Text("Remover apadrinhamento")
+                                }
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(24.dp))
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth(0.9f)
-                                .padding(horizontal = 16.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Button(
-                                onClick = { navController.navigateUp() },
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text("Voltar")
-                            }
-
-                            Spacer(modifier = Modifier.width(16.dp))
-
-                            Button(
-                                onClick = { navController.navigate("editSupport/${support.apadrinhamento_id}") },
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text("Editar")
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(11.dp))
-
-                        Button(
-                            onClick = { showDeleteConfirmation = true },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.error,
-                                contentColor = MaterialTheme.colorScheme.onError
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth(0.9f)
-                                .padding(horizontal = 16.dp)
-                        ) {
-                            Text("Remover apadrinhamento")
-                        }
-
+                        // Dialog mantido fora da animação
                         if (showDeleteConfirmation) {
                             AlertDialog(
                                 onDismissRequest = { showDeleteConfirmation = false },

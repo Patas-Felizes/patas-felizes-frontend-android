@@ -13,6 +13,10 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.patasfelizes.ui.viewmodels.stock.StockDetailsViewModel
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,8 +28,14 @@ fun StockDetailsScreen(
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsState()
 
+    // Estado para controlar a visibilidade da animação
+    val isVisible = remember { mutableStateOf(false) }
+
     LaunchedEffect(stockId) {
         viewModel.loadStock(stockId)
+
+        // Ativar a visibilidade após carregar os dados
+        isVisible.value = true
     }
 
     Scaffold { innerPadding ->
@@ -47,83 +57,96 @@ fun StockDetailsScreen(
                         .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth(0.95f)
-                            .padding(horizontal = 16.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary)
+                    // Aplicando AnimatedVisibility ao conteúdo principal
+                    AnimatedVisibility(
+                        visible = isVisible.value,
+                        enter = fadeIn(animationSpec = tween(durationMillis = 600)),
+                        exit = fadeOut()
                     ) {
                         Column(
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
-                            horizontalAlignment = Alignment.Start
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            DetailRow(label = "Categoria", value = stock.categoria)
-                            DetailRow(label = "Tipo de Item", value = stock.tipo_item)
-                            DetailRow(label = "Descrição", value = stock.descricao)
-                            DetailRow(label = "Espécie de Animal", value = stock.especie_animal)
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth(0.95f)
+                                    .padding(horizontal = 16.dp),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary)
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
+                                    horizontalAlignment = Alignment.Start
+                                ) {
+                                    DetailRow(label = "Categoria", value = stock.categoria)
+                                    DetailRow(label = "Tipo de Item", value = stock.tipo_item)
+                                    DetailRow(label = "Descrição", value = stock.descricao)
+                                    DetailRow(label = "Espécie de Animal", value = stock.especie_animal)
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth(0.9f)
+                                    .padding(horizontal = 16.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Button(
+                                    onClick = { navController.navigateUp() },
+                                    modifier = Modifier.weight(1f),
+                                    colors = ButtonDefaults.outlinedButtonColors(
+                                        containerColor = MaterialTheme.colorScheme.secondary,
+                                    ),
+                                ) {
+                                    Text(
+                                        text = "Voltar",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onTertiary,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(16.dp))
+
+                                Button(
+                                    onClick = { navController.navigate("editStock/${stock.estoque_id}") },
+                                    modifier = Modifier.weight(1f),
+                                    contentPadding = PaddingValues(vertical = 8.dp, horizontal = 16.dp)
+                                ) {
+                                    Text(
+                                        text = "Editar",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(11.dp))
+
+                            Button(
+                                onClick = { showDeleteConfirmation = true },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.error,
+                                    contentColor = MaterialTheme.colorScheme.onError
+                                ),
+                                modifier = Modifier
+                                    .fillMaxWidth(0.9f)
+                                    .padding(horizontal = 16.dp),
+                                contentPadding = PaddingValues(vertical = 8.dp, horizontal = 16.dp)
+                            ) {
+                                Text(
+                                    text = "Remover item",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth(0.9f)
-                            .padding(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Button(
-                            onClick = { navController.navigateUp() },
-                            modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                containerColor = MaterialTheme.colorScheme.secondary,
-                            ),
-                        ) {
-                            Text(
-                                text = "Voltar",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onTertiary,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(16.dp))
-
-                        Button(
-                            onClick = { navController.navigate("editStock/${stock.estoque_id}") },
-                            modifier = Modifier.weight(1f),
-                            contentPadding = PaddingValues(vertical = 8.dp, horizontal = 16.dp)
-                        ) {
-                            Text(
-                                text = "Editar",
-                                style = MaterialTheme.typography.labelSmall,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(11.dp))
-
-                    Button(
-                        onClick = { showDeleteConfirmation = true },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.error,
-                            contentColor = MaterialTheme.colorScheme.onError
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth(0.9f)
-                            .padding(horizontal = 16.dp),
-                        contentPadding = PaddingValues(vertical = 8.dp, horizontal = 16.dp)
-                    ) {
-                        Text(
-                            text = "Remover item",
-                            style = MaterialTheme.typography.labelSmall,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-
+                    // Dialog mantido fora da animação
                     if (showDeleteConfirmation) {
                         AlertDialog(
                             onDismissRequest = { showDeleteConfirmation = false },

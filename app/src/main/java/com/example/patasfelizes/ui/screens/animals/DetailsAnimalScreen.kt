@@ -27,6 +27,10 @@ import com.example.patasfelizes.ui.components.BoxWithProgressBar
 import com.example.patasfelizes.ui.viewmodels.animals.AnimalDetailsViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import com.example.patasfelizes.models.Animal
 import com.example.patasfelizes.ui.viewmodels.animals.AnimalDetailsState
 import kotlinx.coroutines.Dispatchers
@@ -47,11 +51,13 @@ fun DetailsAnimalScreen(
     val scope = rememberCoroutineScope()
     val uiState by viewModel.uiState.collectAsState()
 
-    // Estado para armazenar o bitmap convertido
     var fotoBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
+
+    val isVisible = remember { mutableStateOf(false) }
 
     LaunchedEffect(animalId) {
         viewModel.loadAnimal(animalId)
+        isVisible.value = true
     }
 
     when (val state = uiState) {
@@ -80,16 +86,11 @@ fun DetailsAnimalScreen(
         is AnimalDetailsState.Success -> {
             val animal = state.animal
 
-            // Converter dados da foto para Bitmap quando o animal for carregado
-            // Com tratamento seguro para evitar NullPointerException
             LaunchedEffect(animal) {
                 try {
-                    // Assumindo que estamos usando a versão atualizada de Animal.kt onde foto é String
-                    // e temos um método seguro para obter ByteArray
                     val byteArray = withContext(Dispatchers.IO) {
                         if (animal.foto.isNotEmpty()) {
                             try {
-                                // Se sua classe Animal já foi modificada para ter foto como String
                                 Animal.decodeFromBase64(animal.foto)
                             } catch (e: Exception) {
                                 Log.e("DetailsAnimalScreen", "Erro ao decodificar foto: ${e.message}")
@@ -100,11 +101,9 @@ fun DetailsAnimalScreen(
                         }
                     }
 
-                    // Só tenta converter para bitmap se tivermos dados válidos
                     if (byteArray.isNotEmpty()) {
                         fotoBitmap = withContext(Dispatchers.IO) {
                             try {
-                                // Updated conversion: decode byte array directly using BitmapFactory.
                                 BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
                             } catch (e: Exception) {
                                 Log.e("DetailsAnimalScreen", "Erro ao converter para bitmap: ${e.message}")
@@ -131,195 +130,205 @@ fun DetailsAnimalScreen(
                             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
                         )
 
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // Imagem do animal como bitmap
-                        Box(
-                            modifier = Modifier
-                                .size(120.dp)
-                                .border(
-                                    BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
-                                    CircleShape
-                                )
-                                .clip(CircleShape)
-                                .clickable(enabled = fotoBitmap != null) {
-                                    if (fotoBitmap != null) {
-                                        showExpandedImage = true
-                                    }
-                                }
+                        AnimatedVisibility(
+                            visible = isVisible.value,
+                            enter = fadeIn(animationSpec = tween(durationMillis = 600)),
+                            exit = fadeOut()
                         ) {
-                            if (fotoBitmap != null) {
-                                Image(
-                                    bitmap = fotoBitmap!!.asImageBitmap(),
-                                    contentDescription = animal.nome,
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentScale = ContentScale.Crop
-                                )
-                            } else {
-                                // Imagem padrão para quando não houver foto
-                                Surface(
-                                    color = MaterialTheme.colorScheme.primaryContainer,
-                                    modifier = Modifier.fillMaxSize()
-                                ) {
-                                    Box(
-                                        contentAlignment = Alignment.Center,
-                                        modifier = Modifier.fillMaxSize()
-                                    ) {
-                                        Text(
-                                            text = animal.nome.firstOrNull()?.toString() ?: "?",
-                                            style = MaterialTheme.typography.headlineLarge,
-                                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                                        )
-                                    }
-                                }
-                            }
-                        }
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Spacer(modifier = Modifier.height(16.dp))
 
-                        if (showExpandedImage && fotoBitmap != null) {
-                            Dialog(onDismissRequest = { showExpandedImage = false }) {
-                                Surface(
+                                Box(
                                     modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(400.dp),
-                                    color = MaterialTheme.colorScheme.background.copy(alpha = 0.9f),
-                                    shape = RoundedCornerShape(8.dp)
+                                        .size(120.dp)
+                                        .border(
+                                            BorderStroke(2.dp, MaterialTheme.colorScheme.primary),
+                                            CircleShape
+                                        )
+                                        .clip(CircleShape)
+                                        .clickable(enabled = fotoBitmap != null) {
+                                            if (fotoBitmap != null) {
+                                                showExpandedImage = true
+                                            }
+                                        }
                                 ) {
-                                    Box(
-                                        contentAlignment = Alignment.Center,
-                                        modifier = Modifier.fillMaxSize()
-                                    ) {
+                                    if (fotoBitmap != null) {
                                         Image(
                                             bitmap = fotoBitmap!!.asImageBitmap(),
-                                            contentDescription = "${animal.nome} - Expandida",
-                                            modifier = Modifier.padding(16.dp),
-                                            contentScale = ContentScale.Fit
+                                            contentDescription = animal.nome,
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop
                                         )
-
-                                        IconButton(
-                                            onClick = { showExpandedImage = false },
-                                            modifier = Modifier.align(Alignment.TopEnd)
+                                    } else {
+                                        // Imagem padrão para quando não houver foto
+                                        Surface(
+                                            color = MaterialTheme.colorScheme.primaryContainer,
+                                            modifier = Modifier.fillMaxSize()
                                         ) {
-                                            Icon(
-                                                imageVector = Icons.Default.Close,
-                                                contentDescription = "Fechar"
-                                            )
+                                            Box(
+                                                contentAlignment = Alignment.Center,
+                                                modifier = Modifier.fillMaxSize()
+                                            ) {
+                                                Text(
+                                                    text = animal.nome.firstOrNull()?.toString() ?: "?",
+                                                    style = MaterialTheme.typography.headlineLarge,
+                                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                                )
+                                            }
                                         }
                                     }
                                 }
-                            }
-                        }
 
-                        Spacer(modifier = Modifier.height(16.dp))
+                                Spacer(modifier = Modifier.height(16.dp))
 
-                        Text(
-                            text = animal.nome,
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onBackground,
-                            textAlign = TextAlign.Center
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth(0.97f)
-                                .padding(horizontal = 16.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary)
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                horizontalAlignment = Alignment.Start
-                            ) {
-                                DetailRow(label = "Descrição", value = animal.descricao)
-                                DetailRow(label = "Idade", value = animal.idade)
-                                DetailRow(label = "Sexo", value = animal.sexo)
-                                DetailRow(label = "Castração", value = animal.castracao)
-                                DetailRow(label = "Status", value = animal.status)
-                                DetailRow(label = "Espécie", value = animal.especie)
-                                DetailRow(label = "Data de Cadastro", value = animal.data_cadastro)
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(24.dp))
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth(0.9f)
-                                .padding(horizontal = 16.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Button(
-                                onClick = { navController.navigateUp() },
-                                modifier = Modifier.weight(1f),
-                                colors = ButtonDefaults.outlinedButtonColors(
-                                    containerColor = MaterialTheme.colorScheme.secondary
-                                )
-                            ) {
                                 Text(
-                                    text = "Voltar",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onTertiary
+                                    text = animal.nome,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    textAlign = TextAlign.Center
                                 )
-                            }
 
-                            Spacer(modifier = Modifier.width(16.dp))
+                                Spacer(modifier = Modifier.height(16.dp))
 
-                            Button(
-                                onClick = { navController.navigate("editAnimal/${animal.animal_id}") },
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text(
-                                    text = "Editar",
-                                    style = MaterialTheme.typography.labelSmall
-                                )
-                            }
-                        }
-
-                        Button(
-                            onClick = { showDeleteConfirmation = true },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.error
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth(0.9f)
-                                .padding(top = 16.dp)
-                        ) {
-                            Text(
-                                text = "Remover pet",
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        }
-
-                        if (showDeleteConfirmation) {
-                            AlertDialog(
-                                onDismissRequest = { showDeleteConfirmation = false },
-                                title = { Text("Confirmar Exclusão") },
-                                text = { Text("Tem certeza que deseja remover ${animal.nome}?") },
-                                confirmButton = {
-                                    TextButton(
-                                        onClick = {
-                                            viewModel.deleteAnimal(animal.animal_id) {
-                                                navController.navigateUp()
-                                            }
-                                        },
-                                        enabled = !state.isDeleting
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.97f)
+                                        .padding(horizontal = 16.dp),
+                                    shape = RoundedCornerShape(16.dp),
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary)
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(horizontal = 16.dp),
+                                        horizontalAlignment = Alignment.Start
                                     ) {
-                                        Text("Confirmar")
-                                    }
-                                },
-                                dismissButton = {
-                                    TextButton(
-                                        onClick = { showDeleteConfirmation = false },
-                                        enabled = !state.isDeleting
-                                    ) {
-                                        Text("Cancelar")
+                                        DetailRow(label = "Descrição", value = animal.descricao)
+                                        DetailRow(label = "Idade", value = animal.idade)
+                                        DetailRow(label = "Sexo", value = animal.sexo)
+                                        DetailRow(label = "Castração", value = animal.castracao)
+                                        DetailRow(label = "Status", value = animal.status)
+                                        DetailRow(label = "Espécie", value = animal.especie)
+                                        DetailRow(label = "Data de Cadastro", value = animal.data_cadastro)
                                     }
                                 }
-                            )
-                        }
 
-                        Spacer(modifier = Modifier.height(32.dp))
+                                Spacer(modifier = Modifier.height(24.dp))
+
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.9f)
+                                        .padding(horizontal = 16.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Button(
+                                        onClick = { navController.navigateUp() },
+                                        modifier = Modifier.weight(1f),
+                                        colors = ButtonDefaults.outlinedButtonColors(
+                                            containerColor = MaterialTheme.colorScheme.secondary
+                                        )
+                                    ) {
+                                        Text(
+                                            text = "Voltar",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onTertiary
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.width(16.dp))
+
+                                    Button(
+                                        onClick = { navController.navigate("editAnimal/${animal.animal_id}") },
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text(
+                                            text = "Editar",
+                                            style = MaterialTheme.typography.labelSmall
+                                        )
+                                    }
+                                }
+
+                                Button(
+                                    onClick = { showDeleteConfirmation = true },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.error
+                                    ),
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.9f)
+                                        .padding(top = 16.dp)
+                                ) {
+                                    Text(
+                                        text = "Remover pet",
+                                        style = MaterialTheme.typography.labelSmall
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.height(32.dp))
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (showDeleteConfirmation) {
+                AlertDialog(
+                    onDismissRequest = { showDeleteConfirmation = false },
+                    title = { Text("Confirmar Exclusão") },
+                    text = { Text("Tem certeza que deseja remover ${animal.nome}?") },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                viewModel.deleteAnimal(animal.animal_id) {
+                                    navController.navigateUp()
+                                }
+                            },
+                            enabled = !state.isDeleting
+                        ) {
+                            Text("Confirmar")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = { showDeleteConfirmation = false },
+                            enabled = !state.isDeleting
+                        ) {
+                            Text("Cancelar")
+                        }
+                    }
+                )
+            }
+
+            if (showExpandedImage && fotoBitmap != null) {
+                Dialog(onDismissRequest = { showExpandedImage = false }) {
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(400.dp),
+                        color = MaterialTheme.colorScheme.background.copy(alpha = 0.9f),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Image(
+                                bitmap = fotoBitmap!!.asImageBitmap(),
+                                contentDescription = "${animal.nome} - Expandida",
+                                modifier = Modifier.padding(16.dp),
+                                contentScale = ContentScale.Fit
+                            )
+
+                            IconButton(
+                                onClick = { showExpandedImage = false },
+                                modifier = Modifier.align(Alignment.TopEnd)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Fechar"
+                                )
+                            }
+                        }
                     }
                 }
             }

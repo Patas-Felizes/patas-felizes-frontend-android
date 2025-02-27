@@ -15,6 +15,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.patasfelizes.ui.components.*
 import com.example.patasfelizes.models.Campaign
 import com.example.patasfelizes.ui.viewmodels.campaigns.CampaignListViewModel
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.ui.Alignment
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,6 +29,9 @@ fun CampaignsScreen(
 ) {
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     val campaigns by viewModel.campaigns.collectAsState()
+
+    // Estado para controlar a visibilidade da animação
+    val isVisible = remember { mutableStateOf(false) }
 
     val filterOptions = remember {
         listOf(
@@ -39,6 +47,8 @@ fun CampaignsScreen(
 
     LaunchedEffect(Unit) {
         viewModel.reloadCampaigns()
+        // Ativar a visibilidade após carregar
+        isVisible.value = true
     }
 
     Scaffold(
@@ -73,15 +83,27 @@ fun CampaignsScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                CampaignList(
-                    campaigns = campaigns.filter {
-                        it.nome.contains(searchQuery.text, ignoreCase = true) ||
-                                it.tipo.contains(searchQuery.text, ignoreCase = true)
-                    },
-                    onCampaignClick = { campaign ->
-                        navController.navigate("campaignDetails/${campaign.campanha_id}")
+                // Usando animação aqui
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = isVisible.value,
+                        enter = fadeIn(animationSpec = tween(durationMillis = 600)),
+                        exit = fadeOut()
+                    ) {
+                        CampaignList(
+                            campaigns = campaigns.filter {
+                                it.nome.contains(searchQuery.text, ignoreCase = true) ||
+                                        it.tipo.contains(searchQuery.text, ignoreCase = true)
+                            },
+                            onCampaignClick = { campaign ->
+                                navController.navigate("campaignDetails/${campaign.campanha_id}")
+                            }
+                        )
                     }
-                )
+                }
             }
         }
     }

@@ -21,6 +21,10 @@ import com.example.patasfelizes.ui.viewmodels.adoptions.AdoptionListViewModel
 import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
 import com.example.patasfelizes.ui.viewmodels.campaigns.CampaignListViewModel
 import java.time.format.DateTimeFormatter
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,11 +41,17 @@ fun AdoptionsScreen(
     val adopters by adopterViewModel.adopters.collectAsState()
     val campaigns by campaignViewModel.campaigns.collectAsState()
 
+    // Estado para controlar a visibilidade da animação
+    val isVisible = remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
         viewModel.reloadAdoptions()
         animalViewModel.reloadAnimals()
         adopterViewModel.reloadAdopters()
         campaignViewModel.reloadCampaigns()
+
+        // Ativar a visibilidade após carregar os dados
+        isVisible.value = true
     }
 
     val filterOptions = remember {
@@ -87,48 +97,55 @@ fun AdoptionsScreen(
                     modifier = Modifier.padding(horizontal = 5.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    LazyColumn(
-                        modifier = Modifier.padding(horizontal = 5.dp),
-                        contentPadding = PaddingValues(bottom = 20.dp)
+                    // Usando androidx.compose.animation.AnimatedVisibility explicitamente para evitar conflito
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = isVisible.value,
+                        enter = fadeIn(animationSpec = tween(durationMillis = 600)),
+                        exit = fadeOut()
                     ) {
-                        items(adoptions) { adoption ->
-                            val animal = animals.find { it.animal_id == adoption.animal_id }
-                            val adopter = adopters.find { it.adotante_id == adoption.adotante_id }
+                        LazyColumn(
+                            modifier = Modifier.padding(horizontal = 5.dp),
+                            contentPadding = PaddingValues(bottom = 20.dp)
+                        ) {
+                            items(adoptions) { adoption ->
+                                val animal = animals.find { it.animal_id == adoption.animal_id }
+                                val adopter = adopters.find { it.adotante_id == adoption.adotante_id }
 
-                            Box(
-                                modifier = Modifier.fillMaxWidth(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Card(
-                                    modifier = Modifier
-                                        .padding(vertical = 6.dp)
-                                        .clickable {
-                                            navController.navigate("adoptionDetails/${adoption.adocao_id}")
-                                        }
-                                        .fillMaxWidth(0.9f),
-                                    elevation = CardDefaults.cardElevation(3.dp),
-                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary)
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
                                 ) {
-                                    Column(
+                                    Card(
                                         modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(16.dp)
+                                            .padding(vertical = 6.dp)
+                                            .clickable {
+                                                navController.navigate("adoptionDetails/${adoption.adocao_id}")
+                                            }
+                                            .fillMaxWidth(0.9f),
+                                        elevation = CardDefaults.cardElevation(3.dp),
+                                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary)
                                     ) {
-                                        Text(
-                                            text = animal?.nome ?: "Animal não encontrado",
-                                            style = MaterialTheme.typography.titleSmall,
-                                            color = MaterialTheme.colorScheme.onTertiary
-                                        )
-                                        Text(
-                                            text = "Adotante: ${adopter?.nome ?: "Não encontrado"}",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onTertiary
-                                        )
-                                        Text(
-                                            text = "Data da Adoção: ${adoption.data_adocao}",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onTertiary
-                                        )
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(16.dp)
+                                        ) {
+                                            Text(
+                                                text = animal?.nome ?: "Animal não encontrado",
+                                                style = MaterialTheme.typography.titleSmall,
+                                                color = MaterialTheme.colorScheme.onTertiary
+                                            )
+                                            Text(
+                                                text = "Adotante: ${adopter?.nome ?: "Não encontrado"}",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onTertiary
+                                            )
+                                            Text(
+                                                text = "Data da Adoção: ${adoption.data_adocao}",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onTertiary
+                                            )
+                                        }
                                     }
                                 }
                             }

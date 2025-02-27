@@ -44,7 +44,7 @@ class RetrofitInitializer {
         .registerTypeAdapter(Animal::class.java, AnimalAdapter())
         .create()
     private val retrofit = Retrofit.Builder()
-        .baseUrl("http://192.168.0.8:5000/")
+        .baseUrl("http://192.168.122.24:5000/")
         // Troque por seu IP aqui e em res/xml/network_security_config.xml
 
         .addConverterFactory(GsonConverterFactory.create(customGson))

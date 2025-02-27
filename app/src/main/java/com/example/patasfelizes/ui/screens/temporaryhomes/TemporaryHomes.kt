@@ -21,6 +21,10 @@ import com.example.patasfelizes.ui.components.FilterOption
 import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
 import com.example.patasfelizes.ui.viewmodels.hosts.HostListViewModel
 import com.example.patasfelizes.ui.viewmodels.temphomes.TempHomeListViewModel
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,8 +35,14 @@ fun TemporaryHomesScreen(
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     val tempHomes by viewModel.tempHomes.collectAsState()
 
+    // Estado para controlar a visibilidade da animação
+    val isVisible = remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
         viewModel.reloadTempHomes()
+
+        // Ativar a visibilidade após carregar os dados
+        isVisible.value = true
     }
 
     val filterOptions = remember {
@@ -82,12 +92,25 @@ fun TemporaryHomesScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                TemporaryHomeList(
-                    tempHomes = filteredTempHomes,
-                    onTempHomeClick = { tempHome ->
-                        navController.navigate("temporaryHomeDetails/${tempHome.lar_temporario_id}")
+                // Envolvendo com Box e AnimatedVisibility
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    // Usando qualificação completa para evitar conflitos de escopo
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = isVisible.value,
+                        enter = fadeIn(animationSpec = tween(durationMillis = 600)),
+                        exit = fadeOut()
+                    ) {
+                        TemporaryHomeList(
+                            tempHomes = filteredTempHomes,
+                            onTempHomeClick = { tempHome ->
+                                navController.navigate("temporaryHomeDetails/${tempHome.lar_temporario_id}")
+                            }
+                        )
                     }
-                )
+                }
             }
         }
     }

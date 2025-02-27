@@ -22,6 +22,10 @@ import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
 import com.example.patasfelizes.ui.viewmodels.procedure.ProcedureListViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import java.time.LocalDate
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,10 +47,16 @@ fun ExtenseFormScreen(
     val animals by animalViewModel.animals.collectAsState()
     val procedures by procedureViewModel.procedures.collectAsState()
 
+    // Estado para controlar a visibilidade da animação
+    val isVisible = remember { mutableStateOf(false) }
+
     // Carregar dados ao iniciar a tela
     LaunchedEffect(Unit) {
         animalViewModel.reloadAnimals()
         procedureViewModel.reloadProcedures()
+
+        // Ativar a visibilidade após carregar os dados
+        isVisible.value = true
     }
 
     @Composable
@@ -74,110 +84,116 @@ fun ExtenseFormScreen(
                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
             )
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth(0.88f)
-                    .padding(vertical = 16.dp),
-                horizontalAlignment = Alignment.Start
+            // Aplicando AnimatedVisibility ao conteúdo do formulário
+            AnimatedVisibility(
+                visible = isVisible.value,
+                enter = fadeIn(animationSpec = tween(durationMillis = 600)),
+                exit = fadeOut()
             ) {
-                FormField(
-                    label = "Valor",
-                    placeholder = "Informe o valor...",
-                    value = valor,
-                    onValueChange = { valor = it },
-                    modifier = Modifier.padding(bottom = 16.dp),
-                    trailingIcon = { EditIcon() }
-                )
-
-                CustomDropdown(
-                    selectedOption = tipo,
-                    placeholder = "Selecione o tipo de despesa...",
-                    options = tipoOptions,
-                    onOptionSelected = { tipo = it },
-                    label = "Tipo",
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                DatePickerField(
-                    label = "Data da Despesa",
-                    placeholder = "XX-XX-XXXX",
-                    value = dataDespesa.text,
-                    onDateSelected = { newDate ->
-                        dataDespesa = TextFieldValue(newDate)
-                    },
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                CustomDropdown(
-                    selectedOption = animals.find { it.animal_id == selectedAnimalId }?.nome ?: "",
-                    placeholder = "Selecione o animal (opcional)...",
-                    options = animals.map { it.nome },
-                    onOptionSelected = { nome ->
-                        selectedAnimalId = animals.find { it.nome == nome }?.animal_id
-                    },
-                    label = "Animal (opcional)",
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-
-                Row(
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
+                        .fillMaxWidth(0.88f)
+                        .padding(vertical = 16.dp),
+                    horizontalAlignment = Alignment.Start
                 ) {
-                    Button(
-                        onClick = { navController.navigateUp() },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = MaterialTheme.colorScheme.secondary
-                        ),
-                        contentPadding = PaddingValues(vertical = 8.dp, horizontal = 16.dp)
-                    ) {
-                        Text(
-                            text = if (isEditMode) "Cancelar" else "Voltar",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onTertiary,
-                            textAlign = TextAlign.Center
-                        )
-                    }
+                    FormField(
+                        label = "Valor",
+                        placeholder = "Informe o valor...",
+                        value = valor,
+                        onValueChange = { valor = it },
+                        modifier = Modifier.padding(bottom = 16.dp),
+                        trailingIcon = { EditIcon() }
+                    )
 
-                    Spacer(modifier = Modifier.width(16.dp))
+                    CustomDropdown(
+                        selectedOption = tipo,
+                        placeholder = "Selecione o tipo de despesa...",
+                        options = tipoOptions,
+                        onOptionSelected = { tipo = it },
+                        label = "Tipo",
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
 
-                    Button(
-                        onClick = {
-                            // Validação apenas para os campos obrigatórios
-                            if (valor.text.isBlank() || tipo.isBlank() || dataDespesa.text.isBlank()) {
-                                // Você pode adicionar um SnackBar ou Toast para indicar campos em branco
-                                return@Button
-                            }
-
-                            val extense = Extense(
-                                despesa_id = initialExtense?.despesa_id ?: 0,
-                                valor = valor.text.trim(),
-                                tipo = tipo,
-                                data_despesa = dataDespesa.text.trim(),
-                                animal_id = selectedAnimalId,  // Pode ser nulo
-                                data_cadastro = LocalDate.now().toString()
-                            )
-
-                            onSave(extense)
+                    DatePickerField(
+                        label = "Data da Despesa",
+                        placeholder = "XX-XX-XXXX",
+                        value = dataDespesa.text,
+                        onDateSelected = { newDate ->
+                            dataDespesa = TextFieldValue(newDate)
                         },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        ),
-                        contentPadding = PaddingValues(vertical = 8.dp, horizontal = 16.dp)
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
+                    CustomDropdown(
+                        selectedOption = animals.find { it.animal_id == selectedAnimalId }?.nome ?: "",
+                        placeholder = "Selecione o animal (opcional)...",
+                        options = animals.map { it.nome },
+                        onOptionSelected = { nome ->
+                            selectedAnimalId = animals.find { it.nome == nome }?.animal_id
+                        },
+                        label = "Animal (opcional)",
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = "Salvar",
-                            style = MaterialTheme.typography.labelSmall,
-                            textAlign = TextAlign.Center
-                        )
+                        Button(
+                            onClick = { navController.navigateUp() },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = MaterialTheme.colorScheme.secondary
+                            ),
+                            contentPadding = PaddingValues(vertical = 8.dp, horizontal = 16.dp)
+                        ) {
+                            Text(
+                                text = if (isEditMode) "Cancelar" else "Voltar",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onTertiary,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        Button(
+                            onClick = {
+                                // Validação apenas para os campos obrigatórios
+                                if (valor.text.isBlank() || tipo.isBlank() || dataDespesa.text.isBlank()) {
+                                    // Você pode adicionar um SnackBar ou Toast para indicar campos em branco
+                                    return@Button
+                                }
+
+                                val extense = Extense(
+                                    despesa_id = initialExtense?.despesa_id ?: 0,
+                                    valor = valor.text.trim(),
+                                    tipo = tipo,
+                                    data_despesa = dataDespesa.text.trim(),
+                                    animal_id = selectedAnimalId,  // Pode ser nulo
+                                    data_cadastro = LocalDate.now().toString()
+                                )
+
+                                onSave(extense)
+                            },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary
+                            ),
+                            contentPadding = PaddingValues(vertical = 8.dp, horizontal = 16.dp)
+                        ) {
+                            Text(
+                                text = "Salvar",
+                                style = MaterialTheme.typography.labelSmall,
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
+                    Spacer(modifier = Modifier.height(32.dp))
                 }
-                Spacer(modifier = Modifier.height(32.dp))
             }
         }
     }

@@ -17,6 +17,11 @@ import com.example.patasfelizes.models.Task
 import com.example.patasfelizes.ui.viewmodels.task.TaskListViewModel
 import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
 import com.example.patasfelizes.ui.viewmodels.team.TeamListViewModel
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.ui.Alignment
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,6 +35,9 @@ fun TasksScreen(
     val tasks by viewModel.tasks.collectAsState()
     val animals by animalViewModel.animals.collectAsState()
     val volunteers by teamViewModel.voluntarios.collectAsState()
+
+    // Estado para controlar a visibilidade da animação
+    val isVisible = remember { mutableStateOf(false) }
 
     val filterOptions = remember {
         listOf(
@@ -51,6 +59,9 @@ fun TasksScreen(
         viewModel.reloadTasks()
         animalViewModel.reloadAnimals()
         teamViewModel.reloadVoluntarios()
+
+        // Ativar a visibilidade após carregar os dados
+        isVisible.value = true
     }
 
     Scaffold(
@@ -85,20 +96,33 @@ fun TasksScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                TaskList(
-                    tasks = tasks.filter { task ->
-                        (searchQuery.text.isEmpty() ||
-                                task.descricao.contains(searchQuery.text, ignoreCase = true) ||
-                                task.tipo.contains(searchQuery.text, ignoreCase = true)) &&
-                                (currentFilters.none { it.isSelected } ||
-                                        currentFilters.any { filter -> filter.isSelected && filter.name == task.tipo })
-                    },
-                    animals = animals,
-                    volunteers = volunteers,
-                    onTaskClick = { task ->
-                        navController.navigate("taskDetails/${task.tarefa_id}")
+                // Envolvendo a lista com Box e AnimatedVisibility
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    // Usando qualificação completa para evitar conflitos de escopo
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = isVisible.value,
+                        enter = fadeIn(animationSpec = tween(durationMillis = 600)),
+                        exit = fadeOut()
+                    ) {
+                        TaskList(
+                            tasks = tasks.filter { task ->
+                                (searchQuery.text.isEmpty() ||
+                                        task.descricao.contains(searchQuery.text, ignoreCase = true) ||
+                                        task.tipo.contains(searchQuery.text, ignoreCase = true)) &&
+                                        (currentFilters.none { it.isSelected } ||
+                                                currentFilters.any { filter -> filter.isSelected && filter.name == task.tipo })
+                            },
+                            animals = animals,
+                            volunteers = volunteers,
+                            onTaskClick = { task ->
+                                navController.navigate("taskDetails/${task.tarefa_id}")
+                            }
+                        )
                     }
-                )
+                }
             }
         }
     }

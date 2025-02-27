@@ -22,6 +22,10 @@ import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
 import com.example.patasfelizes.ui.viewmodels.campaigns.CampaignListViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import java.time.LocalDate
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,10 +46,16 @@ fun DonationFormScreen(
     val animals by animalViewModel.animals.collectAsState()
     val campaigns by campaignViewModel.campaigns.collectAsState()
 
+    // Estado para controlar a visibilidade da animação
+    val isVisible = remember { mutableStateOf(false) }
+
     // Carregar dados ao iniciar a tela
     LaunchedEffect(Unit) {
         animalViewModel.reloadAnimals()
         campaignViewModel.reloadCampaigns()
+
+        // Ativar a visibilidade após carregar os dados
+        isVisible.value = true
     }
 
     @Composable
@@ -73,119 +83,126 @@ fun DonationFormScreen(
                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
             )
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth(0.88f)
-                    .padding(vertical = 16.dp),
-                horizontalAlignment = Alignment.Start
+            // Aplicando AnimatedVisibility ao conteúdo principal
+            AnimatedVisibility(
+                visible = isVisible.value,
+                enter = fadeIn(animationSpec = tween(durationMillis = 600)),
+                exit = fadeOut()
             ) {
-                FormField(
-                    label = "Doador",
-                    placeholder = "Nome do doador...",
-                    value = doador,
-                    onValueChange = { doador = it },
-                    modifier = Modifier.padding(bottom = 16.dp),
-                    trailingIcon = { EditIcon() }
-                )
-
-                FormField(
-                    label = "Valor",
-                    placeholder = "Informe o valor...",
-                    value = valor,
-                    onValueChange = { valor = it },
-                    modifier = Modifier.padding(bottom = 16.dp),
-                    trailingIcon = { EditIcon() }
-                )
-
-                DatePickerField(
-                    label = "Data da Doação",
-                    placeholder = "XX-XX-XXXX",
-                    value = dataDoacao.text,
-                    onDateSelected = { newDate ->
-                        dataDoacao = TextFieldValue(newDate)
-                    },
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                CustomDropdown(
-                    selectedOption = animals.find { it.animal_id == selectedAnimalId }?.nome ?: "",
-                    placeholder = "Selecione o animal (opcional)...",
-                    options = animals.map { it.nome },
-                    onOptionSelected = { nome ->
-                        selectedAnimalId = animals.find { it.nome == nome }?.animal_id
-                    },
-                    label = "Animal",
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                CustomDropdown(
-                    selectedOption = campaigns.find { it.campanha_id == selectedCampaignId }?.nome ?: "",
-                    placeholder = "Selecione a campanha (opcional)...",
-                    options = campaigns.map { it.nome },
-                    onOptionSelected = { nome ->
-                        selectedCampaignId = campaigns.find { it.nome == nome }?.campanha_id
-                    },
-                    label = "Campanha",
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                Row(
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
+                        .fillMaxWidth(0.88f)
+                        .padding(vertical = 16.dp),
+                    horizontalAlignment = Alignment.Start
                 ) {
-                    Button(
-                        onClick = { navController.navigateUp() },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = MaterialTheme.colorScheme.secondary
-                        ),
-                        contentPadding = PaddingValues(vertical = 8.dp, horizontal = 16.dp)
-                    ) {
-                        Text(
-                            text = if (isEditMode) "Cancelar" else "Voltar",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onTertiary,
-                            textAlign = TextAlign.Center
-                        )
-                    }
+                    FormField(
+                        label = "Doador",
+                        placeholder = "Nome do doador...",
+                        value = doador,
+                        onValueChange = { doador = it },
+                        modifier = Modifier.padding(bottom = 16.dp),
+                        trailingIcon = { EditIcon() }
+                    )
 
-                    Spacer(modifier = Modifier.width(16.dp))
+                    FormField(
+                        label = "Valor",
+                        placeholder = "Informe o valor...",
+                        value = valor,
+                        onValueChange = { valor = it },
+                        modifier = Modifier.padding(bottom = 16.dp),
+                        trailingIcon = { EditIcon() }
+                    )
 
-                    Button(
-                        onClick = {
-                            if (doador.text.isBlank() || valor.text.isBlank() || dataDoacao.text.isBlank()) {
-                                return@Button
-                            }
-
-                            val donation = Donation(
-                                doacao_id = initialDonation?.doacao_id ?: 0,
-                                doador = doador.text.trim(),
-                                valor = valor.text.trim(),
-                                data_doacao = dataDoacao.text.trim(),
-                                animal_id = selectedAnimalId,
-                                companha_id = selectedCampaignId,
-                                data_cadastro = LocalDate.now().toString()
-                            )
-
-                            onSave(donation)
+                    DatePickerField(
+                        label = "Data da Doação",
+                        placeholder = "XX-XX-XXXX",
+                        value = dataDoacao.text,
+                        onDateSelected = { newDate ->
+                            dataDoacao = TextFieldValue(newDate)
                         },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        ),
-                        contentPadding = PaddingValues(vertical = 8.dp, horizontal = 16.dp)
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
+                    CustomDropdown(
+                        selectedOption = animals.find { it.animal_id == selectedAnimalId }?.nome ?: "",
+                        placeholder = "Selecione o animal (opcional)...",
+                        options = animals.map { it.nome },
+                        onOptionSelected = { nome ->
+                            selectedAnimalId = animals.find { it.nome == nome }?.animal_id
+                        },
+                        label = "Animal",
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
+                    CustomDropdown(
+                        selectedOption = campaigns.find { it.campanha_id == selectedCampaignId }?.nome ?: "",
+                        placeholder = "Selecione a campanha (opcional)...",
+                        options = campaigns.map { it.nome },
+                        onOptionSelected = { nome ->
+                            selectedCampaignId = campaigns.find { it.nome == nome }?.campanha_id
+                        },
+                        label = "Campanha",
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = "Salvar",
-                            style = MaterialTheme.typography.labelSmall,
-                            textAlign = TextAlign.Center
-                        )
+                        Button(
+                            onClick = { navController.navigateUp() },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = MaterialTheme.colorScheme.secondary
+                            ),
+                            contentPadding = PaddingValues(vertical = 8.dp, horizontal = 16.dp)
+                        ) {
+                            Text(
+                                text = if (isEditMode) "Cancelar" else "Voltar",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onTertiary,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        Button(
+                            onClick = {
+                                if (doador.text.isBlank() || valor.text.isBlank() || dataDoacao.text.isBlank()) {
+                                    return@Button
+                                }
+
+                                val donation = Donation(
+                                    doacao_id = initialDonation?.doacao_id ?: 0,
+                                    doador = doador.text.trim(),
+                                    valor = valor.text.trim(),
+                                    data_doacao = dataDoacao.text.trim(),
+                                    animal_id = selectedAnimalId,
+                                    companha_id = selectedCampaignId,
+                                    data_cadastro = LocalDate.now().toString()
+                                )
+
+                                onSave(donation)
+                            },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary
+                            ),
+                            contentPadding = PaddingValues(vertical = 8.dp, horizontal = 16.dp)
+                        ) {
+                            Text(
+                                text = "Salvar",
+                                style = MaterialTheme.typography.labelSmall,
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
+                    Spacer(modifier = Modifier.height(32.dp))
                 }
-                Spacer(modifier = Modifier.height(32.dp))
             }
         }
     }

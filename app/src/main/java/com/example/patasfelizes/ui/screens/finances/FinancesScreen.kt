@@ -16,6 +16,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
 import com.example.patasfelizes.ui.viewmodels.campaigns.CampaignListViewModel
 import com.example.patasfelizes.ui.viewmodels.procedure.ProcedureListViewModel
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.ui.Alignment
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,12 +42,18 @@ fun FinancesScreen(
     val animals by animalViewModel.animals.collectAsState()
     val campaigns by campaignViewModel.campaigns.collectAsState()
 
+    // Estado para controlar a visibilidade da animação
+    val isVisible = remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
         extenseViewModel.reloadExtenses()
         donationViewModel.reloadDonations()
         animalViewModel.reloadAnimals()
         procedureViewModel.reloadProcedures()
         campaignViewModel.reloadCampaigns()
+
+        // Ativar a visibilidade após carregar os dados
+        isVisible.value = true
     }
 
 
@@ -112,24 +123,37 @@ fun FinancesScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Listagem de conteúdo baseado na aba selecionada
-                if (selectedTabIndex == 0) {
-                    ExtensesContent(
-                        expenses = filteredExpenses,
-                        animals = animals, // Passar os animais
-                        onExtenseClick = { expense ->
-                            navController.navigate("extenseDetails/${expense.despesa_id}")
+                // Usando um Box como container para a animação
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    // Usando qualificação completa para evitar conflitos de escopo
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = isVisible.value,
+                        enter = fadeIn(animationSpec = tween(durationMillis = 600)),
+                        exit = fadeOut()
+                    ) {
+                        // Listagem de conteúdo baseado na aba selecionada
+                        if (selectedTabIndex == 0) {
+                            ExtensesContent(
+                                expenses = filteredExpenses,
+                                animals = animals, // Passar os animais
+                                onExtenseClick = { expense ->
+                                    navController.navigate("extenseDetails/${expense.despesa_id}")
+                                }
+                            )
+                        } else {
+                            DonationsContent(
+                                donations = filteredDonations,
+                                animals = animals, // Passar os animais
+                                campaigns = campaigns, // Passar as campanhas
+                                onDonationClick = { donation ->
+                                    navController.navigate("donationDetails/${donation.doacao_id}")
+                                }
+                            )
                         }
-                    )
-                } else {
-                    DonationsContent(
-                        donations = filteredDonations,
-                        animals = animals, // Passar os animais
-                        campaigns = campaigns, // Passar as campanhas
-                        onDonationClick = { donation ->
-                            navController.navigate("donationDetails/${donation.doacao_id}")
-                        }
-                    )
+                    }
                 }
             }
         }

@@ -22,6 +22,10 @@ import com.example.patasfelizes.ui.viewmodels.adoptions.AdoptionDetailsState
 import com.example.patasfelizes.ui.viewmodels.adoptions.AdoptionDetailsViewModel
 import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
 import com.example.patasfelizes.ui.viewmodels.campaigns.CampaignListViewModel
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,18 +37,21 @@ fun DetailsAdoptionsScreen(
     adopterViewModel: AdopterListViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
     campaignViewModel: CampaignListViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
-    // O restante do código permanece igual, apenas mudando de adopterId para adoptionId
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsState()
     val animals by animalViewModel.animals.collectAsState()
     val adopters by adopterViewModel.adopters.collectAsState()
     val campaigns by campaignViewModel.campaigns.collectAsState()
 
+    val isVisible = remember { mutableStateOf(false) }
+
     LaunchedEffect(adoptionId) {
         viewModel.loadAdoption(adoptionId)
         animalViewModel.reloadAnimals()
         adopterViewModel.reloadAdopters()
         campaignViewModel.reloadCampaigns()
+
+        isVisible.value = true
     }
 
     when (val state = uiState) {
@@ -89,105 +96,116 @@ fun DetailsAdoptionsScreen(
                             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
                         )
 
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth(0.95f)
-                                .padding(horizontal = 16.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary)
+                        AnimatedVisibility(
+                            visible = isVisible.value,
+                            enter = fadeIn(animationSpec = tween(durationMillis = 600)),
+                            exit = fadeOut()
                         ) {
                             Column(
-                                modifier = Modifier.padding(16.dp),
-                                horizontalAlignment = Alignment.Start
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                DetailRow(label = "Animal", value = animal?.nome ?: "Animal não encontrado")
-                                DetailRow(label = "Adotante", value = adopter?.nome ?: "Adotante não encontrado")
-                                DetailRow(label = "Data da Adoção", value = adoption.data_adocao)
-                                DetailRow(label = "Data de Cadastro", value = adoption.data_cadastro)
-                            }
-                        }
+                                Spacer(modifier = Modifier.height(16.dp))
 
-                        Spacer(modifier = Modifier.height(24.dp))
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth(0.9f)
-                                .padding(horizontal = 16.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Button(
-                                onClick = { navController.navigateUp() },
-                                modifier = Modifier.weight(1f),
-                                colors = ButtonDefaults.outlinedButtonColors(
-                                    containerColor = MaterialTheme.colorScheme.secondary
-                                )
-                            ) {
-                                Text(
-                                    text = "Voltar",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onTertiary
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.width(16.dp))
-
-                            Button(
-                                onClick = { navController.navigate("editAdoption/${adoption.adocao_id}") },
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text(
-                                    text = "Editar",
-                                    style = MaterialTheme.typography.labelSmall
-                                )
-                            }
-                        }
-
-                        Button(
-                            onClick = { showDeleteConfirmation = true },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.error
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth(0.9f)
-                                .padding(top = 16.dp)
-                        ) {
-                            Text(
-                                text = "Remover adoção",
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        }
-
-                        if (showDeleteConfirmation) {
-                            AlertDialog(
-                                onDismissRequest = { showDeleteConfirmation = false },
-                                title = { Text("Confirmar Exclusão") },
-                                text = { Text("Tem certeza que deseja remover esta adoção?") },
-                                confirmButton = {
-                                    TextButton(
-                                        onClick = {
-                                            viewModel.deleteAdoption(adoption.adocao_id) {
-                                                navController.navigateUp()
-                                            }
-                                        }
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.95f)
+                                        .padding(horizontal = 16.dp),
+                                    shape = RoundedCornerShape(16.dp),
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondary)
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(16.dp),
+                                        horizontalAlignment = Alignment.Start
                                     ) {
-                                        Text("Confirmar")
-                                    }
-                                },
-                                dismissButton = {
-                                    TextButton(
-                                        onClick = { showDeleteConfirmation = false }
-                                    ) {
-                                        Text("Cancelar")
+                                        DetailRow(label = "Animal", value = animal?.nome ?: "Animal não encontrado")
+                                        DetailRow(label = "Adotante", value = adopter?.nome ?: "Adotante não encontrado")
+                                        DetailRow(label = "Data da Adoção", value = adoption.data_adocao)
+                                        DetailRow(label = "Data de Cadastro", value = adoption.data_cadastro)
                                     }
                                 }
-                            )
-                        }
 
-                        Spacer(modifier = Modifier.height(32.dp))
+                                Spacer(modifier = Modifier.height(24.dp))
+
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.9f)
+                                        .padding(horizontal = 16.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Button(
+                                        onClick = { navController.navigateUp() },
+                                        modifier = Modifier.weight(1f),
+                                        colors = ButtonDefaults.outlinedButtonColors(
+                                            containerColor = MaterialTheme.colorScheme.secondary
+                                        )
+                                    ) {
+                                        Text(
+                                            text = "Voltar",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onTertiary
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.width(16.dp))
+
+                                    Button(
+                                        onClick = { navController.navigate("editAdoption/${adoption.adocao_id}") },
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text(
+                                            text = "Editar",
+                                            style = MaterialTheme.typography.labelSmall
+                                        )
+                                    }
+                                }
+
+                                Button(
+                                    onClick = { showDeleteConfirmation = true },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.error
+                                    ),
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.9f)
+                                        .padding(top = 16.dp)
+                                ) {
+                                    Text(
+                                        text = "Remover adoção",
+                                        style = MaterialTheme.typography.labelSmall
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.height(32.dp))
+                            }
+                        }
                     }
                 }
+            }
+
+            if (showDeleteConfirmation) {
+                AlertDialog(
+                    onDismissRequest = { showDeleteConfirmation = false },
+                    title = { Text("Confirmar Exclusão") },
+                    text = { Text("Tem certeza que deseja remover esta adoção?") },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                viewModel.deleteAdoption(adoption.adocao_id) {
+                                    navController.navigateUp()
+                                }
+                            }
+                        ) {
+                            Text("Confirmar")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = { showDeleteConfirmation = false }
+                        ) {
+                            Text("Cancelar")
+                        }
+                    }
+                )
             }
         }
     }

@@ -17,6 +17,11 @@ import com.example.patasfelizes.ui.components.CustomSearchBar
 import com.example.patasfelizes.ui.components.FilterComponent
 import com.example.patasfelizes.ui.components.FilterOption
 import com.example.patasfelizes.ui.viewmodels.stock.StockListViewModel
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.ui.Alignment
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,6 +31,9 @@ fun StockScreen(
 ) {
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     val stocks by viewModel.stocks.collectAsState()
+
+    // Estado para controlar a visibilidade da animação
+    val isVisible = remember { mutableStateOf(false) }
 
     val filterOptions = remember {
         listOf(
@@ -44,6 +52,9 @@ fun StockScreen(
 
     LaunchedEffect(Unit) {
         viewModel.reloadStocks()
+
+        // Ativar a visibilidade após carregar os dados
+        isVisible.value = true
     }
 
     Scaffold(
@@ -78,12 +89,25 @@ fun StockScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                StockListContent(
-                    stockItems = filteredStocks,
-                    onStockClick = { stock ->
-                        navController.navigate("stockDetails/${stock.estoque_id}")
+                // Envolvendo a lista com Box e AnimatedVisibility
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    // Usando qualificação completa para evitar conflitos de escopo
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = isVisible.value,
+                        enter = fadeIn(animationSpec = tween(durationMillis = 600)),
+                        exit = fadeOut()
+                    ) {
+                        StockListContent(
+                            stockItems = filteredStocks,
+                            onStockClick = { stock ->
+                                navController.navigate("stockDetails/${stock.estoque_id}")
+                            }
+                        )
                     }
-                )
+                }
             }
         }
     }

@@ -17,6 +17,11 @@ import com.example.patasfelizes.models.Procedure
 import com.example.patasfelizes.ui.viewmodels.procedure.ProcedureListViewModel
 import com.example.patasfelizes.ui.viewmodels.animals.AnimalListViewModel
 import com.example.patasfelizes.ui.viewmodels.team.TeamListViewModel
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.ui.Alignment
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,6 +35,9 @@ fun ProceduresScreen(
     val procedures by viewModel.procedures.collectAsState()
     val animals by animalViewModel.animals.collectAsState()
     val voluntaries by voluntaryViewModel.voluntarios.collectAsState()
+
+    // Estado para controlar a visibilidade da animação
+    val isVisible = remember { mutableStateOf(false) }
 
     val filterOptions = remember {
         listOf(
@@ -48,6 +56,9 @@ fun ProceduresScreen(
         viewModel.reloadProcedures()
         animalViewModel.reloadAnimals()
         voluntaryViewModel.reloadVoluntarios()
+
+        // Ativar a visibilidade após carregar os dados
+        isVisible.value = true
     }
 
     Scaffold(
@@ -82,19 +93,32 @@ fun ProceduresScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                ProcedureList(
-                    procedures = procedures.filter {
-                        (it.descricao.contains(searchQuery.text, ignoreCase = true) ||
-                                it.tipo.contains(searchQuery.text, ignoreCase = true)) &&
-                                (currentFilters.find { filter -> filter.isSelected && filter.name == it.tipo } != null ||
-                                        currentFilters.none { filter -> filter.isSelected })
-                    },
-                    animals = animals,
-                    voluntaries = voluntaries,
-                    onProcedureClick = { procedure ->
-                        navController.navigate("procedureDetails/${procedure.procedimento_id}")
+                // Envolvendo a lista de procedimentos em Box com AnimatedVisibility
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    // Usando qualificação completa para evitar conflitos de escopo
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = isVisible.value,
+                        enter = fadeIn(animationSpec = tween(durationMillis = 600)),
+                        exit = fadeOut()
+                    ) {
+                        ProcedureList(
+                            procedures = procedures.filter {
+                                (it.descricao.contains(searchQuery.text, ignoreCase = true) ||
+                                        it.tipo.contains(searchQuery.text, ignoreCase = true)) &&
+                                        (currentFilters.find { filter -> filter.isSelected && filter.name == it.tipo } != null ||
+                                                currentFilters.none { filter -> filter.isSelected })
+                            },
+                            animals = animals,
+                            voluntaries = voluntaries,
+                            onProcedureClick = { procedure ->
+                                navController.navigate("procedureDetails/${procedure.procedimento_id}")
+                            }
+                        )
                     }
-                )
+                }
             }
         }
     }

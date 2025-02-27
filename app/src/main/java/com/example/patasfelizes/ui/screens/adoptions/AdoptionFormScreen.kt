@@ -33,6 +33,10 @@ import com.example.patasfelizes.repository.AdoptersRepository
 import com.example.patasfelizes.ui.components.DatePickerField
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,6 +71,12 @@ fun AdoptionFormScreen(
     val context = LocalContext.current
     val adopterRepository = remember { AdoptersRepository() }
 
+    val isVisible = remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        isVisible.value = true
+    }
+
     BoxWithProgressBar(isLoading = isLoading) {
         Column(
             modifier = Modifier
@@ -75,96 +85,107 @@ fun AdoptionFormScreen(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            CustomDropdown(
-                label = "Animal",
-                selectedOption = animals.find { it.animal_id == selectedAnimalId }?.nome ?: "Selecione o animal",
-                options = animals.map { it.nome },
-                onOptionSelected = { selectedOption ->
-                    selectedAnimalId = animals.find { it.nome == selectedOption }?.animal_id
-                }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
+            AnimatedVisibility(
+                visible = isVisible.value,
+                enter = fadeIn(animationSpec = tween(durationMillis = 600)),
+                exit = fadeOut()
             ) {
-                CustomDropdown(
-                    label = "Adotante",
-                    selectedOption = adopters.find { it.adotante_id == selectedAdopterId }?.nome ?: "Selecione o adotante",
-                    options = adopters.map { it.nome },
-                    onOptionSelected = { selectedOption ->
-                        selectedAdopterId = adopters.find { it.nome == selectedOption }?.adotante_id
-                    },
-                    modifier = Modifier.weight(1f)
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                IconButton(
-                    onClick = { showAddAdopterDialog = true },
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary)
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Adicionar adotante",
-                        tint = MaterialTheme.colorScheme.onPrimary
+                    CustomDropdown(
+                        label = "Animal",
+                        selectedOption = animals.find { it.animal_id == selectedAnimalId }?.nome ?: "Selecione o animal",
+                        options = animals.map { it.nome },
+                        onOptionSelected = { selectedOption ->
+                            selectedAnimalId = animals.find { it.nome == selectedOption }?.animal_id
+                        }
                     )
-                }
-            }
 
+                    Spacer(modifier = Modifier.height(16.dp))
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            DatePickerField(
-                label = "Data da Adoção",
-                placeholder = "YYYY-MM-DD",
-                value = dataAdocao.text,
-                onDateSelected = { newDate ->
-                    dataAdocao = TextFieldValue(newDate)
-                },
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Button(
-                    onClick = { navController.navigateUp() },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.secondary
-                    ),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(if (isEditMode) "Cancelar" else "Voltar")
-                }
-
-                Spacer(modifier = Modifier.width(16.dp))
-
-                Button(
-                    onClick = {
-                        val adoption = Adoption(
-                            adocao_id = initialAdoption?.adocao_id ?: 0,
-                            animal_id = selectedAnimalId ?: 0,
-                            adotante_id = selectedAdopterId ?: 0,
-                            data_adocao = dataAdocao.text,
-                            data_cadastro = LocalDate.now().toString()
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        CustomDropdown(
+                            label = "Adotante",
+                            selectedOption = adopters.find { it.adotante_id == selectedAdopterId }?.nome ?: "Selecione o adotante",
+                            options = adopters.map { it.nome },
+                            onOptionSelected = { selectedOption ->
+                                selectedAdopterId = adopters.find { it.nome == selectedOption }?.adotante_id
+                            },
+                            modifier = Modifier.weight(1f)
                         )
-                        onSave(adoption)
-                    },
-                    modifier = Modifier.weight(1f),
-                    enabled = !isLoading &&
-                            selectedAnimalId != null &&
-                            selectedAdopterId != null &&
-                            dataAdocao.text.isNotBlank()
-                ) {
-                    Text("Salvar")
+                        Spacer(modifier = Modifier.width(16.dp))
+                        IconButton(
+                            onClick = { showAddAdopterDialog = true },
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Adicionar adotante",
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+                    }
+
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    DatePickerField(
+                        label = "Data da Adoção",
+                        placeholder = "YYYY-MM-DD",
+                        value = dataAdocao.text,
+                        onDateSelected = { newDate ->
+                            dataAdocao = TextFieldValue(newDate)
+                        },
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Button(
+                            onClick = { navController.navigateUp() },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.secondary
+                            ),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(if (isEditMode) "Cancelar" else "Voltar")
+                        }
+
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        Button(
+                            onClick = {
+                                val adoption = Adoption(
+                                    adocao_id = initialAdoption?.adocao_id ?: 0,
+                                    animal_id = selectedAnimalId ?: 0,
+                                    adotante_id = selectedAdopterId ?: 0,
+                                    data_adocao = dataAdocao.text,
+                                    data_cadastro = LocalDate.now().toString()
+                                )
+                                onSave(adoption)
+                            },
+                            modifier = Modifier.weight(1f),
+                            enabled = !isLoading &&
+                                    selectedAnimalId != null &&
+                                    selectedAdopterId != null &&
+                                    dataAdocao.text.isNotBlank()
+                        ) {
+                            Text("Salvar")
+                        }
+                    }
                 }
             }
         }
@@ -204,7 +225,7 @@ fun AdoptionFormScreen(
                                 nome = newAdopterName,
                                 email = newAdopterEmail,
                                 telefone = newAdopterPhone,
-                                moradia = "" // You might want to add a moradia field to the dialog
+                                moradia = ""
                             )
 
                             adopterRepository.createAdopter(newAdopter,
@@ -217,7 +238,6 @@ fun AdoptionFormScreen(
                                     newAdopterPhone = ""
                                 },
                                 onError = { errorMessage ->
-                                    // Handle error (e.g., show a Toast)
                                     Toast.makeText(context, "Erro ao criar adotante: $errorMessage", Toast.LENGTH_SHORT).show()
                                 }
                             )
