@@ -61,7 +61,9 @@ import com.example.patasfelizes.repository.SupportRepository
 import com.example.patasfelizes.repository.TaskRepository
 import com.example.patasfelizes.repository.TempHomeRepository
 import com.example.patasfelizes.repository.VoluntaryRepository
-
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.patasfelizes.ui.screens.auth.LoginScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
@@ -122,7 +124,10 @@ class MainActivity : ComponentActivity() {
         var title by remember { mutableStateOf("Pets") }
         val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
         val coroutineScope = rememberCoroutineScope()
-
+        
+        // Rastreando a rota atual usando o backStackEntry
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentRoute = navBackStackEntry?.destination?.route ?: "login"
 
         val onSaveAnimal: (Animal) -> Unit = { animal ->
             animalsRepository.createAnimal(
@@ -293,22 +298,27 @@ class MainActivity : ComponentActivity() {
         ) {
             Surface(modifier = Modifier.fillMaxSize()) {
                 Column {
-                    TopBar(
-                        title = title,
-                        onOpenDrawer = {
-                            coroutineScope.launch {
-                                drawerState.open()
+                    if (currentRoute != "login") {
+                        TopBar(
+                            title = title,
+                            onOpenDrawer = {
+                                coroutineScope.launch {
+                                    drawerState.open()
+                                }
+                            },
+                            onProfileClick = {
+                                // Ação ao clicar no perfil do usuário
                             }
-                        },
-                        onProfileClick = {
-                            // Ação ao clicar no perfil do usuário
-                        }
-                    )
+                        )
+                    }
 
                     NavHost(
                         navController = navController,
-                        startDestination = "pets"
+                        startDestination = "login"
                     ) {
+                        composable("login") {
+                            LoginScreen(navController = navController)
+                        }
                         setupNavHost(navController,
                             onSaveAnimal,
                             onSaveAdoption,

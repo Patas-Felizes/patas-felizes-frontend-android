@@ -93,4 +93,8 @@ dependencies {
     implementation ("com.itextpdf:kernel:7.2.4")
     implementation ("com.itextpdf:layout:7.2.4")
     implementation ("com.itextpdf:io:7.2.4")
+
+    // Google Authentication
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 }
